@@ -21,6 +21,8 @@ import (
 // @Failure 400,404,500 {object} errors.Error
 // @Router /auth/signIn [post]
 func (s *endpoint) signIn(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "signIn")
+	defer span.End()
 
 	var req model.SignInReq
 

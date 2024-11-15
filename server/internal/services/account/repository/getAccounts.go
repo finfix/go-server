@@ -14,6 +14,8 @@ import (
 
 // GetAccounts возвращает все счета, удовлетворяющие фильтрам
 func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoModel.GetAccountsReq) (accounts []model.Account, err error) {
+	ctx, span := tracer.Start(ctx, "getAccounts")
+	defer span.End()
 
 	filters := make(sq.Eq)
 

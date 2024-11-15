@@ -20,6 +20,8 @@ import (
 // @Failure 400,401,403,500 {object} errors.Error
 // @Router /account [post]
 func (s *endpoint) createAccount(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "createAccount")
+	defer span.End()
 
 	var req model.CreateAccountReq
 

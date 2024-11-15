@@ -14,6 +14,8 @@ import (
 
 // SignUp регистрирует пользователя и возвращает токены доступа
 func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (accessData model.AuthRes, err error) {
+	ctx, span := tracer.Start(ctx, "SignUp")
+	defer span.End()
 
 	// Проверяем, есть ли пользователь в бд с таким email
 	if _users, err := s.userRepository.GetUsers(ctx, userModel.GetUsersReq{Emails: []string{loginData.Email}}); err != nil { //nolint:exhaustruct

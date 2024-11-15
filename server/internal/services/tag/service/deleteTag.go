@@ -8,6 +8,8 @@ import (
 
 // DeleteTag удаляет подкатегорию
 func (s *TagService) DeleteTag(ctx context.Context, req model.DeleteTagReq) error {
+	ctx, span := tracer.Start(ctx, "DeleteTag")
+	defer span.End()
 
 	// Проверяем доступ пользователя к подкатегории
 	if err := s.CheckAccess(ctx, req.Necessary.UserID, []uint32{req.ID}); err != nil {

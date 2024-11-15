@@ -3,9 +3,13 @@ package repository
 import (
 	"time"
 
+	"go.opentelemetry.io/otel"
+
 	"pkg/cache"
 	"pkg/sql"
 )
+
+var tracer = otel.Tracer("/server/internal/services/user/repository")
 
 type UserRepository struct {
 	db                           sql.SQL

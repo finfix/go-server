@@ -4,8 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/otel"
+
 	"pkg/sql"
 )
+
+var tracer = otel.Tracer("/server/internal/services/transactor/service")
 
 type Transactor struct {
 	db sql.SQL
@@ -19,6 +23,8 @@ func NewTransactor(db sql.SQL) *Transactor {
 
 // WithinTransaction принимает коллбэк, который будет выполнен в рамках транзакции
 func (r *Transactor) WithinTransaction(ctx context.Context, callback func(ctx context.Context) error) error {
+	ctx, span := tracer.Start(ctx, "WithinTransaction")
+	defer span.End()
 
 	// Запускаем транзакцию
 	tx, err := r.db.Begin(ctx)

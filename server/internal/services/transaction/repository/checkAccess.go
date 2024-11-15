@@ -12,6 +12,8 @@ import (
 
 // CheckAccess проверяет, имеет ли набор групп счетов пользователя доступ к указанным идентификаторам транзакций
 func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs, transactionIDs []uint32) error {
+	ctx, span := tracer.Start(ctx, "CheckAccess")
+	defer span.End()
 
 	// Получаем все доступные транзакции по группам счетов и перечисленным транзакциям
 	rows, err := r.db.Query(ctx, sq.

@@ -16,6 +16,8 @@ import (
 
 // GetBalancingAccountID получает ID балансировочного счета, подходящего для конкретного счета
 func (s *AccountService) GetBalancingAccountID(ctx context.Context, account model.Account) (balancingAccountID uint32, serialNumber uint32, wasCreate bool, err error) {
+	ctx, span := tracer.Start(ctx, "GetBalancingAccountID")
+	defer span.End()
 
 	// Получаем балансировочный счет группы в нужной валюте, чтобы создать для нее транзакцию
 	balancingAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct

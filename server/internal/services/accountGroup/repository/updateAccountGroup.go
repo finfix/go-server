@@ -12,6 +12,8 @@ import (
 
 // UpdateAccountGroup обновляет группу счетов
 func (r *AccountGroupRepository) UpdateAccountGroup(ctx context.Context, fields model.UpdateAccountGroupReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateAccountGroup")
+	defer span.End()
 
 	updates := make(map[string]any)
 

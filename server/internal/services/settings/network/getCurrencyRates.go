@@ -8,11 +8,17 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"go.opentelemetry.io/otel"
 
 	"pkg/errors"
 )
 
+var tracer = otel.Tracer("/server/internal/services/settings/network")
+
 func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.Decimal, error) {
+	ctx, span := tracer.Start(ctx, "GetCurrencyRates")
+	defer span.End()
+
 	var providerModel struct {
 		Meta struct {
 			LastUpdatedAt time.Time `json:"last_updated_at"`

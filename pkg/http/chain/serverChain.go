@@ -2,7 +2,10 @@ package chain
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+
+	"go.opentelemetry.io/otel"
 
 	"pkg/panicRecover"
 )
@@ -59,10 +62,14 @@ type EncodeErrorFunc func(context.Context, http.ResponseWriter, error)
 
 type LoggingFunc func(error)
 
+var tracer = otel.Tracer("/pkg/http/chain")
+
 func (s *Chain) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+	ctx, span := tracer.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.URL.Path))
+	defer span.End()
+
 	var (
-		ctx = r.Context()
 		err error
 		res any
 	)

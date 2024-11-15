@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
 	"gopkg.in/telebot.v3"
 
 	"pkg/errors"
 	"pkg/log"
 )
+
+var tracer = otel.Tracer("/server/internal/services/tgBot/service")
 
 type TgBotService struct {
 	Bot  *telebot.Bot

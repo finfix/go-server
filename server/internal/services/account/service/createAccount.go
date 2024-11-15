@@ -11,6 +11,8 @@ import (
 
 // CreateAccount создает новый счет
 func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate model.CreateAccountReq) (res model.CreateAccountRes, err error) {
+	ctx, span := tracer.Start(ctx, "CreateAccount")
+	defer span.End()
 
 	// Проверяем доступ пользователя к группе счетов
 	if err = s.accountGroupService.CheckAccess(ctx, accountToCreate.Necessary.UserID, []uint32{accountToCreate.AccountGroupID}); err != nil {

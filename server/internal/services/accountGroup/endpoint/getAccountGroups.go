@@ -18,6 +18,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /accountGroup [get]
 func (s *endpoint) getAccountGroups(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "getAccountGroups")
+	defer span.End()
 
 	var req model.GetAccountGroupsReq
 

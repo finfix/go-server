@@ -20,6 +20,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /transaction [post]
 func (s *endpoint) createTransaction(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "createTransaction")
+	defer span.End()
 
 	var req model.CreateTransactionReq
 

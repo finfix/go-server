@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /tag [patch]
 func (s *endpoint) updateTag(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "updateTag")
+	defer span.End()
 
 	var req model.UpdateTagReq
 

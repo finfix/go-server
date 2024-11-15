@@ -10,6 +10,8 @@ import (
 )
 
 func DefaultErrorEncoder(ctx context.Context, w http.ResponseWriter, er error) {
+	_, span := tracer.Start(ctx, "DefaultErrorEncoder")
+	defer span.End()
 
 	// Проверяем, что мы сюда попали из-за ошибки
 	if er == nil {

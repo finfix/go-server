@@ -17,7 +17,9 @@ import (
 // @Success 200 {object} []model.Account
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /account [get]
-func (s *endpoint) get(ctx context.Context, r *http.Request) (any, error) {
+func (s *endpoint) getAccounts(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "getAccounts")
+	defer span.End()
 
 	var req model.GetAccountsReq
 

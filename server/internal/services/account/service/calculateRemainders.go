@@ -13,6 +13,8 @@ import (
 )
 
 func (s *AccountService) calculateRemainders(ctx context.Context, filters model.GetAccountsReq) (map[uint32]decimal.Decimal, error) {
+	ctx, span := tracer.Start(ctx, "calculateRemainders")
+	defer span.End()
 
 	// Считаем балансы обычных и долговых счетов
 	calculatedRemainders, err := s.accountRepository.GetSumAllTransactionsToAccount(ctx, accountRepoModel.CalculateRemaindersAccountsReq{ //nolint:exhaustruct

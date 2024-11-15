@@ -8,6 +8,8 @@ import (
 )
 
 func (s *AccountGroupService) CheckAccess(ctx context.Context, userID uint32, accountGroupIDs []uint32) error {
+	ctx, span := tracer.Start(ctx, "CheckAccess")
+	defer span.End()
 
 	// Получаем группы счетов, к которым есть доступ у пользователя
 	accessedAccountGroupIDs, err := s.userService.GetAccessedAccountGroups(ctx, userID)

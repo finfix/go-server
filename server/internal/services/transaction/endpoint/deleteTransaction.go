@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,403,500 {object} errors.Error
 // @Router /transaction [delete]
 func (s *endpoint) deleteTransaction(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "deleteTransaction")
+	defer span.End()
 
 	var req model.DeleteTransactionReq
 

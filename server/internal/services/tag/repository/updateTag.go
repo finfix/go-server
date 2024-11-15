@@ -13,6 +13,8 @@ import (
 
 // UpdateTag редактирует подкатегорию
 func (r *TagRepository) UpdateTag(ctx context.Context, fields model.UpdateTagReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateTag")
+	defer span.End()
 
 	updates := make(map[string]any)
 

@@ -12,6 +12,8 @@ import (
 
 // UpdateUser редактирует пользователя
 func (r *UserRepository) UpdateUser(ctx context.Context, fields userRepoModel.UpdateUserReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateUser")
+	defer span.End()
 
 	// Изменяем поля пользователя
 	updates := make(map[string]any)

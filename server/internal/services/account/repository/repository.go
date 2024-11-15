@@ -1,8 +1,12 @@
 package repository
 
 import (
+	"go.opentelemetry.io/otel"
+
 	"pkg/sql"
 )
+
+var tracer = otel.Tracer("/server/internal/services/account/repository")
 
 type AccountRepository struct {
 	db sql.SQL

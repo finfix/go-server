@@ -9,6 +9,8 @@ import (
 )
 
 func (s *AccountPermissionsService) GetAccountsPermissions(ctx context.Context, accounts ...accountModel.Account) (permissions []model.AccountPermissions, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccountsPermissions")
+	defer span.End()
 
 	// Получаем разрешения из репозитория
 	permissionsSet, err := s.accountPermissionsRepository.GetAccountPermissions(ctx)

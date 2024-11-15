@@ -13,6 +13,8 @@ import (
 
 // RefreshTokens обновляет токены доступа в базе данных
 func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokensReq) (newTokens model.RefreshTokensRes, err error) {
+	ctx, span := tracer.Start(ctx, "RefreshTokens")
+	defer span.End()
 
 	// Получаем девайс по идентификатору пользователя и девайса
 	devices, err := s.userRepository.GetDevices(ctx, userRepoModel.GetDevicesReq{ // nolint:exhaustruct

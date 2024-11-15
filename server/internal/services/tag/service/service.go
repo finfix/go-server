@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+
 	accountGroupService "server/internal/services/accountGroup/service"
 	tagModel "server/internal/services/tag/model"
 	tagRepository "server/internal/services/tag/repository"
@@ -10,6 +12,8 @@ import (
 	"server/internal/services/transactor"
 	userService "server/internal/services/user/service"
 )
+
+var tracer = otel.Tracer("/server/internal/services/tag/service")
 
 type TagService struct {
 	tagRepository       TagRepository

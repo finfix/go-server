@@ -8,6 +8,8 @@ import (
 )
 
 func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tags []model.Tag, err error) {
+	ctx, span := tracer.Start(ctx, "GetTags")
+	defer span.End()
 
 	// Проверяем доступ пользователя к группам счетов
 	if filters.AccountGroupIDs != nil {

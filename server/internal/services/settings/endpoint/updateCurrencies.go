@@ -16,6 +16,8 @@ import (
 // @Failure 400,401,403,500 {object} errors.Error
 // @Router /settings/updateCurrencies [post]
 func (s *endpoint) updateCurrencies(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "updateCurrencies")
+	defer span.End()
 
 	var req model.UpdateCurrenciesReq
 

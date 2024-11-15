@@ -5,12 +5,15 @@ import (
 
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/token"
+	"go.opentelemetry.io/otel"
 
 	"pkg/errors"
 	"pkg/log"
 
 	"server/internal/services/pushNotificator/model"
 )
+
+var tracer = otel.Tracer("/server/internal/services/pushNotificator/service")
 
 type PushNotificatorService struct {
 	apns *apns2.Client

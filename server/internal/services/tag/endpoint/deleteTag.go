@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,403,500 {object} errors.Error
 // @Router /tag [delete]
 func (s *endpoint) deleteTag(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "deleteTag")
+	defer span.End()
 
 	var req model.DeleteTagReq
 

@@ -10,6 +10,8 @@ import (
 )
 
 func (s *SettingsService) checkAdmin(ctx context.Context, userID uint32) error {
+	ctx, span := tracer.Start(ctx, "checkAdmin")
+	defer span.End()
 
 	// Получаем пользователя по ID
 	user, err := slices.FirstWithError(

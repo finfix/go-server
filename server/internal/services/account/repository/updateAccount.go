@@ -12,6 +12,8 @@ import (
 
 // UpdateAccount обновляет счет
 func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uint32]accountRepoModel.UpdateAccountReq) error {
+	ctx, span := tracer.Start(ctx, "updateAccount")
+	defer span.End()
 
 	for id, fields := range updateReqs {
 

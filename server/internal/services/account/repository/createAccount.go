@@ -12,6 +12,8 @@ import (
 
 // CreateAccount создает новый счет
 func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) (id uint32, serialNumber uint32, err error) {
+	ctx, span := tracer.Start(ctx, "createAccount")
+	defer span.End()
 
 	// Получаем максимальный серийный номер в группе счетов
 	row, err := r.db.QueryRow(ctx, sq.

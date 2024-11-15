@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /accountGroup [patch]
 func (s *endpoint) updateAccountGroup(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "updateAccountGroup")
+	defer span.End()
 
 	var req model.UpdateAccountGroupReq
 

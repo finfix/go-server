@@ -18,6 +18,8 @@ import (
 // @Failure 401,404,500 {object} errors.Error
 // @Router /user [get]
 func (s *endpoint) getUser(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "getUser")
+	defer span.End()
 
 	var req model.GetUsersReq
 

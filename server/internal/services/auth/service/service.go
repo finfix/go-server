@@ -3,11 +3,15 @@ package service
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+
 	"server/internal/services/transactor"
 	userModel "server/internal/services/user/model"
 	userRepository "server/internal/services/user/repository"
 	userRepoModel "server/internal/services/user/repository/model"
 )
+
+var tracer = otel.Tracer("/server/internal/services/auth/service")
 
 var _ UserRepository = new(userRepository.UserRepository)
 var _ GeneralRepository = new(transactor.Transactor)

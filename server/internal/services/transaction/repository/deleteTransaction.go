@@ -11,6 +11,8 @@ import (
 
 // DeleteTransaction удаляет транзакцию
 func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id, userID uint32) error {
+	ctx, span := tracer.Start(ctx, "DeleteTransaction")
+	defer span.End()
 
 	// Удаляем транзакцию
 	rows, err := r.db.ExecWithRowsAffected(ctx, sq.

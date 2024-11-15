@@ -10,6 +10,9 @@ import (
 )
 
 func DefaultAuthorization(ctx context.Context, r *http.Request) (context.Context, error) {
+	_, span := tracer.Start(ctx, "DefaultAuthorization")
+	defer span.End()
+
 	userID, deviceID, err := jwtManager.ParseToken(r.Header.Get("Authorization"))
 	if err != nil {
 		if deviceID != "" {

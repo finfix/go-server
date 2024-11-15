@@ -12,6 +12,8 @@ import (
 
 // CheckAccess проверяет, имеет ли набор групп подкатегорий пользователя доступ к указанным идентификаторам подкатегорий
 func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs []uint32) error {
+	ctx, span := tracer.Start(ctx, "CheckAccess")
+	defer span.End()
 
 	// Получаем все доступные счета по группам подкатегорий и перечисленным подкатегориям
 	rows, err := r.db.Query(ctx, sq.

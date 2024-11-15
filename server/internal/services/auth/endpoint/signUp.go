@@ -21,6 +21,8 @@ import (
 // @Failure 400,403,500 {object} errors.Error
 // @Router /auth/signUp [post]
 func (s *endpoint) signUp(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "signUp")
+	defer span.End()
 
 	var req model.SignUpReq
 

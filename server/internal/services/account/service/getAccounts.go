@@ -11,6 +11,8 @@ import (
 
 // GetAccounts возвращает все счета, удовлетворяющие фильтрам
 func (s *AccountService) GetAccounts(ctx context.Context, filters model.GetAccountsReq) (accounts []model.Account, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccounts")
+	defer span.End()
 
 	// Если в фильтрах переданы группы счетов
 	if len(filters.AccountGroupIDs) != 0 {

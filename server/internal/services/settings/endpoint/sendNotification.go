@@ -17,6 +17,8 @@ import (
 // @Failure 400,401,403,500 {object} errors.Error
 // @Router /settings/sendNotification [post]
 func (s *endpoint) sendNotification(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "sendNotification")
+	defer span.End()
 
 	var req model.SendNotificationReq
 

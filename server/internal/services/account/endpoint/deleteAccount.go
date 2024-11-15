@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /account [delete]
 func (s *endpoint) deleteAccount(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "deleteAccount")
+	defer span.End()
 
 	var req model.DeleteAccountReq
 

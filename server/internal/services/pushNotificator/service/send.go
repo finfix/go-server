@@ -15,6 +15,8 @@ import (
 
 // SendNotification отправляет одно сообщение на все переданные устройства
 func (s *PushNotificatorService) SendNotification(ctx context.Context, req model.SendNotificationReq) (id string, err error) {
+	ctx, span := tracer.Start(ctx, "SendNotification")
+	defer span.End()
 
 	const defaultPriority = 5
 

@@ -7,6 +7,8 @@ import (
 )
 
 func (r *AccountGroupRepository) LinkUserToAccountGroup(ctx context.Context, userID, accountGroupID uint32) error {
+	ctx, span := tracer.Start(ctx, "LinkUserToAccountGroup")
+	defer span.End()
 
 	// Исполняем запрос на связывание пользователя с группой счетов
 	return r.db.Exec(ctx, sq.

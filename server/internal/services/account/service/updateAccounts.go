@@ -12,6 +12,8 @@ import (
 
 // UpdateAccount обновляет счет по конкретным полям
 func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.UpdateAccountReq) (res model.UpdateAccountRes, err error) {
+	ctx, span := tracer.Start(ctx, "UpdateAccount")
+	defer span.End()
 
 	repoUpdateReqs := make(map[uint32]accountRepoModel.UpdateAccountReq)
 	repoUpdateReqs[updateReq.ID] = updateReq.ConvertToRepoReq()

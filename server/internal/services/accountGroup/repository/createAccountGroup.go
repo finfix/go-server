@@ -12,6 +12,8 @@ import (
 
 // CreateAccountGroup создает новую группу счетов
 func (r *AccountGroupRepository) CreateAccountGroup(ctx context.Context, accountGroup accountGroupRepoModel.CreateAccountGroupReq) (id uint32, serialNumber uint32, err error) {
+	ctx, span := tracer.Start(ctx, "CreateAccountGroup")
+	defer span.End()
 
 	// Получаем текущий максимальный серийный номер группы счетов
 	row, err := r.db.QueryRow(ctx, sq.

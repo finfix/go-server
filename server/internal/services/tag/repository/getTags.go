@@ -14,6 +14,8 @@ import (
 
 // GetTags возвращает все подкатегории по фильтрам
 func (r *TagRepository) GetTags(ctx context.Context, req model.GetTagsReq) (tags []model.Tag, err error) {
+	ctx, span := tracer.Start(ctx, "GetTags")
+	defer span.End()
 
 	filtersEq := make(sq.Eq)
 

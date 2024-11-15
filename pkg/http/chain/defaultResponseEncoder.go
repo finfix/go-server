@@ -8,7 +8,10 @@ import (
 	"pkg/errors"
 )
 
-func DefaultResponseEncoder(_ context.Context, w http.ResponseWriter, response any) error {
+func DefaultResponseEncoder(ctx context.Context, w http.ResponseWriter, response any) error {
+	_, span := tracer.Start(ctx, "DefaultResponseEncoder")
+	defer span.End()
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {

@@ -5,11 +5,14 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
 
 	"server/internal/services/user/model"
 )
+
+var tracer = otel.Tracer("/server/internal/services/user/endpoint")
 
 type endpoint struct {
 	service userService

@@ -13,6 +13,8 @@ import (
 
 // GetDevices Возвращает девайсы пользователя
 func (r *UserRepository) GetDevices(ctx context.Context, filters userRepoModel.GetDevicesReq) (devices []userModel.Device, err error) {
+	ctx, span := tracer.Start(ctx, "GetDevices")
+	defer span.End()
 
 	filtersEq := make(sq.Eq)
 

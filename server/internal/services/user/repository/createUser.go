@@ -11,6 +11,8 @@ import (
 
 // CreateUser Создает нового пользователя
 func (r *UserRepository) CreateUser(ctx context.Context, user userModel.CreateReq) (uint32, error) {
+	ctx, span := tracer.Start(ctx, "CreateUser")
+	defer span.End()
 
 	return r.db.ExecWithLastInsertID(ctx, sq.
 		Insert(`coin.users`).

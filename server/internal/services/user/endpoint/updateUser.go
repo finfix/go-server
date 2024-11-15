@@ -20,6 +20,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /user [patch]
 func (s *endpoint) updateUser(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "updateUser")
+	defer span.End()
 
 	var req model.UpdateUserReq
 

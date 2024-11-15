@@ -14,6 +14,8 @@ import (
 
 // UpdateTransaction редактирует транзакцию
 func (s *TransactionService) UpdateTransaction(ctx context.Context, fields transactionModel.UpdateTransactionReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateTransaction")
+	defer span.End()
 
 	// Проверяем доступ пользователя к транзакции
 	if err := s.CheckAccess(ctx, fields.Necessary.UserID, []uint32{fields.ID}); err != nil {

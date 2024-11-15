@@ -12,6 +12,9 @@ import (
 )
 
 func (r *SettingsRepository) GetVersion(ctx context.Context, appType applicationType.Type) (version settingsModel.Version, err error) {
+	ctx, span := tracer.Start(ctx, "GetVersion")
+	defer span.End()
+
 	return version, r.db.Get(ctx, &version, sq.
 		Select(ddlHelper.SelectAll).
 		From(versionDDL.Table).

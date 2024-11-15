@@ -11,6 +11,8 @@ import (
 
 // DeleteTag удаляет подкатегорию
 func (r *TagRepository) DeleteTag(ctx context.Context, id, userID uint32) error {
+	ctx, span := tracer.Start(ctx, "DeleteTag")
+	defer span.End()
 
 	// Удаляем подкатегорию
 	rows, err := r.db.ExecWithRowsAffected(ctx, sq.

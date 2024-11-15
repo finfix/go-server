@@ -10,6 +10,8 @@ import (
 
 // LinkTagsToTransaction привязывает подкатегории к транзакции
 func (r *TagRepository) LinkTagsToTransaction(ctx context.Context, tagIDs []uint32, transactionID uint32) error {
+	ctx, span := tracer.Start(ctx, "LinkTagsToTransaction")
+	defer span.End()
 
 	q := sq.
 		Insert(tagToTransactionDDL.Table).

@@ -10,6 +10,8 @@ import (
 )
 
 func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, account model.Account, parentAccountID, userID uint32) error {
+	ctx, span := tracer.Start(ctx, "ValidateUpdateParentAccountID")
+	defer span.End()
 
 	if account.IsParent {
 		return errors.BadRequest.New("Счет уже является родительским",

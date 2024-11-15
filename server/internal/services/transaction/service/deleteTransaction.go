@@ -8,6 +8,8 @@ import (
 
 // DeleteTransaction удаляет транзакцию
 func (s *TransactionService) DeleteTransaction(ctx context.Context, id model.DeleteTransactionReq) error {
+	ctx, span := tracer.Start(ctx, "DeleteTransaction")
+	defer span.End()
 
 	// Проверяем доступ пользователя к транзакции
 	if err := s.CheckAccess(ctx, id.Necessary.UserID, []uint32{id.ID}); err != nil {

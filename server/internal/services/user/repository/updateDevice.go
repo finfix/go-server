@@ -13,6 +13,8 @@ import (
 
 // UpdateDevice редактирует девайс
 func (r *UserRepository) UpdateDevice(ctx context.Context, fields userRepoModel.UpdateDeviceReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateDevice")
+	defer span.End()
 
 	updates := make(map[string]any)
 

@@ -5,6 +5,7 @@ import (
 
 	"pkg/database/postgresql"
 	"pkg/errors"
+	"pkg/trace"
 )
 
 // Config - общая структура конфига
@@ -16,6 +17,8 @@ type Config struct {
 	// Данные базы данных
 	Repository postgresql.PostgreSQLConfig
 	DBName     string `env:"DB_NAME" envDefault:"coin"`
+
+	Tracer trace.TracerConfig
 
 	// Информация для JWT-токенов
 	Token struct {

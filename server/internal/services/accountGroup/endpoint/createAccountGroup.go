@@ -20,6 +20,8 @@ import (
 // @Failure 400,401,403,500 {object} errors.Error
 // @Router /accountGroup [post]
 func (s *endpoint) createAccountGroup(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "createAccountGroup")
+	defer span.End()
 
 	var req model.CreateAccountGroupReq
 

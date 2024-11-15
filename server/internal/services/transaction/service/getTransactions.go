@@ -7,6 +7,8 @@ import (
 )
 
 func (s *TransactionService) GetTransactions(ctx context.Context, filters model.GetTransactionsReq) (transactions []model.Transaction, err error) {
+	ctx, span := tracer.Start(ctx, "GetTransactions")
+	defer span.End()
 
 	// Проверяем доступ пользователя к группам счетов
 	filters.AccountGroupIDs, err = s.userService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)

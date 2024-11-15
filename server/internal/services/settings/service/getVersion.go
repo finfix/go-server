@@ -10,6 +10,9 @@ import (
 )
 
 func (s *SettingsService) GetVersion(ctx context.Context, appType applicationType.Type) (version settingsModel.Version, err error) {
+	ctx, span := tracer.Start(ctx, "GetVersion")
+	defer span.End()
+
 	switch appType {
 	case applicationType.Server:
 		return settingsModel.Version{

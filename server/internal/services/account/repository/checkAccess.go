@@ -12,6 +12,8 @@ import (
 
 // CheckAccess проверяет, имеет ли набор групп счетов пользователя доступ к указанным идентификаторам счетов
 func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, accountIDs []uint32) error {
+	ctx, span := tracer.Start(ctx, "CheckAccess")
+	defer span.End()
 
 	// Получаем все доступные счета по группам счетов и перечисленным счетам
 	rows, err := r.db.Query(ctx, sq.

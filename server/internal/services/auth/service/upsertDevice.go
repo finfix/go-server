@@ -8,6 +8,8 @@ import (
 )
 
 func (s *AuthService) upsertDevice(ctx context.Context, device userModel.Device) error {
+	ctx, span := tracer.Start(ctx, "upsertDevice")
+	defer span.End()
 
 	// Получаем девайс пользователя
 	devices, err := s.userRepository.GetDevices(ctx, userRepoModel.GetDevicesReq{ //nolint:exhaustruct

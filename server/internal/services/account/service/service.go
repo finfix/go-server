@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shopspring/decimal"
+	"go.opentelemetry.io/otel"
 
 	accountModel "server/internal/services/account/model"
 	accountRepository "server/internal/services/account/repository"
@@ -17,6 +18,8 @@ import (
 	userModel "server/internal/services/user/model"
 	userRepository "server/internal/services/user/repository"
 )
+
+var tracer = otel.Tracer("/server/internal/services/account/service")
 
 var _ Transactor = new(transactor.Transactor)
 

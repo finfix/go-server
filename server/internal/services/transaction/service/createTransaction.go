@@ -14,6 +14,8 @@ import (
 
 // CreateTransaction создает новую транзакцию
 func (s *TransactionService) CreateTransaction(ctx context.Context, transaction transactionModel.CreateTransactionReq) (id uint32, err error) {
+	ctx, span := tracer.Start(ctx, "CreateTransaction")
+	defer span.End()
 
 	// Проверяем доступ пользователя к счетам
 	if err = s.accountService.CheckAccess(ctx, transaction.Necessary.UserID, []uint32{transaction.AccountFromID, transaction.AccountToID}); err != nil {

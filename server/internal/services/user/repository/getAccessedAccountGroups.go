@@ -15,6 +15,8 @@ import (
 
 // GetAccessedAccountGroups возвращает доступы пользователей к группам счетов
 func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uint32) (accessedAccountGroupIDs []uint32, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccessedAccountGroups")
+	defer span.End()
 
 	// Проверяем наличие данных в кэше
 	var ok bool

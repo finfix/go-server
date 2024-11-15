@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,500 {object} errors.Error
 // @Router /auth/refreshTokens [post]
 func (s *endpoint) refreshTokens(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "refreshTokens")
+	defer span.End()
 
 	var req model.RefreshTokensReq
 

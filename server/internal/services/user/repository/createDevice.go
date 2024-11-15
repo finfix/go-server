@@ -11,6 +11,9 @@ import (
 
 // CreateDevice Создает новый девайс для пользователя
 func (r *UserRepository) CreateDevice(ctx context.Context, req userModel.Device) (id uint32, err error) {
+	ctx, span := tracer.Start(ctx, "CreateDevice")
+	defer span.End()
+
 	return r.db.ExecWithLastInsertID(ctx, sq.
 		Insert(deviceDDL.Table).
 		SetMap(map[string]any{

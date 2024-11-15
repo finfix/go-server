@@ -13,6 +13,8 @@ import (
 
 // UpdateTransaction редактирует транзакцию
 func (r *TransactionRepository) UpdateTransaction(ctx context.Context, fields model.UpdateTransactionReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateTransaction")
+	defer span.End()
 
 	updates := make(map[string]any)
 

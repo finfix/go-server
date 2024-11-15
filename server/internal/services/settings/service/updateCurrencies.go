@@ -17,6 +17,8 @@ import (
 
 // UpdateCurrencies обновляет курсы валют
 func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsModel.UpdateCurrenciesReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateCurrencies")
+	defer span.End()
 
 	// Проверяем, что пользователь администратор
 	err := s.checkAdmin(ctx, req.Necessary.UserID)

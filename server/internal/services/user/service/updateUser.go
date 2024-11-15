@@ -12,6 +12,8 @@ import (
 
 // UpdateUser обновляет настройки пользователя
 func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateUser")
+	defer span.End()
 
 	return s.generalRepository.WithinTransaction(ctx, func(ctx context.Context) error {
 

@@ -19,6 +19,8 @@ import (
 // @Failure 400,404,500 {object} errors.Error
 // @Router /tag [get]
 func (s *endpoint) getTags(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "getTags")
+	defer span.End()
 
 	var req model.GetTagsReq
 

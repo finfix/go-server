@@ -5,11 +5,14 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
 
 	"server/internal/services/account/model"
 )
+
+var tracer = otel.Tracer("/server/internal/services/account/endpoint")
 
 type endpoint struct {
 	service accountService
@@ -40,7 +43,7 @@ func newAccountEndpoint(service accountService) http.Handler {
 	r := chi.NewRouter()
 
 	r.Method(http.MethodPost, "/", chain.NewChain(e.createAccount, options...))
-	r.Method(http.MethodGet, "/", chain.NewChain(e.get, options...))
+	r.Method(http.MethodGet, "/", chain.NewChain(e.getAccounts, options...))
 	r.Method(http.MethodPatch, "/", chain.NewChain(e.updateAccount, options...))
 	r.Method(http.MethodDelete, "/", chain.NewChain(e.deleteAccount, options...))
 

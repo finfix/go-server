@@ -12,6 +12,8 @@ import (
 
 // GetUsers Возвращает пользователей по фильтрам
 func (r *UserRepository) GetUsers(ctx context.Context, filters userModel.GetUsersReq) (user []userModel.User, err error) {
+	ctx, span := tracer.Start(ctx, "GetUsers")
+	defer span.End()
 
 	filtersEq := make(sq.Eq)
 

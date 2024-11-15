@@ -23,6 +23,7 @@ import (
 	"pkg/migrator"
 	"pkg/panicRecover"
 	"pkg/stackTrace"
+	"pkg/trace"
 	"server/internal/config"
 	_ "server/internal/docs"
 	accountEndpoint "server/internal/services/account/endpoint"
@@ -131,6 +132,11 @@ func run() error {
 	// Инициализируем все синглтоны
 	log.Info(ctx, "Инициализируем синглтоны")
 	if err = initSingletons(cfg); err != nil {
+		return err
+	}
+
+	log.Info(ctx, "Инициализируем трейсер")
+	if err = trace.StartTracing(cfg.Tracer, cfg.ServiceName); err != nil {
 		return err
 	}
 

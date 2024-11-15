@@ -19,6 +19,8 @@ import (
 // @Failure 400,401,403,404,500 {object} errors.Error
 // @Router /transaction [patch]
 func (s *endpoint) updateTransaction(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "updateTransaction")
+	defer span.End()
 
 	var req model.UpdateTransactionReq
 

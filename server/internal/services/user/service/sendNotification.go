@@ -13,6 +13,8 @@ import (
 
 // SendNotification отправляет пуш на все устройства пользователя
 func (s *UserService) SendNotification(ctx context.Context, userID uint32, push model.Notification) (count uint8, err error) {
+	ctx, span := tracer.Start(ctx, "SendNotification")
+	defer span.End()
 
 	// Получаем все девайсы пользователя
 	devices, err := s.userRepository.GetDevices(ctx, userRepoModel.GetDevicesReq{ //nolint:exhaustruct
