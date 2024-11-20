@@ -38,7 +38,7 @@ func NewTgBotService(
 		Poller:      nil,
 		Synchronous: false,
 		Verbose:     false,
-		ParseMode:   telebot.ModeMarkdownV2,
+		ParseMode:   telebot.ModeHTML,
 		OnError:     nil,
 		Client:      nil,
 		Offline:     false,

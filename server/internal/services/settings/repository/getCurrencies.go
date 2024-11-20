@@ -10,8 +10,8 @@ import (
 	"server/internal/services/settings/repository/currencyDDL"
 )
 
-func (repo *SettingsRepository) GetCurrencies(ctx context.Context) (currencies []settingsModel.Currency, err error) {
-	return currencies, repo.db.Select(ctx, &currencies, sq.
+func (r *SettingsRepository) GetCurrencies(ctx context.Context) (currencies []settingsModel.Currency, err error) {
+	return currencies, r.db.Select(ctx, &currencies, sq.
 		Select(ddlHelper.SelectAll).
 		From(currencyDDL.Table),
 	)

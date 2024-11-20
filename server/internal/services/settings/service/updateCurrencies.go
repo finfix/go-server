@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
+
 	"pkg/log"
 
 	settingsModel "server/internal/services/settings/model"
@@ -21,7 +24,7 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 		return err
 	}
 
-	const updateCurrenciesTemplate = "*📈 Курс валют успешно обновлен*\n\nUSD: %v₽\nBTC: %v$"
+	const updateCurrenciesTemplate = "<b>📈 Курс валют успешно обновлен</b>\n\nUSD: %v₽\nBTC: %v$"
 
 	var tgMessage model.SendMessageReq
 
@@ -46,10 +49,15 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 		return err
 	}
 
+	p := message.NewPrinter(language.Russian)
+
+	usdrubRate, _ := utils.GetRate(rates, "USD", "RUB").Float64()
+	btcusdRate, _ := utils.GetRate(rates, "BTC", "USD").Float64()
+
 	tgMessage.Message = fmt.Sprintf(
 		updateCurrenciesTemplate,
-		utils.GetRate(rates, "USD", "RUB").Round(2), //nolint:gomnd
-		utils.GetRate(rates, "BTC", "USD").Round(0),
+		p.Sprintf("%.2f", usdrubRate),
+		p.Sprintf("%.0f", btcusdRate),
 	)
 
 	return nil
