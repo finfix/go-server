@@ -25,7 +25,7 @@ func (r *TagRepository) UpdateTag(ctx context.Context, fields model.UpdateTagReq
 
 	// Проверяем, что есть поля для обновления
 	if len(updates) == 0 {
-		return errors.BadRequest.New("No fields to update")
+		return errors.BadRequest.New(ctx, "No fields to update")
 	}
 
 	// Редактируем подкатегорию

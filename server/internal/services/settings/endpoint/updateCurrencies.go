@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"pkg/http/decoder"
+	"pkg/validator"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/settings/model"
 )
@@ -22,7 +24,17 @@ func (s *endpoint) updateCurrencies(ctx context.Context, r *http.Request) (any, 
 	var req model.UpdateCurrenciesReq
 
 	// Декодируем запрос
-	if err := decoder.Decoder(ctx, r, &req); err != nil {
+	if err := decoder.Decode(ctx, r, &req); err != nil {
+		return nil, err
+	}
+
+	// Парсим обязательные параметры
+	if err := necessary.ParseNecessary(ctx, &req); err != nil {
+		return nil, err
+	}
+
+	// Валидируем запрос
+	if err := validator.Validate(ctx, req); err != nil {
 		return nil, err
 	}
 

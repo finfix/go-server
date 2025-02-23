@@ -9,10 +9,10 @@ import (
 var tracer = otel.Tracer("/server/internal/services/settings/repository")
 
 type SettingsRepository struct {
-	db sql.SQL
+	db *sql.DB
 }
 
-func NewSettingsRepository(db sql.SQL) *SettingsRepository {
+func NewSettingsRepository(db *sql.DB) *SettingsRepository {
 	return &SettingsRepository{
 		db: db,
 	}

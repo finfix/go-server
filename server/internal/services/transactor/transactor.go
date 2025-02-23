@@ -12,10 +12,10 @@ import (
 var tracer = otel.Tracer("/server/internal/services/transactor/service")
 
 type Transactor struct {
-	db sql.SQL
+	db *sql.DB
 }
 
-func NewTransactor(db sql.SQL) *Transactor {
+func NewTransactor(db *sql.DB) *Transactor {
 	return &Transactor{
 		db: db,
 	}
@@ -36,9 +36,9 @@ func (r *Transactor) WithinTransaction(ctx context.Context, callback func(ctx co
 	err = callback(sql.InjectTx(ctx, tx))
 	if err != nil {
 		// Если произошла ошибка, откатываем изменения
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	// Если ошибок нет, подтверждаем изменения
-	return tx.Commit()
+	return tx.Commit(ctx)
 }

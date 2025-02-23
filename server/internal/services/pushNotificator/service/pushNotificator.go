@@ -20,7 +20,7 @@ type PushNotificatorService struct {
 	isOn bool
 }
 
-func NewPushNotificatorService(isOn bool, apnsCredentials model.APNsCredentials) (*PushNotificatorService, error) {
+func NewPushNotificatorService(ctx context.Context, isOn bool, apnsCredentials model.APNsCredentials) (*PushNotificatorService, error) {
 
 	if !isOn {
 		log.Warning(context.Background(), "SendNotification notificator is off")
@@ -32,7 +32,7 @@ func NewPushNotificatorService(isOn bool, apnsCredentials model.APNsCredentials)
 
 	authKey, err := token.AuthKeyFromFile(apnsCredentials.KeyFilePath)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(err)
+		return nil, errors.InternalServer.Wrap(ctx, err)
 	}
 
 	apnsClient := apns2.NewTokenClient(&token.Token{ // nolint:exhaustruct

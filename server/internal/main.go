@@ -12,14 +12,13 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"golang.org/x/sync/errgroup"
 
-	"pkg/database/postgresql"
+	"pkg/database/pgsql"
 	"pkg/errors"
 	"pkg/http/middleware"
 	"pkg/http/router"
 	"pkg/http/server"
 	"pkg/jwtManager"
 	"pkg/log"
-	"pkg/log/model"
 	"pkg/migrator"
 	"pkg/panicRecover"
 	"pkg/stackTrace"
@@ -53,6 +52,7 @@ import (
 	userEndpoint "server/internal/services/user/endpoint"
 	userRepository "server/internal/services/user/repository"
 	userService "server/internal/services/user/service"
+	"server/internal/utils/contextKeys"
 	"server/migrations"
 )
 
@@ -88,9 +88,11 @@ func run() error {
 	defer cancel()
 
 	// Перехватываем возможную панику
-	defer panicRecover.PanicRecover(func(err error) {
-		log.Fatal(ctx, err)
-	})
+	defer func() {
+		panicRecover.PanicRecover(ctx, func(err error) {
+			log.Fatal(ctx, err)
+		})
+	}()
 
 	// Парсим флаги
 	logFormat := flag.String("log-format", string(log.JSONFormat), "text - Human readable string\njson - JSON format")
@@ -111,70 +113,88 @@ func run() error {
 		return err
 	}
 
+	systemInfo := struct {
+		Hostname string `json:"hostname"`
+		Version  string `json:"version"`
+		Build    string `json:"build"`
+		Env      string `json:"env"`
+		Commit   string `json:"commit"`
+	}{
+		Hostname: hostname,
+		Version:  version,
+		Build:    build,
+		Env:      *envMode,
+		Commit:   "",
+	}
+
 	// Инициализируем логгер
-	log.Init(
-		model.SystemInfo{
-			Hostname: hostname,
-			Version:  version,
-			Build:    build,
-			Env:      *envMode,
-		},
+	log.Init(systemInfo,
+		contextKeys.UserInfoKey,
 		logHandlers...,
+	)
+
+	errors.Init(
+		systemInfo,
+		contextKeys.UserInfoKey,
 	)
 
 	// Получаем конфиг
 	log.Info(ctx, "Получаем конфиг")
-	cfg, err := config.GetConfig()
+	cfg, err := config.GetConfig(ctx)
 	if err != nil {
 		return err
 	}
 
 	// Инициализируем все синглтоны
 	log.Info(ctx, "Инициализируем синглтоны")
-	if err = initSingletons(cfg); err != nil {
+	if err = initSingletons(ctx, cfg); err != nil {
 		return err
 	}
 
 	log.Info(ctx, "Инициализируем трейсер")
-	if err = trace.StartTracing(cfg.Tracer, cfg.ServiceName); err != nil {
+	if err = trace.StartTracing(ctx, cfg.Tracer, cfg.ServiceName); err != nil {
 		return err
 	}
 
 	// Подключаемся к базе данных
 	log.Info(ctx, "Подключаемся к БД")
-	postrgreSQL, err := postgresql.NewClientSQL(cfg.Repository, cfg.DBName)
+	pgsql, err := pgsql.NewClientPgsql(ctx, cfg.Pgsql)
 	if err != nil {
 		return err
 	}
-	defer postrgreSQL.Close()
+	defer pgsql.Close(ctx)
 
 	// Запускаем миграции в базе данных
 	// TODO: Подумать, как откатывать миграции при ошибках
 	log.Info(ctx, "Запускаем миграции")
-	postgreSQLMigrator := migrator.NewMigrator(
-		postrgreSQL,
+	postgreSQLMigrator, err := migrator.NewMigrator(ctx,
+		pgsql,
 		migrator.MigratorConfig{
 			EmbedMigrations: migrations.EmbedMigrationsPostgreSQL,
 			Dir:             "pgsql",
+			Dialect:         migrator.DialectPostgres,
 		},
 	)
+	if err != nil {
+		return err
+	}
 	if err = postgreSQLMigrator.Up(ctx); err != nil {
 		return err
 	}
 
 	// Регистрируем репозитории
-	transactor := transactor.NewTransactor(postrgreSQL)
-	accountGroupRepository := accountGroupRepository.NewAccountGroupRepository(postrgreSQL)
-	accountRepository := accountRepository.NewAccountRepository(postrgreSQL)
-	tagRepository := tagRepository.NewTagRepository(postrgreSQL)
-	transactionRepository := transactionRepository.NewTransactionRepository(postrgreSQL)
-	settingsRepository := settingsRepository.NewSettingsRepository(postrgreSQL)
-	userRepository := userRepository.NewUserRepository(postrgreSQL)
-	accountPermissionsRepository := accountPermisssionsRepository.NewAccountPermissionsRepository(postrgreSQL)
+	transactor := transactor.NewTransactor(pgsql)
+	accountGroupRepository := accountGroupRepository.NewAccountGroupRepository(pgsql)
+	accountRepository := accountRepository.NewAccountRepository(pgsql)
+	tagRepository := tagRepository.NewTagRepository(pgsql)
+	transactionRepository := transactionRepository.NewTransactionRepository(pgsql)
+	settingsRepository := settingsRepository.NewSettingsRepository(pgsql)
+	userRepository := userRepository.NewUserRepository(pgsql)
+	accountPermissionsRepository := accountPermisssionsRepository.NewAccountPermissionsRepository(pgsql)
 
 	// Регистрируем сервисы
 	log.Info(ctx, "Инициализируем Telegram-бота")
-	tgBotService, err := service.NewTgBotService(cfg.Telegram.Token, cfg.Telegram.ChatID, cfg.Telegram.Enabled)
+	tgBotService, err := service.NewTgBotService(ctx, cfg.Telegram.Token, cfg.Telegram.ChatID, cfg.Telegram.Enabled)
 	if err != nil {
 		return err
 	}
@@ -183,7 +203,7 @@ func run() error {
 	}
 
 	log.Info(ctx, "Инициализируем сервис пушей")
-	pushNotificatorService, err := pushNotificatorService.NewPushNotificatorService(cfg.Notifications.Enabled, pushNotificatorModel.APNsCredentials{
+	pushNotificatorService, err := pushNotificatorService.NewPushNotificatorService(ctx, cfg.Notifications.Enabled, pushNotificatorModel.APNsCredentials{
 		TeamID:      cfg.Notifications.APNs.TeamID,
 		KeyID:       cfg.Notifications.APNs.KeyID,
 		KeyFilePath: cfg.Notifications.APNs.KeyFilePath,
@@ -255,7 +275,7 @@ func run() error {
 	)
 
 	log.Info(ctx, "Запускаем планировщик")
-	if err = scheduler.NewScheduler(settingsService).Start(); err != nil {
+	if err = scheduler.NewScheduler(settingsService).Start(ctx); err != nil {
 		return err
 	}
 
@@ -269,7 +289,7 @@ func run() error {
 	settingsEndpoint.MountSettingsEndpoints(r, settingsService)             // ANY /settings*
 	r.Mount("/swagger", httpSwagger.WrapHandler)
 
-	server, err := server.GetDefaultServer(cfg.HTTP, r)
+	server, err := server.GetDefaultServer(ctx, cfg.HTTP, r)
 	if err != nil {
 		return err
 	}
@@ -296,7 +316,7 @@ func run() error {
 	return eg.Wait()
 }
 
-func initSingletons(cfg config.Config) error {
+func initSingletons(ctx context.Context, cfg config.Config) error {
 
 	stackTrace.Init(cfg.ServiceName)
 
@@ -304,17 +324,17 @@ func initSingletons(cfg config.Config) error {
 	decimal.MarshalJSONWithoutQuotes = true
 
 	// Инициализируем JWT-менеджер
-	accessTokenTTL, err := time.ParseDuration(cfg.Token.AccessTokenTTL)
+	accessTokenTTL, err := time.ParseDuration(cfg.Auth.AccessTokenTTL)
 	if err != nil {
-		return errors.InternalServer.Wrap(err)
+		return errors.InternalServer.Wrap(ctx, err)
 	}
-	refreshTokenTTL, err := time.ParseDuration(cfg.Token.RefreshTokenTTL)
+	refreshTokenTTL, err := time.ParseDuration(cfg.Auth.RefreshTokenTTL)
 	if err != nil {
-		return errors.InternalServer.Wrap(err)
+		return errors.InternalServer.Wrap(ctx, err)
 	}
-	jwtManager.Init([]byte(cfg.Token.SigningKey), accessTokenTTL, refreshTokenTTL)
+	jwtManager.Init([]byte(cfg.Auth.SigningKey), accessTokenTTL, refreshTokenTTL)
 
-	if err = middleware.Init(cfg.ServiceName); err != nil {
+	if err = middleware.Init(ctx, cfg.ServiceName); err != nil {
 		return err
 	}
 

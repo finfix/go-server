@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"pkg/http/decoder"
+	"pkg/validator"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/tag/model"
 )
@@ -24,7 +26,17 @@ func (s *endpoint) getTagsToTransaction(ctx context.Context, r *http.Request) (a
 	var req model.GetTagsToTransactionsReq
 
 	// Декодируем запрос
-	if err := decoder.Decoder(ctx, r, &req, decoder.DecodeSchema); err != nil {
+	if err := decoder.Decode(ctx, r, &req, decoder.DecodeSchema); err != nil {
+		return nil, err
+	}
+
+	// Парсим обязательные параметры
+	if err := necessary.ParseNecessary(ctx, &req); err != nil {
+		return nil, err
+	}
+
+	// Валидируем запрос
+	if err := validator.Validate(ctx, req); err != nil {
 		return nil, err
 	}
 

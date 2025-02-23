@@ -1,9 +1,11 @@
 package config
 
 import (
+	"context"
+
 	"github.com/caarlos0/env/v11"
 
-	"pkg/database/postgresql"
+	"pkg/database/pgsql"
 	"pkg/errors"
 	"pkg/trace"
 )
@@ -15,13 +17,12 @@ type Config struct {
 	HTTP string `env:"LISTEN_HTTP" envDefault:":8080"`
 
 	// Данные базы данных
-	Repository postgresql.PostgreSQLConfig
-	DBName     string `env:"DB_NAME" envDefault:"coin"`
+	Pgsql pgsql.PostgreSQLConfig
 
 	Tracer trace.TracerConfig
 
 	// Информация для JWT-токенов
-	Token struct {
+	Auth struct {
 		AccessTokenTTL  string `env:"AUTH_ACCESS_TOKEN_TTL" envDefault:"15m"`
 		RefreshTokenTTL string `env:"AUTH_REFRESH_TOKEN_TTL" envDefault:"720h"`
 		SigningKey      string `env:"AUTH_TOKEN_SIGNING_KEY" envDefault:"secret"`
@@ -55,9 +56,9 @@ type Config struct {
 }
 
 // GetConfig возвращает конфигурацию из .env файла
-func GetConfig() (config Config, err error) {
+func GetConfig(ctx context.Context) (config Config, err error) {
 	if err = env.Parse(&config); err != nil {
-		return config, errors.InternalServer.Wrap(err)
+		return config, errors.InternalServer.Wrap(ctx, err)
 	}
 	return config, nil
 }

@@ -8,8 +8,8 @@ import (
 	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
-
 	"server/internal/services/account/model"
+	"server/internal/utils/auth"
 )
 
 var tracer = otel.Tracer("/server/internal/services/account/endpoint")
@@ -37,7 +37,7 @@ func newAccountEndpoint(service accountService) http.Handler {
 	}
 
 	options := []chain.Option{
-		chain.Before(chain.DefaultAuthorization),
+		chain.Before(auth.DefaultAuthorization),
 	}
 
 	r := chi.NewRouter()

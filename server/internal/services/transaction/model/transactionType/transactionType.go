@@ -1,6 +1,8 @@
 package transactionType
 
 import (
+	"context"
+
 	"pkg/errors"
 )
 
@@ -14,14 +16,14 @@ const (
 	Income      = Type("income")
 )
 
-func (t *Type) Validate() error {
+func (t *Type) Validate(ctx context.Context) error {
 	if t == nil {
 		return nil
 	}
 	switch *t {
 	case Transfer, Consumption, Balancing, Income:
 	default:
-		return errors.BadRequest.New("Unknown transaction type",
+		return errors.BadRequest.New(ctx, "Unknown transaction type",
 			errors.SkipThisCallOption(),
 			errors.ParamsOption("type", *t),
 			errors.HumanTextOption("Неизвестный тип транзакции"),

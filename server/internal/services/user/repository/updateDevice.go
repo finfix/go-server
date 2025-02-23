@@ -45,7 +45,7 @@ func (r *UserRepository) UpdateDevice(ctx context.Context, fields userRepoModel.
 	}
 
 	if len(updates) == 0 {
-		return errors.BadRequest.New("No fields to update")
+		return errors.BadRequest.New(ctx, "No fields to update")
 	}
 
 	// Обновляем девайс

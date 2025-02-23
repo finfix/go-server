@@ -25,7 +25,7 @@ func (r *TagRepository) GetTags(ctx context.Context, req model.GetTagsReq) (tags
 
 	// Проверяем, что есть фильтры
 	if len(filtersEq) == 0 {
-		return nil, errors.BadRequest.New("No filters specified")
+		return nil, errors.BadRequest.New(ctx, "No filters specified")
 	}
 
 	// Получаем подкатегории

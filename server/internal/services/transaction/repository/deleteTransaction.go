@@ -25,7 +25,7 @@ func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id, userI
 
 	// Проверяем, что в базе данных что-то изменилось
 	if rows == 0 {
-		return errors.NotFound.New("No such model found for model",
+		return errors.NotFound.New(ctx, "No such model found for model",
 			errors.ParamsOption("UserID", userID, "TransactionID", id),
 		)
 	}

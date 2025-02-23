@@ -14,11 +14,11 @@ import (
 var tracer = otel.Tracer("/server/internal/services/accountPermissions/repository")
 
 type AccountPermissionsRepository struct {
-	db    sql.SQL
+	db    *sql.DB
 	cache *cache.Cache[struct{}, model.PermissionSet]
 }
 
-func NewAccountPermissionsRepository(db sql.SQL) *AccountPermissionsRepository {
+func NewAccountPermissionsRepository(db *sql.DB) *AccountPermissionsRepository {
 	return &AccountPermissionsRepository{
 		db:    db,
 		cache: cache.NewCache[struct{}, model.PermissionSet](time.Minute),

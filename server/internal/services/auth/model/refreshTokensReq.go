@@ -1,8 +1,8 @@
 package model
 
 import (
-	"pkg/necessary"
 	userModel "server/internal/services/user/model"
+	"server/internal/utils/necessary"
 )
 
 type RefreshTokensReq struct {

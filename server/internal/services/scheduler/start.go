@@ -6,12 +6,12 @@ import (
 
 	"pkg/errors"
 	"pkg/log"
-	"pkg/necessary"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/settings/model"
 )
 
-func (s *Scheduler) Start() error {
+func (s *Scheduler) Start(ctx context.Context) error {
 
 	// Обновление валют
 	_, err := s.cron.AddFunc("@daily", func() { // Every day at 00:00 UTC
@@ -31,7 +31,7 @@ func (s *Scheduler) Start() error {
 		}
 	})
 	if err != nil {
-		return errors.InternalServer.Wrap(err)
+		return errors.InternalServer.Wrap(ctx, err)
 	}
 
 	s.cron.Start()

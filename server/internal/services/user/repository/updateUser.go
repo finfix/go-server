@@ -34,7 +34,7 @@ func (r *UserRepository) UpdateUser(ctx context.Context, fields userRepoModel.Up
 	}
 
 	if len(updates) == 0 {
-		return errors.BadRequest.New("No fields to update")
+		return errors.BadRequest.New(ctx, "No fields to update")
 	}
 
 	// Обновляем пользователя

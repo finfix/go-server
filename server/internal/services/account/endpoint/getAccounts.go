@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"pkg/http/decoder"
-
+	"pkg/validator"
 	"server/internal/services/account/model"
+	"server/internal/utils/necessary"
 )
 
 // @Summary Получение счетов по фильтрам
@@ -24,7 +25,17 @@ func (s *endpoint) getAccounts(ctx context.Context, r *http.Request) (any, error
 	var req model.GetAccountsReq
 
 	// Декодируем запрос
-	if err := decoder.Decoder(ctx, r, &req, decoder.DecodeSchema); err != nil {
+	if err := decoder.Decode(ctx, r, &req, decoder.DecodeSchema); err != nil {
+		return nil, err
+	}
+
+	// Парсим обязательные параметры
+	if err := necessary.ParseNecessary(ctx, &req); err != nil {
+		return nil, err
+	}
+
+	// Валидируем запрос
+	if err := validator.Validate(ctx, req); err != nil {
 		return nil, err
 	}
 

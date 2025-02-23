@@ -14,7 +14,7 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 	defer span.End()
 
 	if account.IsParent {
-		return errors.BadRequest.New("Счет уже является родительским",
+		return errors.BadRequest.New(ctx, "Счет уже является родительским",
 			errors.ParamsOption("accountID", account.ID),
 		)
 	}
@@ -29,7 +29,7 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 		return err
 	}
 	if len(parentAccounts) == 0 {
-		return errors.NotFound.New("Родительский счет не найден",
+		return errors.NotFound.New(ctx, "Родительский счет не найден",
 			errors.ParamsOption("accountID", parentAccountID),
 		)
 	}
@@ -37,14 +37,14 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 
 	// Проверяем, что указанный счет является родительским
 	if parentAccount.ID != parentAccountID {
-		return errors.BadRequest.New("Указанный счет не является родительским",
+		return errors.BadRequest.New(ctx, "Указанный счет не является родительским",
 			errors.ParamsOption("accountID", parentAccountID),
 		)
 	}
 
 	// Проверяем, что счета находятся в одной группе
 	if account.AccountGroupID != parentAccount.AccountGroupID {
-		return errors.BadRequest.New("Счета находятся в разных группах",
+		return errors.BadRequest.New(ctx, "Счета находятся в разных группах",
 			errors.ParamsOption(
 				"childAccountID", account.ID,
 				"childAccountGroupID", account.AccountGroupID,
@@ -55,7 +55,7 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 
 	// Проверяем, что типы счетов совпадают
 	if account.Type != parentAccount.Type {
-		return errors.BadRequest.New("Типы счетов не совпадают",
+		return errors.BadRequest.New(ctx, "Типы счетов не совпадают",
 			errors.ParamsOption(
 				"childAccountID", account.ID,
 				"childType", account.Type,

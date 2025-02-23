@@ -49,7 +49,7 @@ func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoMode
 
 	// Проверяем, что хоть один фильтр был передан
 	if len(filters) == 0 {
-		return accounts, errors.BadRequest.New("No filters")
+		return accounts, errors.BadRequest.New(ctx, "No filters")
 	}
 
 	// Выполняем запрос

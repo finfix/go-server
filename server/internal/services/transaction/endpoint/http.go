@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
+	"server/internal/utils/auth"
 
 	"server/internal/services/transaction/model"
 )
@@ -36,7 +37,7 @@ func newTransactionEndpoint(service transactionService) http.Handler {
 	}
 
 	options := []chain.Option{
-		chain.Before(chain.DefaultAuthorization),
+		chain.Before(auth.DefaultAuthorization),
 	}
 
 	router := chi.NewRouter()

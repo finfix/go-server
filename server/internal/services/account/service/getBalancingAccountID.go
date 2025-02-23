@@ -49,7 +49,7 @@ func (s *AccountService) GetBalancingAccountID(ctx context.Context, account mode
 
 	// Если общий балансировочный счет не найден
 	if len(parentBalancingAccounts) == 0 {
-		return balancingAccountID, serialNumber, wasCreate, errors.InternalServer.New("Родительский балансировочный счет не найден", errors.ParamsOption(
+		return balancingAccountID, serialNumber, wasCreate, errors.InternalServer.New(ctx, "Родительский балансировочный счет не найден", errors.ParamsOption(
 			"accountID", account,
 			"accountGroupID", account.AccountGroupID,
 		),

@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
-
 	"server/internal/services/account/model"
 	"server/internal/services/account/model/accountType"
 )
@@ -29,7 +27,7 @@ func (s *AccountService) GetAccounts(ctx context.Context, filters model.GetAccou
 			return nil, err
 		}
 		if len(filters.AccountGroupIDs) == 0 {
-			return nil, errors.NotFound.New("У пользователя нет доступных групп счетов")
+			return nil, nil
 		}
 	}
 

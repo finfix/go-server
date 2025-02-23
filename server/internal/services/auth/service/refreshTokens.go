@@ -5,6 +5,7 @@ import (
 
 	"pkg/errors"
 	"pkg/jwtManager"
+	"server/internal/utils/auth"
 
 	"server/internal/services/auth/model"
 	"server/internal/services/auth/service/utils"
@@ -25,7 +26,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 		return newTokens, err
 	}
 	if len(devices) == 0 {
-		return newTokens, errors.Unauthorized.New("Device not found",
+		return newTokens, errors.Unauthorized.New(ctx, "Device not found",
 			errors.HumanTextOption("Девайс не найден"),
 		)
 	}
@@ -33,21 +34,21 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 
 	// Сравниваем токен из базы данных с переданным пользователем токеном
 	if req.Token != device.RefreshToken {
-		return newTokens, errors.Forbidden.New("Token is incorrect")
+		return newTokens, errors.Forbidden.New(ctx, "Auth is incorrect")
 	}
 
-	// Смотрим, не истек ли еще токен
-	userID, deviceID, err := jwtManager.ParseToken(device.RefreshToken)
+	// Парсим токен
+	claims, err := jwtManager.ParseToken[auth.Claims](ctx, device.RefreshToken)
 	if err != nil {
 		return newTokens, err
 	}
 
 	// Дополнительно проверяем идентификаторы
-	if userID != req.Necessary.UserID {
-		return newTokens, errors.Forbidden.New("UserID not matched")
+	if claims.UserID != req.Necessary.UserID {
+		return newTokens, errors.Forbidden.New(ctx, "UserID not matched")
 	}
-	if deviceID != req.Necessary.DeviceID {
-		return newTokens, errors.Forbidden.New("DeviceID not matched")
+	if claims.DeviceID != req.Necessary.DeviceID {
+		return newTokens, errors.Forbidden.New(ctx, "DeviceID not matched")
 	}
 
 	// Создаем новую пару токенов

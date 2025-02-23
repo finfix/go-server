@@ -30,7 +30,7 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		return err
 	}
 	if len(transactions) == 0 {
-		return errors.NotFound.New("Транзакция не найдена",
+		return errors.NotFound.New(ctx, "Транзакция не найдена",
 			errors.ParamsOption("ID", fields.ID),
 		)
 	}
@@ -60,7 +60,7 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uint32 { return account.ID })
 
 		// Проверяем соответствие типов счета и типа транзакции
-		if err = utils.TransactionAndAccountTypesValidation(
+		if err = utils.TransactionAndAccountTypesValidation(ctx,
 			accountsMap[transaction.AccountFromID],
 			accountsMap[transaction.AccountToID],
 			transaction.Type,

@@ -44,7 +44,7 @@ func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs
 	}
 
 	if len(accessedTransactionIDs) == 0 {
-		return errors.Forbidden.New("You don't have access to any of the requested transactions",
+		return errors.Forbidden.New(ctx, "You don't have access to any of the requested transactions",
 			errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TransactionIDs", transactionIDs),
 		)
 	}
@@ -54,7 +54,7 @@ func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs
 
 		// Если счета нет в мапе доступных транзакций, возвращаем ошибку
 		if _, ok := accessedTransactionIDs[transactionID]; !ok {
-			return errors.Forbidden.New(fmt.Sprintf("You don't have access to transaction with ID %v", transactionID),
+			return errors.Forbidden.New(ctx, fmt.Sprintf("You don't have access to transaction with ID %v", transactionID),
 				errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TransactionID", transactionID),
 				errors.SkipPreviousCallerOption(),
 			)

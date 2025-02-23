@@ -20,13 +20,14 @@ type TgBotService struct {
 }
 
 func NewTgBotService(
+	ctx context.Context,
 	token string,
 	chatID int64,
 	isOn bool,
 ) (*TgBotService, error) {
 
 	if !isOn {
-		log.Warning(context.Background(), "Telegram bot is off", log.SkipThisCallOption())
+		log.Warning(ctx, "Telegram bot is off", log.SkipThisCallOption())
 		return &TgBotService{
 			Bot:  nil,
 			Chat: nil,
@@ -47,12 +48,12 @@ func NewTgBotService(
 		Offline:     false,
 	})
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(err)
+		return nil, errors.InternalServer.Wrap(ctx, err)
 	}
 
 	chat, err := bot.ChatByID(chatID)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(err)
+		return nil, errors.InternalServer.Wrap(ctx, err)
 	}
 
 	return &TgBotService{

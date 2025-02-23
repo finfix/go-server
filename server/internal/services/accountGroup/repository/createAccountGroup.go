@@ -28,7 +28,7 @@ func (r *AccountGroupRepository) CreateAccountGroup(ctx context.Context, account
 	}
 
 	// Сканируем результат
-	if err = row.Scan(&serialNumber); err != nil {
+	if err = row.Scan(ctx, &serialNumber); err != nil {
 		return id, serialNumber, err
 	}
 

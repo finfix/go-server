@@ -45,7 +45,7 @@ func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, ac
 	}
 
 	if len(accessedAccountIDs) == 0 {
-		return errors.Forbidden.New("You don't have access to any of the requested accounts",
+		return errors.Forbidden.New(ctx, "You don't have access to any of the requested accounts",
 			errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "AccountIDs", accountIDs),
 		)
 	}
@@ -55,7 +55,7 @@ func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, ac
 
 		// Если счета нет в мапе доступных счетов, возвращаем ошибку
 		if _, ok := accessedAccountIDs[accountID]; !ok {
-			return errors.Forbidden.New(fmt.Sprintf("You don't have access to account with ID %v", accountID),
+			return errors.Forbidden.New(ctx, fmt.Sprintf("You don't have access to account with ID %v", accountID),
 				errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "AccountID", accountID),
 				errors.SkipPreviousCallerOption(),
 			)

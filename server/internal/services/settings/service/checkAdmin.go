@@ -25,7 +25,7 @@ func (s *SettingsService) checkAdmin(ctx context.Context, userID uint32) error {
 
 	// Проверяем, является ли пользователь администратором
 	if !user.IsAdmin {
-		return errors.Forbidden.New("Access denied")
+		return errors.Forbidden.New(ctx, "Access denied")
 	}
 
 	return nil

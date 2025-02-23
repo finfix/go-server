@@ -20,7 +20,7 @@ func (s *endpoint) getVersion(ctx context.Context, r *http.Request) (any, error)
 	defer span.End()
 
 	appType := applicationType.Type(chi.URLParam(r, "application"))
-	if err := appType.Validate(); err != nil {
+	if err := appType.Validate(ctx); err != nil {
 		return nil, err
 	}
 	return s.service.GetVersion(ctx, appType)

@@ -9,10 +9,10 @@ import (
 var tracer = otel.Tracer("/server/internal/services/accountGroup/repository")
 
 type AccountGroupRepository struct {
-	db sql.SQL
+	db *sql.DB
 }
 
-func NewAccountGroupRepository(db sql.SQL, ) *AccountGroupRepository {
+func NewAccountGroupRepository(db *sql.DB) *AccountGroupRepository {
 	return &AccountGroupRepository{
 		db: db,
 	}

@@ -65,7 +65,7 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[ui
 		// Проверяем, переданы ли поля для обновления
 		if len(updates) == 0 {
 			if fields.Remainder == nil {
-				return errors.BadRequest.New("No fields to update")
+				return errors.BadRequest.New(ctx, "No fields to update")
 			}
 			return nil
 		}

@@ -49,7 +49,7 @@ func (r *TransactionRepository) UpdateTransaction(ctx context.Context, fields mo
 		if fields.TagIDs != nil {
 			return nil
 		}
-		return errors.BadRequest.New("No fields to update")
+		return errors.BadRequest.New(ctx, "No fields to update")
 	}
 
 	// Создаем транзакцию

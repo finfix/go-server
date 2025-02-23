@@ -45,7 +45,7 @@ func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs
 	}
 
 	if len(accessedTagIDs) == 0 {
-		return errors.Forbidden.New("You don't have access to any of the requested tags",
+		return errors.Forbidden.New(ctx, "You don't have access to any of the requested tags",
 			errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TagIDs", tagIDs),
 		)
 	}
@@ -55,7 +55,7 @@ func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs
 
 		// Если подкатегории нет в мапе доступных подкатегорий, возвращаем ошибку
 		if _, ok := accessedTagIDs[tagID]; !ok {
-			return errors.Forbidden.New(fmt.Sprintf("You don't have access to tag with ID %v", tagID),
+			return errors.Forbidden.New(ctx, fmt.Sprintf("You don't have access to tag with ID %v", tagID),
 				errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TagID", tagID),
 				errors.SkipPreviousCallerOption(),
 			)

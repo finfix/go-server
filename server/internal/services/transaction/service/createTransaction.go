@@ -32,7 +32,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 	accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uint32 { return account.ID })
 
 	// Проверяем, может ли пользователь использовать счета
-	if err = utils.TransactionAndAccountTypesValidation(
+	if err = utils.TransactionAndAccountTypesValidation(ctx,
 		accountsMap[transaction.AccountFromID],
 		accountsMap[transaction.AccountToID],
 		transaction.Type,
@@ -48,7 +48,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 
 	// Проверяем, что счета можно использовать для создания транзакции
 	if !permissionsArr[0].CreateTransaction || !permissionsArr[1].CreateTransaction {
-		return id, errors.BadRequest.New("Нельзя создать транзакцию для этих счетов",
+		return id, errors.BadRequest.New(ctx, "Нельзя создать транзакцию для этих счетов",
 			errors.ParamsOption(
 				"AccountFromID", transaction.AccountFromID,
 				"AccountGroupFromID", accountsMap[transaction.AccountFromID].AccountGroupID,
@@ -60,7 +60,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 
 	// Проверяем, что счета находятся в одной группе
 	if accountsMap[transaction.AccountFromID].AccountGroupID != accountsMap[transaction.AccountToID].AccountGroupID {
-		return id, errors.BadRequest.New("Счета находятся в разных группах",
+		return id, errors.BadRequest.New(ctx, "Счета находятся в разных группах",
 			errors.ParamsOption(
 				"AccountFromID", transaction.AccountFromID,
 				"AccountToID", transaction.AccountToID,

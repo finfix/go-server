@@ -20,7 +20,7 @@ func (s *TgBotService) SendMessage(ctx context.Context, req model.SendMessageReq
 	}
 
 	if _, err := s.Bot.Send(s.Chat, req.Message); err != nil {
-		return errors.InternalServer.Wrap(err)
+		return errors.InternalServer.Wrap(ctx, err)
 	}
 
 	return nil

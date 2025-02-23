@@ -53,12 +53,12 @@ func (s *PushNotificatorService) SendNotification(ctx context.Context, req model
 
 	res, err := s.apns.PushWithContext(ctx, notification)
 	if err != nil {
-		return id, errors.InternalServer.Wrap(err)
+		return id, errors.InternalServer.Wrap(ctx, err)
 	}
 	id = res.ApnsID
 
 	if !res.Sent() {
-		return id, errors.InternalServer.New(res.Reason)
+		return id, errors.InternalServer.New(ctx, res.Reason)
 	}
 
 	return id, nil

@@ -34,7 +34,7 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	if err != nil {
 		return res, err
 	}
-	if err = utils.CheckAccountPermissionsForUpdate(updateReq, permissions); err != nil {
+	if err = utils.CheckAccountPermissionsForUpdate(ctx, updateReq, permissions); err != nil {
 		return res, err
 	}
 

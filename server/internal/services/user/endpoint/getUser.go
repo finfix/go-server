@@ -6,6 +6,8 @@ import (
 
 	"pkg/errors"
 	"pkg/http/decoder"
+	"pkg/validator"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/user/model"
 )
@@ -24,18 +26,28 @@ func (s *endpoint) getUser(ctx context.Context, r *http.Request) (any, error) {
 	var req model.GetUsersReq
 
 	// Декодируем запрос
-	if err := decoder.Decoder(ctx, r, &req, decoder.DecodeSchema); err != nil {
+	if err := decoder.Decode(ctx, r, &req, decoder.DecodeSchema); err != nil {
+		return nil, err
+	}
+
+	// Парсим обязательные параметры
+	if err := necessary.ParseNecessary(ctx, &req); err != nil {
+		return nil, err
+	}
+
+	// Валидируем запрос
+	if err := validator.Validate(ctx, req); err != nil {
 		return nil, err
 	}
 
 	// Вызываем метод сервиса
 	users, err := s.service.GetUsers(ctx, req)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(err)
+		return nil, errors.InternalServer.Wrap(ctx, err)
 	}
 
 	if len(users) == 0 {
-		return nil, errors.InternalServer.New("Пользователь не найден",
+		return nil, errors.InternalServer.New(ctx, "Пользователь не найден",
 			errors.ParamsOption("UserID", req.Necessary.UserID),
 		)
 	}

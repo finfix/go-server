@@ -22,8 +22,8 @@ func (s *SettingsService) GetVersion(ctx context.Context, appType applicationTyp
 	case applicationType.IOs:
 		return s.settingsRepository.GetVersion(ctx, appType)
 	case applicationType.Android, applicationType.Web:
-		return version, errors.NotFound.New("Такое приложение еще не реализовано")
+		return version, errors.NotFound.New(ctx, "Такое приложение еще не реализовано")
 	default:
-		return version, errors.BadRequest.New("Неверный тип приложения")
+		return version, errors.BadRequest.New(ctx, "Неверный тип приложения")
 	}
 }

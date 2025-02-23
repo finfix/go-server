@@ -21,14 +21,20 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 	if _users, err := s.userRepository.GetUsers(ctx, userModel.GetUsersReq{Emails: []string{loginData.Email}}); err != nil { //nolint:exhaustruct
 		return accessData, err
 	} else if len(_users) != 0 {
-		return accessData, errors.Forbidden.New("User with this email is already registered",
+		return accessData, errors.Forbidden.New(ctx, "User with this email is already registered",
 			errors.HumanTextOption("Пользователь с таким email уже зарегистрирован"),
 			errors.ParamsOption("email", loginData.Email),
 		)
 	}
 
+	// Генерируем соль для пароля
+	userSalt, err := passwordManager.GenerateRandomSalt(ctx)
+	if err != nil {
+		return accessData, err
+	}
+
 	// Получаем хэш пароля пользователя
-	passwordHash, passwordSalt, err := passwordManager.CreateNewPassword([]byte(loginData.Password), s.generalSalt)
+	passwordHash, err := passwordManager.CreateNewPassword(ctx, []byte(loginData.Password), s.generalSalt, userSalt)
 	if err != nil {
 		return accessData, err
 	}
@@ -40,7 +46,7 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 			Name:            loginData.Name,
 			Email:           loginData.Email,
 			PasswordHash:    passwordHash,
-			PasswordSalt:    passwordSalt,
+			PasswordSalt:    userSalt,
 			TimeCreate:      time.Now(),
 			DefaultCurrency: "RUB", // TODO: Поменять
 		})

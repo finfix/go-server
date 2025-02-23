@@ -2,7 +2,7 @@ package model
 
 import (
 	"pkg/datetime"
-	"pkg/necessary"
+	"server/internal/utils/necessary"
 
 	repoModel "server/internal/services/accountGroup/repository/model"
 )

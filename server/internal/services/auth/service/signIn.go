@@ -22,7 +22,7 @@ func (s *AuthService) SignIn(ctx context.Context, loginData model.SignInReq) (ac
 		return accessData, err
 	}
 	if len(users) == 0 {
-		return accessData, errors.NotFound.New("User not found",
+		return accessData, errors.NotFound.New(ctx, "User not found",
 			errors.HumanTextOption("Пользователь не найден"),
 		)
 	}
@@ -32,7 +32,7 @@ func (s *AuthService) SignIn(ctx context.Context, loginData model.SignInReq) (ac
 
 	_, span1 := tracer.Start(ctx, "CompareHashAndPassword")
 	// Сравниваем пришедший пароль и хэш пароля из базы данных
-	if err = passwordManager.CompareHashAndPassword(user.PasswordHash, []byte(loginData.Password), user.PasswordSalt, s.generalSalt); err != nil {
+	if err = passwordManager.CompareHashAndPassword(ctx, user.PasswordHash, []byte(loginData.Password), user.PasswordSalt, s.generalSalt); err != nil {
 		return accessData, err
 	}
 	span1.End()

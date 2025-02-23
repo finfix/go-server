@@ -19,7 +19,7 @@ func (s *AccountGroupService) CheckAccess(ctx context.Context, userID uint32, ac
 
 	// Если доступных групп счетов нет, возвращаем ошибку
 	if len(accessedAccountGroupIDs) == 0 {
-		return errors.NotFound.New("Нет доступных групп счетов",
+		return errors.NotFound.New(ctx, "Нет доступных групп счетов",
 			errors.ParamsOption("UserID", userID),
 		)
 	}
@@ -34,7 +34,7 @@ func (s *AccountGroupService) CheckAccess(ctx context.Context, userID uint32, ac
 		if _, ok := accessedAccountGroupIDsMap[accountGroupID]; !ok {
 
 			// Возвращаем ошибку
-			return errors.Forbidden.New("Access denied",
+			return errors.Forbidden.New(ctx, "Access denied",
 				errors.ParamsOption("UserID", userID, "AccountGroupID", accountGroupIDs),
 				errors.HumanTextOption("Вы не имеете доступа к группе счетов с ID = %v", accountGroupID),
 				errors.SkipPreviousCallerOption(),

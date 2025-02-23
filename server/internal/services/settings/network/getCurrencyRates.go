@@ -38,14 +38,14 @@ func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.De
 
 	uri, err := url.ParseRequestURI(urlString)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(err)
+		return nil, errors.InternalServer.Wrap(ctx, err)
 	}
 	uri.RawQuery = urlValues.Encode()
 
 	// Отправляем запрос
 	req, err := http.NewRequest(http.MethodGet, uri.String(), nil)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(err)
+		return nil, errors.InternalServer.Wrap(ctx, err)
 	}
 
 	req = req.WithContext(ctx)
@@ -53,7 +53,7 @@ func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.De
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.BadGateway.Wrap(err)
+		return nil, errors.BadGateway.Wrap(ctx, err)
 	}
 	defer resp.Body.Close()
 
@@ -63,10 +63,10 @@ func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.De
 
 		// Декодируем ответ
 		if err = json.NewDecoder(resp.Body).Decode(&providerModel); err != nil {
-			return nil, errors.InternalServer.Wrap(err)
+			return nil, errors.InternalServer.Wrap(ctx, err)
 		}
 	default:
-		return nil, errors.BadGateway.New("Error while getting currency rates",
+		return nil, errors.BadGateway.New(ctx, "Error while getting currency rates",
 			errors.ParamsOption("HTTP code", resp.StatusCode),
 		)
 	}

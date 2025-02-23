@@ -1,7 +1,7 @@
 package model
 
 import (
-	"pkg/necessary"
+	"server/internal/utils/necessary"
 )
 
 type UpdateAccountGroupReq struct {

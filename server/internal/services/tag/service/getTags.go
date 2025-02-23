@@ -22,7 +22,7 @@ func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tag
 			return nil, err
 		}
 		if len(filters.AccountGroupIDs) == 0 {
-			return nil, errors.Forbidden.New("У пользователя нет доступа к группам счетов")
+			return nil, errors.Forbidden.New(ctx, "У пользователя нет доступа к группам счетов")
 		}
 	}
 
