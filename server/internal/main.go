@@ -87,6 +87,8 @@ func run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
+	func()
+
 	// Перехватываем возможную панику
 	defer func() {
 		panicRecover.PanicRecover(ctx, func(err error) {
