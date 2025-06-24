@@ -3,13 +3,16 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 
 	settingsModel "server/internal/services/settings/model"
 	"server/internal/services/settings/model/applicationType"
 )
 
 func (s *SettingsService) GetVersion(ctx context.Context, appType applicationType.Type) (version settingsModel.Version, err error) {
+	ctx, span := tracer.Start(ctx, "GetVersion")
+	defer span.End()
+
 	switch appType {
 	case applicationType.Server:
 		return settingsModel.Version{
@@ -19,8 +22,8 @@ func (s *SettingsService) GetVersion(ctx context.Context, appType applicationTyp
 	case applicationType.IOs:
 		return s.settingsRepository.GetVersion(ctx, appType)
 	case applicationType.Android, applicationType.Web:
-		return version, errors.NotFound.New("Такое приложение еще не реализовано")
+		return version, errors.NotFound.New("Такое приложение еще не реализовано").WithContextParams(ctx)
 	default:
-		return version, errors.BadRequest.New("Неверный тип приложения")
+		return version, errors.BadRequest.New("Неверный тип приложения").WithContextParams(ctx)
 	}
 }

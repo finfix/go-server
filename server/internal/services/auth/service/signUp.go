@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"pkg/errors"
 	"pkg/passwordManager"
+	"server/internal/utils/errors"
 
 	"server/internal/services/auth/model"
 	"server/internal/services/auth/service/utils"
@@ -14,19 +14,27 @@ import (
 
 // SignUp регистрирует пользователя и возвращает токены доступа
 func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (accessData model.AuthRes, err error) {
+	ctx, span := tracer.Start(ctx, "SignUp")
+	defer span.End()
 
 	// Проверяем, есть ли пользователь в бд с таким email
 	if _users, err := s.userRepository.GetUsers(ctx, userModel.GetUsersReq{Emails: []string{loginData.Email}}); err != nil { //nolint:exhaustruct
 		return accessData, err
 	} else if len(_users) != 0 {
-		return accessData, errors.Forbidden.New("User with this email is already registered",
-			errors.HumanTextOption("Пользователь с таким email уже зарегистрирован"),
-			errors.ParamsOption("email", loginData.Email),
-		)
+		return accessData, errors.Forbidden.New("User with this email is already registered").
+			WithContextParams(ctx).
+			WithParams("email", loginData.Email).
+			WithCustomHumanText("Пользователь с таким email уже зарегистрирован")
+	}
+
+	// Генерируем соль для пароля
+	userSalt, err := passwordManager.GenerateRandomSalt()
+	if err != nil {
+		return accessData, err
 	}
 
 	// Получаем хэш пароля пользователя
-	passwordHash, passwordSalt, err := passwordManager.CreateNewPassword([]byte(loginData.Password), s.generalSalt)
+	passwordHash, err := passwordManager.CreateNewPassword([]byte(loginData.Password), s.generalSalt, userSalt)
 	if err != nil {
 		return accessData, err
 	}
@@ -38,7 +46,7 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 			Name:            loginData.Name,
 			Email:           loginData.Email,
 			PasswordHash:    passwordHash,
-			PasswordSalt:    passwordSalt,
+			PasswordSalt:    userSalt,
 			TimeCreate:      time.Now(),
 			DefaultCurrency: "RUB", // TODO: Поменять
 		})
@@ -47,7 +55,7 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 		}
 
 		// Создаем пару токенов
-		accessData.Tokens, err = utils.CreatePairTokens(ctx, accessData.ID, loginData.DeviceID)
+		accessData.Tokens, err = utils.CreatePairTokens(accessData.ID, loginData.DeviceID)
 		if err != nil {
 			return err
 		}

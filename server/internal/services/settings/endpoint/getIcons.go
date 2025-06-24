@@ -15,6 +15,8 @@ import (
 // @Failure 401,500 {object} errors.Error
 // @Router /settings/icons [get]
 func (s *endpoint) getIcons(ctx context.Context, _ *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "getIcons")
+	defer span.End()
 
 	// Вызываем метод сервиса
 	return s.service.GetIcons(ctx)

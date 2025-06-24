@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
-
 	"server/internal/services/account/model"
 	"server/internal/services/account/model/accountType"
 )
 
 // GetAccounts возвращает все счета, удовлетворяющие фильтрам
 func (s *AccountService) GetAccounts(ctx context.Context, filters model.GetAccountsReq) (accounts []model.Account, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccounts")
+	defer span.End()
 
 	// Если в фильтрах переданы группы счетов
 	if len(filters.AccountGroupIDs) != 0 {
@@ -27,7 +27,7 @@ func (s *AccountService) GetAccounts(ctx context.Context, filters model.GetAccou
 			return nil, err
 		}
 		if len(filters.AccountGroupIDs) == 0 {
-			return nil, errors.NotFound.New("У пользователя нет доступных групп счетов")
+			return nil, nil
 		}
 	}
 

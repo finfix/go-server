@@ -1,15 +1,14 @@
 name: lint
 
 on:
-  workflow_call:
-    inputs:
-      service_name:
-        required: true
-        type: string
   pull_request:
+  push:
 
 permissions:
   contents: read
+
+env:
+  DIRECTORY: server
 
 jobs:
 
@@ -27,5 +26,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
-          working-directory: ${{ inputs.service_name }}
+          working-directory: ${{ env.DIRECTORY }}
           version: latest

@@ -13,6 +13,8 @@ import (
 )
 
 func (r *AccountGroupRepository) GetAccountGroups(ctx context.Context, req model.GetAccountGroupsReq) (accountGroups []model.AccountGroup, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccountGroups")
+	defer span.End()
 
 	// Формируем первичный запрос
 	q := sq.

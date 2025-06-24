@@ -83,6 +83,8 @@ func buildRequestForGettingSumTransactions(req accountRepoModel.CalculateRemaind
 
 // GetSumAllTransactionsToAccount возвращает суммы всех транзакций, которые исходили из счетов
 func (r *AccountRepository) GetSumAllTransactionsToAccount(ctx context.Context, req accountRepoModel.CalculateRemaindersAccountsReq) (map[uint32]decimal.Decimal, error) {
+	ctx, span := tracer.Start(ctx, "GetSumAllTransactionsToAccount")
+	defer span.End()
 
 	var amountsArray []amountsArray
 

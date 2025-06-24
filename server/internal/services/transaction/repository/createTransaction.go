@@ -11,6 +11,8 @@ import (
 
 // CreateTransaction создает новую транзакцию
 func (r *TransactionRepository) CreateTransaction(ctx context.Context, req model.CreateTransactionReq) (id uint32, err error) {
+	ctx, span := tracer.Start(ctx, "CreateTransaction")
+	defer span.End()
 
 	// Создаем транзакцию
 	return r.db.ExecWithLastInsertID(ctx, sq.Insert(`coin.transactions`).

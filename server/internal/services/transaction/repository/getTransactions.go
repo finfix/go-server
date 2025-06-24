@@ -13,6 +13,8 @@ import (
 
 // GetTransactions возвращает все транзакции по фильтрам
 func (r *TransactionRepository) GetTransactions(ctx context.Context, req model.GetTransactionsReq) (transactions []model.Transaction, err error) {
+	ctx, span := tracer.Start(ctx, "GetTransactions")
+	defer span.End()
 
 	accountsFromPrefix, accountsToPrefix := "a1", "a2"
 

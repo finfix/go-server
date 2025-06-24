@@ -7,6 +7,8 @@ import (
 )
 
 func (s *SettingsService) SendNotification(ctx context.Context, req settingsModel.SendNotificationReq) (res settingsModel.SendNotificationRes, err error) {
+	ctx, span := tracer.Start(ctx, "SendNotification")
+	defer span.End()
 
 	// Проверяем, что пользователь администратор
 	err = s.checkAdmin(ctx, req.Necessary.UserID)

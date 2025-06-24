@@ -3,11 +3,13 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"server/internal/services/tag/model"
+	"server/internal/utils/errors"
 )
 
 func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tags []model.Tag, err error) {
+	ctx, span := tracer.Start(ctx, "GetTags")
+	defer span.End()
 
 	// Проверяем доступ пользователя к группам счетов
 	if filters.AccountGroupIDs != nil {
@@ -20,7 +22,7 @@ func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tag
 			return nil, err
 		}
 		if len(filters.AccountGroupIDs) == 0 {
-			return nil, errors.Forbidden.New("У пользователя нет доступа к группам счетов")
+			return nil, errors.Forbidden.New("У пользователя нет доступа к группам счетов").WithContextParams(ctx)
 		}
 	}
 

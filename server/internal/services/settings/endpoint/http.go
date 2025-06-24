@@ -5,12 +5,16 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
+	"server/internal/utils/auth"
 
 	"server/internal/services/settings/model"
 	"server/internal/services/settings/model/applicationType"
 )
+
+var tracer = otel.Tracer("/server/internal/services/settings/endpoint")
 
 type endpoint struct {
 	service settingsService
@@ -35,7 +39,7 @@ func newSettingsEndpoint(service settingsService) http.Handler {
 	}
 
 	options := []chain.Option{
-		chain.Before(chain.DefaultAuthorization),
+		chain.Before(auth.DefaultAuthorization),
 	}
 
 	r := chi.NewRouter()

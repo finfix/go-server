@@ -17,6 +17,8 @@ import (
 
 // UpdateCurrencies обновляет курсы валют
 func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsModel.UpdateCurrenciesReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateCurrencies")
+	defer span.End()
 
 	// Проверяем, что пользователь администратор
 	err := s.checkAdmin(ctx, req.Necessary.UserID)
@@ -31,7 +33,7 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 	defer func() {
 		err := s.tgBot.SendMessage(ctx, tgMessage)
 		if err != nil {
-			log.Error(ctx, err)
+			log.WithContextParams(ctx).Error(err)
 		}
 	}()
 

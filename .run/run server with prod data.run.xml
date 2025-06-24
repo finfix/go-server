@@ -1,0 +1,48 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="run server with prod data" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="Server" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="API_KEY_CURRENCY_PROVIDER" value="" />
+      <env name="AUTH_ACCESS_TOKEN_TTL" value="10h" />
+      <env name="AUTH_REFRESH_TOKEN_TTL" value="720h" />
+      <env name="ENVIRONMENT" value="local" />
+      <env name="LISTEN_HTTP" value="0.0.0.0:8080" />
+      <env name="LOG_FORMAT" value="text" />
+      <env name="LOG_LEVEL" value="debug" />
+      <env name="LOG_PKG_WARN_ENABLED" value="false" />
+      <env name="NOTIFICATIONS_APNS_KEY_FILE_PATH" value="" />
+      <env name="NOTIFICATIONS_APNS_KEY_ID" value="" />
+      <env name="NOTIFICATIONS_APNS_TEAM_ID" value="" />
+      <env name="NOTIFICATIONS_ENABLED" value="false" />
+      <env name="OTLP_HTTP_ENDPOINT" value="localhost:4318" />
+      <env name="OTLP_INSECURE" value="true" />
+      <env name="OTLP_IS_ENABLED" value="false" />
+      <env name="PGSQL_DATABASE" value="coin_prod" />
+      <env name="PGSQL_HOST" value="localhost:6131" />
+      <env name="PGSQL_PASSWORD" value="password" />
+      <env name="PGSQL_USER" value="postgres" />
+      <env name="SERVICE_NAME" value="server" />
+      <env name="TG_BOT_ENABLED" value="false" />
+      <env name="TG_BOT_TOKEN" value="" />
+      <env name="TG_CHAT_ID" value="0" />
+      <env name="STACK_TRACE_ENABLED" value="true" />
+    </envs>
+    <EXTENSION ID="net.ashald.envfile">
+      <option name="IS_ENABLED" value="true" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="server/.env" />
+      </ENTRIES>
+    </EXTENSION>
+    <kind value="PACKAGE" />
+    <package value="server/internal" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>

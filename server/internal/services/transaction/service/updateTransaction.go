@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"pkg/slices"
+	"server/internal/utils/errors"
 
 	accountModel "server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
@@ -14,6 +14,8 @@ import (
 
 // UpdateTransaction редактирует транзакцию
 func (s *TransactionService) UpdateTransaction(ctx context.Context, fields transactionModel.UpdateTransactionReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateTransaction")
+	defer span.End()
 
 	// Проверяем доступ пользователя к транзакции
 	if err := s.CheckAccess(ctx, fields.Necessary.UserID, []uint32{fields.ID}); err != nil {
@@ -28,9 +30,9 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		return err
 	}
 	if len(transactions) == 0 {
-		return errors.NotFound.New("Транзакция не найдена",
-			errors.ParamsOption("ID", fields.ID),
-		)
+		return errors.NotFound.New("Транзакция не найдена").
+			WithContextParams(ctx).
+			WithParams("ID", fields.ID)
 	}
 	transaction := transactions[0]
 
@@ -58,7 +60,7 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uint32 { return account.ID })
 
 		// Проверяем соответствие типов счета и типа транзакции
-		if err = utils.TransactionAndAccountTypesValidation(
+		if err = utils.TransactionAndAccountTypesValidation(ctx,
 			accountsMap[transaction.AccountFromID],
 			accountsMap[transaction.AccountToID],
 			transaction.Type,

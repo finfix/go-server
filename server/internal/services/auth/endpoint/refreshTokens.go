@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"pkg/http/decoder"
+	"pkg/validator"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/auth/model"
 )
@@ -19,16 +21,28 @@ import (
 // @Failure 400,401,500 {object} errors.Error
 // @Router /auth/refreshTokens [post]
 func (s *endpoint) refreshTokens(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "refreshTokens")
+	defer span.End()
 
 	var req model.RefreshTokensReq
 
 	// Декодируем запрос
-	if err := decoder.Decoder(ctx, r, &req, decoder.DecodeJSON); err != nil {
+	if err := decoder.Decode(ctx, r, &req, decoder.DecodeJSON); err != nil {
 		return nil, err
 	}
 
 	req.Device.IPAddress = r.Header.Get("X-Real-IP")
 	req.Device.UserAgent = r.Header.Get("User-Agent")
+
+	// Парсим обязательные параметры
+	if err := necessary.ParseNecessary(ctx, &req); err != nil {
+		return nil, err
+	}
+
+	// Валидируем запрос
+	if err := validator.Validate(req); err != nil {
+		return nil, err
+	}
 
 	// Вызываем метод сервиса
 	return s.service.RefreshTokens(ctx, req)

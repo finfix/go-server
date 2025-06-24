@@ -1,0 +1,47 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="run server with local data" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="Server" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="-log-format=text -env-mode=local" />
+    <envs>
+      <env name="API_KEY_CURRENCY_PROVIDER" value="" />
+      <env name="AUTH_ACCESS_TOKEN_TTL" value="10h" />
+      <env name="AUTH_REFRESH_TOKEN_TTL" value="720h" />
+      <env name="AUTH_TOKEN_SIGNING_KEY" value="signingKey" />
+      <env name="DB_HOST" value="localhost:6134" />
+      <env name="DB_NAME" value="coin_local" />
+      <env name="LISTEN_HTTP" value="0.0.0.0:8080" />
+      <env name="LOG_PKG_WARN_ENABLED" value="false" />
+      <env name="NOTIFICATIONS_APNS_KEY_FILE_PATH" value="" />
+      <env name="NOTIFICATIONS_APNS_KEY_ID" value="" />
+      <env name="NOTIFICATIONS_APNS_TEAM_ID" value="" />
+      <env name="NOTIFICATIONS_ENABLED" value="false" />
+      <env name="OTLP_HTTP_ENDPOINT" value="localhost:4318" />
+      <env name="OTLP_INSECURE" value="true" />
+      <env name="SERVER_DB_PASSWORD" value="password" />
+      <env name="SERVER_DB_USER" value="postgres" />
+      <env name="SERVICE_NAME" value="server" />
+      <env name="SHA_SALT" value="salt" />
+      <env name="TG_BOT_ENABLED" value="false" />
+      <env name="TG_BOT_TOKEN" value="" />
+      <env name="TG_CHAT_ID" value="0" />
+    </envs>
+    <EXTENSION ID="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        <ENTRY IS_ENABLED="false" PARSER="env" IS_EXECUTABLE="false" PATH="./server/.env" />
+        <ENTRY IS_ENABLED="false" PARSER="env" IS_EXECUTABLE="false" PATH="server/.env" />
+      </ENTRIES>
+    </EXTENSION>
+    <kind value="PACKAGE" />
+    <package value="server/internal" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/app/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

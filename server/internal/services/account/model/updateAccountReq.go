@@ -3,8 +3,8 @@ package model
 import (
 	"github.com/shopspring/decimal"
 
-	"pkg/necessary"
 	repoModel "server/internal/services/account/repository/model"
+	"server/internal/utils/necessary"
 )
 
 type UpdateAccountReq struct {
