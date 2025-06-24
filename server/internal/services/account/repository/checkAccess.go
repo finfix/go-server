@@ -2,16 +2,17 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	"server/internal/services/account/repository/accountDDL"
+	"server/internal/utils/errors"
 )
 
 // CheckAccess проверяет, имеет ли набор групп счетов пользователя доступ к указанным идентификаторам счетов
 func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, accountIDs []uint32) error {
+	ctx, span := tracer.Start(ctx, "CheckAccess")
+	defer span.End()
 
 	// Получаем все доступные счета по группам счетов и перечисленным счетам
 	rows, err := r.db.Query(ctx, sq.
@@ -43,9 +44,11 @@ func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, ac
 	}
 
 	if len(accessedAccountIDs) == 0 {
-		return errors.Forbidden.New("You don't have access to any of the requested accounts",
-			errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "AccountIDs", accountIDs),
-		)
+		return errors.Forbidden.New("You don't have access to any of the requested accounts").WithContextParams(ctx).
+			WithParams(
+				"AccountGroupIDs", accountGroupIDs,
+				"AccountIDs", accountIDs,
+			)
 	}
 
 	// Проходимся по каждому запрашиваемому счету
@@ -53,10 +56,13 @@ func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, ac
 
 		// Если счета нет в мапе доступных счетов, возвращаем ошибку
 		if _, ok := accessedAccountIDs[accountID]; !ok {
-			return errors.Forbidden.New(fmt.Sprintf("You don't have access to account with ID %v", accountID),
-				errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "AccountID", accountID),
-				errors.SkipPreviousCallerOption(),
-			)
+			return errors.Forbidden.New("You don't have access to account").
+				WithContextParams(ctx).
+				WithParams(
+					"AccountGroupIDs", accountGroupIDs,
+					"AccountID", accountID,
+				).
+				SkipPreviousCaller()
 		}
 	}
 

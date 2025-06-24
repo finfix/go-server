@@ -5,3 +5,6 @@ deploy-check-all: go-mod-tidy-all
 go-mod-tidy-all:
 	cd pkg; go mod tidy
 	cd server; go mod tidy
+
+submodule-update:
+	git submodule update --init --recursive --remote

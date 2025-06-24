@@ -2,27 +2,28 @@ package main
 
 import (
 	"context"
-	"flag"
+	"fmt"
 	"os"
 	"os/signal"
+	"pkg/log/model"
+	"pkg/stackTrace"
 	"syscall"
 	"time"
 
-	"github.com/shopspring/decimal"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"golang.org/x/sync/errgroup"
 
-	"pkg/database/postgresql"
-	"pkg/errors"
-	"pkg/http/middleware"
+	"github.com/pressly/goose/v3"
+	"github.com/shopspring/decimal"
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	"pkg/database/pgsql"
 	"pkg/http/router"
 	"pkg/http/server"
 	"pkg/jwtManager"
 	"pkg/log"
-	"pkg/log/model"
 	"pkg/migrator"
 	"pkg/panicRecover"
-	"pkg/stackTrace"
+	"pkg/trace"
 	"server/internal/config"
 	_ "server/internal/docs"
 	accountEndpoint "server/internal/services/account/endpoint"
@@ -52,7 +53,8 @@ import (
 	userEndpoint "server/internal/services/user/endpoint"
 	userRepository "server/internal/services/user/repository"
 	userService "server/internal/services/user/service"
-	"server/migrations"
+	"server/internal/utils/errors"
+	pgsqlMigrations "server/migrations/pgsql"
 )
 
 // @title COIN Server Documentation
@@ -73,10 +75,11 @@ import (
 
 const version = "@{version}"
 const build = "@{build}"
+const buildDate = "@{buildDate}"
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatal(context.Background(), err)
+		log.Fatal(err)
 	}
 }
 
@@ -87,22 +90,14 @@ func run() error {
 	defer cancel()
 
 	// Перехватываем возможную панику
-	defer panicRecover.PanicRecover(func(err error) {
-		log.Fatal(ctx, err)
-	})
+	defer func() {
+		panicRecover.PanicRecover(func(err error) {
+			log.Fatal(err)
+		})
+	}()
 
-	// Парсим флаги
-	logFormat := flag.String("log-format", string(log.JSONFormat), "text - Human readable string\njson - JSON format")
-	envMode := flag.String("env-mode", "local", "Environment mode for log label: test, prod")
-	flag.Parse()
-
-	var logHandlers []log.Handler
-	switch *logFormat {
-	case "text":
-		logHandlers = append(logHandlers, log.NewConsoleHandler(os.Stdout, log.LevelDebug))
-	case "json":
-		logHandlers = append(logHandlers, log.NewJSONHandler(os.Stdout, log.LevelDebug))
-	}
+	// Получаем конфиг
+	conf := config.Load()
 
 	// Получаем имя хоста
 	hostname, err := os.Hostname()
@@ -111,76 +106,83 @@ func run() error {
 	}
 
 	// Инициализируем логгер
-	log.Init(
+	if err := log.InitDefaultLogger(
 		model.SystemInfo{
-			Hostname: hostname,
-			Version:  version,
-			Build:    build,
-			Env:      *envMode,
+			Version:     version,
+			Build:       build,
+			ServiceName: conf.ServiceName,
+			Env:         conf.Environment,
+			Hostname:    hostname,
+			BuildDate:   buildDate,
 		},
-		logHandlers...,
-	)
-
-	// Получаем конфиг
-	log.Info(ctx, "Получаем конфиг")
-	cfg, err := config.GetConfig()
-	if err != nil {
+		conf.Logger,
+	); err != nil {
 		return err
 	}
 
 	// Инициализируем все синглтоны
-	log.Info(ctx, "Инициализируем синглтоны")
-	if err = initSingletons(cfg); err != nil {
+	log.Info("Инициализируем синглтоны")
+	if err = initSingletons(conf); err != nil {
+		return err
+	}
+
+	log.Info("Инициализируем трейсер")
+	if err = trace.StartTracing(conf.Tracer, conf.ServiceName); err != nil {
 		return err
 	}
 
 	// Подключаемся к базе данных
-	log.Info(ctx, "Подключаемся к БД")
-	postrgreSQL, err := postgresql.NewClientSQL(cfg.Repository, cfg.DBName)
+	log.Info("Подключаемся к БД")
+	pgsql, err := pgsql.NewClientPgsql(ctx, conf.Pgsql)
 	if err != nil {
 		return err
 	}
-	defer postrgreSQL.Close()
+	defer pgsql.Close()
 
 	// Запускаем миграции в базе данных
 	// TODO: Подумать, как откатывать миграции при ошибках
-	log.Info(ctx, "Запускаем миграции")
-	postgreSQLMigrator := migrator.NewMigrator(
-		postrgreSQL,
+	log.Info("Запускаем миграции")
+	postgreSQLMigrator, err := migrator.NewMigrator(
 		migrator.MigratorConfig{
-			EmbedMigrations: migrations.EmbedMigrationsPostgreSQL,
+			Migrations:      nil,
+			Conn:            pgsql.DB.DB,
+			EmbedMigrations: pgsqlMigrations.EmbedMigrationsPgsql,
 			Dir:             "pgsql",
+			Dialect:         goose.DialectPostgres,
 		},
 	)
+	if err != nil {
+		return err
+	}
 	if err = postgreSQLMigrator.Up(ctx); err != nil {
 		return err
 	}
 
 	// Регистрируем репозитории
-	transactor := transactor.NewTransactor(postrgreSQL)
-	accountGroupRepository := accountGroupRepository.NewAccountGroupRepository(postrgreSQL)
-	accountRepository := accountRepository.NewAccountRepository(postrgreSQL)
-	tagRepository := tagRepository.NewTagRepository(postrgreSQL)
-	transactionRepository := transactionRepository.NewTransactionRepository(postrgreSQL)
-	settingsRepository := settingsRepository.NewSettingsRepository(postrgreSQL)
-	userRepository := userRepository.NewUserRepository(postrgreSQL)
-	accountPermissionsRepository := accountPermisssionsRepository.NewAccountPermissionsRepository(postrgreSQL)
+	transactor := transactor.NewTransactor(pgsql)
+	accountGroupRepository := accountGroupRepository.NewAccountGroupRepository(pgsql)
+	accountRepository := accountRepository.NewAccountRepository(pgsql)
+	tagRepository := tagRepository.NewTagRepository(pgsql)
+	transactionRepository := transactionRepository.NewTransactionRepository(pgsql)
+	settingsRepository := settingsRepository.NewSettingsRepository(pgsql)
+	userRepository := userRepository.NewUserRepository(pgsql)
+	accountPermissionsRepository := accountPermisssionsRepository.NewAccountPermissionsRepository(pgsql)
 
 	// Регистрируем сервисы
-	log.Info(ctx, "Инициализируем Telegram-бота")
-	tgBotService, err := service.NewTgBotService(cfg.Telegram.Token, cfg.Telegram.ChatID, cfg.Telegram.Enabled)
+	log.Info("Инициализируем Telegram-бота")
+	tgBotService, err := service.NewTgBotService()
 	if err != nil {
 		return err
 	}
-	if cfg.Telegram.Enabled {
+	if conf.Telegram.IsEnabled {
 		defer tgBotService.Bot.Close()
 	}
 
-	log.Info(ctx, "Инициализируем сервис пушей")
-	pushNotificatorService, err := pushNotificatorService.NewPushNotificatorService(cfg.Notifications.Enabled, pushNotificatorModel.APNsCredentials{
-		TeamID:      cfg.Notifications.APNs.TeamID,
-		KeyID:       cfg.Notifications.APNs.KeyID,
-		KeyFilePath: cfg.Notifications.APNs.KeyFilePath,
+	log.Info("Инициализируем сервис пушей")
+	pushNotificatorService, err := pushNotificatorService.NewPushNotificatorService(conf.Notifications.Enabled, pushNotificatorModel.APNsCredentials{
+		TeamID:      conf.Notifications.APNs.TeamID,
+		KeyID:       conf.Notifications.APNs.KeyID,
+		KeyFilePath: conf.Notifications.APNs.KeyFilePath,
 	})
 	if err != nil {
 		return err
@@ -192,7 +194,7 @@ func run() error {
 		userRepository,
 		transactor,
 		pushNotificatorService,
-		[]byte(cfg.GeneralSalt),
+		[]byte(conf.Auth.GeneralSalt),
 	)
 
 	accountGroupService := accountGroupService.NewAccountGroupService(
@@ -238,18 +240,18 @@ func run() error {
 			Build:   build,
 		},
 		settingsService.Credentials{
-			CurrencyProviderAPIKey: cfg.APIKeys.CurrencyProvider,
+			CurrencyProviderAPIKey: conf.APIKeys.CurrencyProvider,
 		},
 	)
 
 	authService := authService.NewAuthService(
 		userRepository,
 		transactor,
-		[]byte(cfg.GeneralSalt),
+		[]byte(conf.Auth.GeneralSalt),
 	)
 
-	log.Info(ctx, "Запускаем планировщик")
-	if err = scheduler.NewScheduler(settingsService).Start(); err != nil {
+	log.Info("Запускаем планировщик")
+	if err = scheduler.NewScheduler(settingsService).Start(ctx); err != nil {
 		return err
 	}
 
@@ -263,7 +265,7 @@ func run() error {
 	settingsEndpoint.MountSettingsEndpoints(r, settingsService)             // ANY /settings*
 	r.Mount("/swagger", httpSwagger.WrapHandler)
 
-	server, err := server.GetDefaultServer(cfg.HTTP, r)
+	server, err := server.GetDefaultServer(conf.HTTP, r)
 	if err != nil {
 		return err
 	}
@@ -272,7 +274,12 @@ func run() error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Запускаем HTTP-сервер
-	eg.Go(func() error { return server.Serve(ctx) })
+	eg.Go(func() error {
+
+		log.Info(fmt.Sprintf("Server is listening: %s", conf.HTTP))
+		
+		return server.Serve()
+	})
 
 	// Запускаем горутину, ожидающую завершение контекста
 	eg.Go(func() error {
@@ -290,27 +297,27 @@ func run() error {
 	return eg.Wait()
 }
 
-func initSingletons(cfg config.Config) error {
+func initSingletons(conf config.Config) error {
 
-	stackTrace.Init(cfg.ServiceName)
+	stackTrace.Init(conf.ServiceName, conf.StackTraceEnabled)
 
 	// Конфигурируем decimal, чтобы в JSON не было кавычек
 	decimal.MarshalJSONWithoutQuotes = true
 
 	// Инициализируем JWT-менеджер
-	accessTokenTTL, err := time.ParseDuration(cfg.Token.AccessTokenTTL)
+	accessTokenTTL, err := time.ParseDuration(conf.Auth.AccessTokenTTL)
 	if err != nil {
 		return errors.InternalServer.Wrap(err)
 	}
-	refreshTokenTTL, err := time.ParseDuration(cfg.Token.RefreshTokenTTL)
+	refreshTokenTTL, err := time.ParseDuration(conf.Auth.RefreshTokenTTL)
 	if err != nil {
 		return errors.InternalServer.Wrap(err)
 	}
-	jwtManager.Init([]byte(cfg.Token.SigningKey), accessTokenTTL, refreshTokenTTL)
+	jwtManager.Init([]byte(conf.Auth.SigningKey), accessTokenTTL, refreshTokenTTL)
 
-	if err = middleware.Init(cfg.ServiceName); err != nil {
-		return err
-	}
+	//if err = middleware.(conf.ServiceName); err != nil {
+	//	return err
+	//}
 
 	return nil
 }

@@ -1,8 +1,10 @@
 package model
 
 import (
+	"context"
+
 	"pkg/datetime"
-	"pkg/necessary"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/account/model/accountType"
 	repoModel "server/internal/services/account/repository/model"
@@ -22,8 +24,8 @@ type GetAccountsReq struct {
 	IDs                []uint32          `json:"-" schema:"-"`
 }
 
-func (s GetAccountsReq) Validate() error {
-	return s.Type.Validate()
+func (s GetAccountsReq) Validate(ctx context.Context) error {
+	return s.Type.Validate(ctx)
 }
 
 // TODO: Переписать

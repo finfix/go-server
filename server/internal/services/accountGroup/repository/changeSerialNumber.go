@@ -11,6 +11,8 @@ import (
 
 // ChangeSerialNumbers вставляет группу счетов на новое место
 func (r *AccountGroupRepository) ChangeSerialNumbers(ctx context.Context, oldValue, newValue uint32) error {
+	ctx, span := tracer.Start(ctx, "ChangeSerialNumbers")
+	defer span.End()
 
 	// Формируем первичный запрос
 	q := sq.Update(accountGroupDDL.TableName)

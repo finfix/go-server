@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE SCHEMA IF NOT EXISTS coin AUTHORIZATION postgres;
+CREATE SCHEMA IF NOT EXISTS coin;
 
 
 CREATE TABLE IF NOT EXISTS coin.account_permissions
@@ -514,7 +514,7 @@ COMMENT ON COLUMN coin.tags_to_transaction.transaction_id IS 'Идентифик
 COMMENT ON COLUMN coin.tags_to_transaction.tag_id IS 'Идентификатор подкатегории';
 
 
-CREATE SCHEMA IF NOT EXISTS permissions AUTHORIZATION postgres;
+CREATE SCHEMA IF NOT EXISTS permissions;
 
 
 CREATE TABLE IF NOT EXISTS permissions.account_permissions
@@ -561,7 +561,7 @@ VALUES ('general', 'update_currency', TRUE),
 ON CONFLICT (account_type, action_type) DO NOTHING;
 
 
-CREATE SCHEMA IF NOT EXISTS settings AUTHORIZATION postgres;
+CREATE SCHEMA IF NOT EXISTS settings;
 
 
 CREATE TABLE IF NOT EXISTS settings.versions

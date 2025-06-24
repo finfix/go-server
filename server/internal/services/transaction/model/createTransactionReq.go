@@ -1,11 +1,13 @@
 package model
 
 import (
+	"context"
+
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
-	"pkg/errors"
-	"pkg/necessary"
+	"server/internal/utils/errors"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/transaction/model/transactionType"
 	"server/internal/services/transaction/repository/model"
@@ -27,13 +29,14 @@ type CreateTransactionReq struct {
 	AccountGroupID     uint32               `json:"accountGroupID" validate:"required" minimum:"1"`                                   // Идентификатор группы счетов
 }
 
-func (s CreateTransactionReq) Validate() error {
+func (s CreateTransactionReq) Validate(ctx context.Context) error {
 	// Валидируем поля
-	if err := s.Type.Validate(); err != nil {
+	if err := s.Type.Validate(ctx); err != nil {
 		return err
 	}
 	if s.AmountFrom.LessThanOrEqual(decimal.Zero) || s.AmountTo.LessThanOrEqual(decimal.Zero) {
-		return errors.BadRequest.New("amountFrom and amountTo must be greater than 0")
+		return errors.BadRequest.New("amountFrom and amountTo must be greater than 0").
+			WithContextParams(ctx)
 	}
 	return nil
 }

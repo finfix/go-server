@@ -1,7 +1,9 @@
 package applicationType
 
 import (
-	"pkg/errors"
+	"context"
+
+	"server/internal/utils/errors"
 )
 
 type Type string
@@ -14,18 +16,18 @@ const (
 	Server  = Type("server")
 )
 
-func (t *Type) Validate() error {
+func (t *Type) Validate(ctx context.Context) error {
 	if t == nil {
 		return nil
 	}
 	switch *t {
 	case IOs, Android, Web, Server:
 	default:
-		return errors.BadRequest.New("Unknown application type",
-			errors.SkipThisCallOption(),
-			errors.ParamsOption("type", *t),
-			errors.HumanTextOption("Неизвестный тип приложения"),
-		)
+		return errors.BadRequest.New("Unknown application type").
+			WithContextParams(ctx).
+			SkipThisCall().
+			WithParams("type", *t).
+			WithCustomHumanText("Неизвестный тип приложения")
 	}
 	return nil
 }

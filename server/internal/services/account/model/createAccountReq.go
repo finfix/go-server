@@ -1,12 +1,13 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
-	"pkg/necessary"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/account/model/accountType"
 	repoModel "server/internal/services/account/repository/model"
@@ -29,8 +30,8 @@ type CreateAccountReq struct {
 	Visible            *bool                  `json:"-"`                                                                                 // Видимость счета
 }
 
-func (s CreateAccountReq) Validate() error {
-	return s.Type.Validate()
+func (s CreateAccountReq) Validate(ctx context.Context) error {
+	return s.Type.Validate(ctx)
 }
 
 func (s CreateAccountReq) ConvertToAccount() Account {

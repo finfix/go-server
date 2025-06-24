@@ -1,15 +1,17 @@
 package utils
 
 import (
-	"pkg/errors"
+	"context"
+
 	"pkg/slices"
+	"server/internal/utils/errors"
 
 	"server/internal/services/account/model"
 	"server/internal/services/account/model/accountType"
 	"server/internal/services/transaction/model/transactionType"
 )
 
-func TransactionAndAccountTypesValidation(accountFrom, accountTo model.Account, tranType transactionType.Type) error {
+func TransactionAndAccountTypesValidation(ctx context.Context, accountFrom, accountTo model.Account, tranType transactionType.Type) error {
 
 	var accesses string
 	var isAccess bool
@@ -31,14 +33,14 @@ func TransactionAndAccountTypesValidation(accountFrom, accountTo model.Account, 
 	}
 
 	if !isAccess {
-		return errors.BadRequest.New("Неверно выбраны типы счетов",
-			errors.ParamsOption(
+		return errors.BadRequest.New("Неверно выбраны типы счетов").
+			WithContextParams(ctx).
+			WithParams(
 				"TransactionType", tranType,
 				"AccountFromID", accountFrom.ID,
 				"AccountToID", accountTo.ID,
 				"Accesses", accesses,
-			),
-		)
+			)
 	}
 
 	return nil

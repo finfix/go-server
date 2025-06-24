@@ -11,6 +11,9 @@ import (
 )
 
 func (r *SettingsRepository) GetIcons(ctx context.Context) (icons []settingsModel.Icon, err error) {
+	ctx, span := tracer.Start(ctx, "GetIcons")
+	defer span.End()
+
 	return icons, r.db.Select(ctx, &icons, sq.
 		Select(ddlHelper.SelectAll).
 		From(iconDDL.Table),

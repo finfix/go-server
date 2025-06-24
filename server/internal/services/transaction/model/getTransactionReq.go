@@ -1,9 +1,11 @@
 package model
 
 import (
+	"context"
+
 	"pkg/datetime"
-	"pkg/errors"
-	"pkg/necessary"
+	"server/internal/utils/errors"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/transaction/model/transactionType"
 )
@@ -20,13 +22,13 @@ type GetTransactionsReq struct {
 	AccountGroupIDs []uint32              // Идентификаторы групп счетов
 }
 
-func (s GetTransactionsReq) Validate() error {
-	if err := s.Type.Validate(); err != nil {
+func (s GetTransactionsReq) Validate(ctx context.Context) error {
+	if err := s.Type.Validate(ctx); err != nil {
 		return err
 	}
 	if s.DateFrom != nil && s.DateTo != nil {
 		if s.DateFrom.After(s.DateTo.Time) || s.DateFrom.Equal(s.DateTo.Time) {
-			return errors.BadRequest.New("date_from must be less than date_to")
+			return errors.BadRequest.New("date_from must be less than date_to").WithContextParams(ctx)
 		}
 	}
 	return nil

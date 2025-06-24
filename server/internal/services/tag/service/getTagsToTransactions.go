@@ -7,6 +7,8 @@ import (
 )
 
 func (s *TagService) GetTagsToTransactions(ctx context.Context, req model.GetTagsToTransactionsReq) (res []model.TagToTransaction, err error) {
+	ctx, span := tracer.Start(ctx, "GetTagsToTransactions")
+	defer span.End()
 
 	// Получаем доступные группы счетов
 	req.AccountGroupIDs, err = s.userService.GetAccessedAccountGroups(ctx, req.Necessary.UserID)

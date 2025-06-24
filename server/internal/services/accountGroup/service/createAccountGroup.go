@@ -8,6 +8,8 @@ import (
 
 // CreateAccountGroup создает новую группу счетов
 func (s *AccountGroupService) CreateAccountGroup(ctx context.Context, accountGroup model.CreateAccountGroupReq) (res model.CreateAccountGroupRes, err error) {
+	ctx, span := tracer.Start(ctx, "CreateAccountGroup")
+	defer span.End()
 
 	// Создаем SQL-транзакцию
 	return res, s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {

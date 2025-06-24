@@ -5,13 +5,15 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 
 	"server/internal/services/accountGroup/model"
 )
 
 // UpdateAccountGroup обновляет группу счетов
 func (r *AccountGroupRepository) UpdateAccountGroup(ctx context.Context, fields model.UpdateAccountGroupReq) error {
+	ctx, span := tracer.Start(ctx, "UpdateAccountGroup")
+	defer span.End()
 
 	updates := make(map[string]any)
 
@@ -31,7 +33,8 @@ func (r *AccountGroupRepository) UpdateAccountGroup(ctx context.Context, fields 
 
 	// Проверяем, что хоть одно поле было передано
 	if len(updates) == 0 {
-		return errors.BadRequest.New("No fields to update")
+		return errors.BadRequest.New("No fields to update").
+			WithContextParams(ctx)
 	}
 
 	// Обновляем группы счетов

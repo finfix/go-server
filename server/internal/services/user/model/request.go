@@ -3,8 +3,8 @@ package model
 import (
 	"time"
 
-	"pkg/necessary"
 	userRepoModel "server/internal/services/user/repository/model"
+	"server/internal/utils/necessary"
 )
 
 type CreateReq struct {

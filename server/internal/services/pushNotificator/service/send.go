@@ -7,19 +7,21 @@ import (
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/payload"
 
-	"pkg/errors"
 	"pkg/log"
+	"server/internal/utils/errors"
 
 	"server/internal/services/pushNotificator/model"
 )
 
 // SendNotification отправляет одно сообщение на все переданные устройства
 func (s *PushNotificatorService) SendNotification(ctx context.Context, req model.SendNotificationReq) (id string, err error) {
+	ctx, span := tracer.Start(ctx, "SendNotification")
+	defer span.End()
 
 	const defaultPriority = 5
 
 	if !s.isOn {
-		log.Warning(ctx, "Вызвана функция SendNotification. Пуши выключены")
+		log.WithContextParams(ctx).Warning("Вызвана функция SendNotification. Пуши выключены")
 		return id, nil
 	}
 
@@ -51,12 +53,12 @@ func (s *PushNotificatorService) SendNotification(ctx context.Context, req model
 
 	res, err := s.apns.PushWithContext(ctx, notification)
 	if err != nil {
-		return id, errors.InternalServer.Wrap(err)
+		return id, errors.InternalServer.Wrap(err).WithContextParams(ctx)
 	}
 	id = res.ApnsID
 
 	if !res.Sent() {
-		return id, errors.InternalServer.New(res.Reason)
+		return id, errors.InternalServer.New(res.Reason).WithContextParams(ctx)
 	}
 
 	return id, nil

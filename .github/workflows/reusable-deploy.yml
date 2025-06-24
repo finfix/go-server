@@ -1,19 +1,16 @@
-name: serve
+name: reusable-deploy
 
 on:
   workflow_call:
     inputs:
-      service_name:
+      image_name:
         required: true
         type: string
-      service_port:
+      ansible_playbook_filename:
         required: true
-        type: number
-      test_suffix:
-        required: false
         type: string
-      command_args:
-        required: false
+      devops_repository:
+        required: true
         type: string
 
 env:
@@ -21,57 +18,21 @@ env:
 
 jobs:
 
-  # Проверяем код линтером
-  go-lint:
-    uses: ./.github/workflows/lint.yml
-    with:
-      service_name: ${{ inputs.service_name }}
-
-  # Тестируем код
-  go-test:
-    uses: ./.github/workflows/go-test.yml
-    with:
-      service_name: ${{ inputs.service_name }}
-
-  # Генерируем Dockerfile
-  build-dockerfile:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Dockerfile build
-        uses: ./.github/actions/dockerfile-build
-        with:
-          project_name: ${{ inputs.service_name }}
-          service_port: ${{ inputs.service_port }}
-          test_suffix: ${{ inputs.test_suffix }}
-
-  # Генерируем docker-compose.yml
-  build-docker-compose:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Docker Compose build
-        uses: ./.github/actions/compose-build
-        with:
-          project_name: ${{ inputs.service_name }}
-          service_port: ${{ inputs.service_port }}
-          test_suffix: ${{ inputs.test_suffix }}
-          command_args: ${{ inputs.command_args }}
-          image_name: "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ inputs.service_name }}:${{ github.run_id }}"
-
-
   # Собираем и пушим Docker-образ
   docker-build-and-push:
     runs-on: ubuntu-latest
-    needs:
-      - build-dockerfile
-      - go-test
-      - go-lint
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract version from ref
+        run: |
+          echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(git log -1 --format=%cd --date=short)" >> $GITHUB_ENV
 
         # Логинимся в Container registry
       - name: Login to the Container registry
@@ -81,58 +42,53 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-        # Получаем Dockerfile из артефактов
-      - name: Download Dockerfile
-        uses: actions/download-artifact@v3
-        with:
-          name: Dockerfile
-          path: .
+        # Скачиваем все подмодули
+      - name: Download submodules
+        run: |
+          git submodule update --init --recursive
 
         # Собираем и пушим Docker-образ
       - name: Build and push Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@v5
         with:
+          file: build/Dockerfile
           context: .
           push: true
-          tags: "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ inputs.service_name }}:${{ github.run_id }}"
+          tags: |
+            ${{ env.REGISTRY }}/${{ inputs.image_name }}:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/${{ inputs.image_name }}:latest
+            ${{ env.REGISTRY }}/${{ inputs.image_name }}:build-${{ github.run_id }}
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            BUILD=${{ github.run_id }}
+            BUILD_DATE=${{ env.BUILD_DATE }}
 
-  # Разворачиваем на сервере
-  deploy:
+  # Деплой через Ansible
+  ansible-deploy:
+    needs: docker-build-and-push
     runs-on: ubuntu-latest
-    needs:
-      - docker-build-and-push
-      - build-docker-compose
-
+    container: 
+      image: willhallonline/ansible:latest
     steps:
+        # Переключаемся в devops репозиторий
       - uses: actions/checkout@v4
-
-        # Логинимся на сервере
-      - name: SSH Setup
-        uses: kielabokkie/ssh-key-and-known-hosts-action@v1
         with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
-          ssh-host: ${{ secrets.HOST }}
-          ssh-port: ${{ secrets.PORT }}
+          repository: ${{ inputs.devops_repository }}
+          token: '${{ secrets.PAT_TOKEN }}'
 
-        # Получаем docker-compose.yml из артефактов
-      - name: Download docker-compose.yml
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-compose.yml
-          path: .
+        # Настраиваем ssh
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa_github
+          chmod 600 ~/.ssh/id_rsa_github
 
-        # Копируем docker-compose.yml на сервер
-      - name: Copy docker-compose.yml to server
-        run: scp -P ${{ secrets.PORT }} -p docker-compose.yml  ${{ secrets.USER }}@${{ secrets.HOST }}:/opt/coin/${{ inputs.service_name }}${{ inputs.test_suffix }}/docker-compose.yml
+        # Создаем файл с паролем для Ansible Vault
+      - name: Make file with vault password
+        run: |
+          echo "${{ secrets.VAULT_PASSWORD }}" > .vault_password
 
-        # Логинимся в Container registry на сервере
-      - name: Login to the Container registry on server
-        run: ssh ${{ secrets.USER }}@${{ secrets.HOST }} -p ${{ secrets.PORT }} "docker login -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}"
-
-        # Подтягиваем образ из Container registry
-      - name: Pull docker image
-        run: ssh ${{ secrets.USER }}@${{ secrets.HOST }} -p ${{ secrets.PORT }} "cd /opt/coin && docker compose pull coin-${{ inputs.service_name }}${{ inputs.test_suffix }}"
-
-        # Перезапускаем сервис
-      - name: Restart service
-        run: ssh ${{ secrets.USER }}@${{ secrets.HOST }} -p ${{ secrets.PORT }} "cd /opt/coin && if docker inspect coin-${{ inputs.service_name }}${{ inputs.test_suffix }} >/dev/null 2>&1; then docker compose stop coin-${{ inputs.service_name }}${{ inputs.test_suffix }} && docker rm coin-${{ inputs.service_name }}${{ inputs.test_suffix }}; fi && docker compose up coin-${{ inputs.service_name }}${{ inputs.test_suffix }} -d"
+        # Устанавливаем переменные окружения
+      - name: Run Ansible playbook
+        run: |
+          ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts.ini playbooks/${{ inputs.ansible_playbook_filename }} --vault-password-file .vault_password

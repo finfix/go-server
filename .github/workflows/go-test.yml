@@ -1,12 +1,11 @@
 name: go-test
 
 on:
-  workflow_call:
-    inputs:
-      service_name:
-        required: true
-        type: string
   pull_request:
+  push:
+
+env:
+  DIRECTORY: server
 
 jobs:
   testing:
@@ -29,14 +28,8 @@ jobs:
       - name: Generate mocks
         run: mockery
 
-        # Генерируем swagger
-      - name: Generate swagger
-        run: |
-          cd ${{ inputs.service_name }}
-          go generate ./...
-
         # Тестируем код
       - name: Go test
         run: |
-          cd ${{ inputs.service_name }}
+          cd ${{ env.DIRECTORY }}
           go test -v ./...

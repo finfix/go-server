@@ -11,7 +11,7 @@ jobs:
   general-deploy-pipeline:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
-      service_port: 8080
-      service_name: server
-      command_args: -log-format=json -env-mode=prod
+      image_name: ${{ github.repository }}
+      ansible_playbook_filename: deploy-go-server.yml
+      devops_repository: finfix/devops
     secrets: inherit

@@ -15,6 +15,8 @@ import (
 
 // GetAccessedAccountGroups возвращает доступы пользователей к группам счетов
 func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uint32) (accessedAccountGroupIDs []uint32, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccessedAccountGroups")
+	defer span.End()
 
 	// Проверяем наличие данных в кэше
 	var ok bool
@@ -22,7 +24,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID ui
 		return accessedAccountGroupIDs, nil
 	}
 
-	log.Info(ctx, "Обновляем кэш с доступами пользователей к группам счетов")
+	log.WithContextParams(ctx).Info("Обновляем кэш с доступами пользователей к группам счетов")
 
 	var usersToAccountGroups []model.UserToAccountGroup
 
@@ -49,8 +51,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID ui
 			userDDL.WithPrefix(userDDL.ColumnID),
 			userToAccountGroupDDL.WithPrefix(userToAccountGroupDDL.ColumnUserID),
 		)),
-	)
-		err != nil {
+	); err != nil {
 		return nil, err
 	}
 

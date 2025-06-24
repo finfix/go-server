@@ -21,6 +21,8 @@ type permissionItem struct {
 }
 
 func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context) (permissionSet model.PermissionSet, err error) {
+	ctx, span := tracer.Start(ctx, "GetAccountPermissions")
+	defer span.End()
 
 	// Проверяем наличие данных в кэше
 	var ok bool
@@ -28,7 +30,7 @@ func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context
 		return permissionSet, nil
 	}
 
-	log.Info(ctx, "Обновляем кэш с пермишенами на действия со счетами")
+	log.WithContextParams(ctx).Info("Обновляем кэш с пермишенами на действия со счетами")
 
 	var permissions []permissionItem
 

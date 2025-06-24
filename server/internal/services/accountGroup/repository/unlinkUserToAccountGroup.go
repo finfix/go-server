@@ -7,6 +7,8 @@ import (
 )
 
 func (r *AccountGroupRepository) UnlinkUserFromAccountGroup(ctx context.Context, userID, accountGroupID uint32) error {
+	ctx, span := tracer.Start(ctx, "UnlinkUserFromAccountGroup")
+	defer span.End()
 
 	// Исполняем запрос на разрыв связи пользователя с группой счетов
 	return r.db.Exec(ctx, sq.

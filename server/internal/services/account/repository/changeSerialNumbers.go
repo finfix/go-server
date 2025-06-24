@@ -10,6 +10,8 @@ import (
 )
 
 func (r *AccountRepository) ChangeSerialNumbers(ctx context.Context, accountGroupID, oldValue, newValue uint32) error {
+	ctx, span := tracer.Start(ctx, "ChangeSerialNumbers")
+	defer span.End()
 
 	// Формируем первичный запрос
 	q := sq.

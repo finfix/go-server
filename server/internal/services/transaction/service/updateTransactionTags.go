@@ -9,6 +9,8 @@ import (
 )
 
 func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, transactionID uint32, tagIDs []uint32) error {
+	ctx, span := tracer.Start(ctx, "UpdateTransactionTags")
+	defer span.End()
 
 	// Проверяем доступ пользователя к тегам
 	if len(tagIDs) > 0 {

@@ -15,6 +15,8 @@ import (
 
 // GetTagsToTransactions возвращает все связи между подкатегориями и транзакциями
 func (r *TagRepository) GetTagsToTransactions(ctx context.Context, req model.GetTagsToTransactionsReq) (res []model.TagToTransaction, err error) {
+	ctx, span := tracer.Start(ctx, "GetTagsToTransactions")
+	defer span.End()
 
 	// Формируем первичный запрос
 	q := sq.

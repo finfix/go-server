@@ -11,6 +11,8 @@ import (
 
 // CreateTag создает новую подкатегорию
 func (r *TagRepository) CreateTag(ctx context.Context, req tagRepoModel.CreateTagReq) (id uint32, err error) {
+	ctx, span := tracer.Start(ctx, "CreateTag")
+	defer span.End()
 
 	// Создаем подкатегорию
 	return r.db.ExecWithLastInsertID(ctx, sq.

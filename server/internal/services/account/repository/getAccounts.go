@@ -6,14 +6,16 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"pkg/ddlHelper"
-	"pkg/errors"
 	"server/internal/services/account/model"
 	"server/internal/services/account/repository/accountDDL"
 	accountRepoModel "server/internal/services/account/repository/model"
+	"server/internal/utils/errors"
 )
 
 // GetAccounts возвращает все счета, удовлетворяющие фильтрам
 func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoModel.GetAccountsReq) (accounts []model.Account, err error) {
+	ctx, span := tracer.Start(ctx, "getAccounts")
+	defer span.End()
 
 	filters := make(sq.Eq)
 
@@ -47,7 +49,7 @@ func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoMode
 
 	// Проверяем, что хоть один фильтр был передан
 	if len(filters) == 0 {
-		return accounts, errors.BadRequest.New("No filters")
+		return accounts, errors.BadRequest.New("No filters").WithContextParams(ctx)
 	}
 
 	// Выполняем запрос

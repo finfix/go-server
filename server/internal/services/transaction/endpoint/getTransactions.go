@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"pkg/http/decoder"
+	"pkg/validator"
+	"server/internal/utils/necessary"
 
 	"server/internal/services/transaction/model"
 )
@@ -19,11 +21,23 @@ import (
 // @Failure 400,404,500 {object} errors.Error
 // @Router /transaction [get]
 func (s *endpoint) getTransactions(ctx context.Context, r *http.Request) (any, error) {
+	ctx, span := tracer.Start(ctx, "getTransactions")
+	defer span.End()
 
 	var req model.GetTransactionsReq
 
 	// Декодируем запрос
-	if err := decoder.Decoder(ctx, r, &req, decoder.DecodeSchema); err != nil {
+	if err := decoder.Decode(ctx, r, &req, decoder.DecodeSchema); err != nil {
+		return nil, err
+	}
+
+	// Парсим обязательные параметры
+	if err := necessary.ParseNecessary(ctx, &req); err != nil {
+		return nil, err
+	}
+
+	// Валидируем запрос
+	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
 
