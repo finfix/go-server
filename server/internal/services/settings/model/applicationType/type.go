@@ -3,7 +3,7 @@ package applicationType
 import (
 	"context"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 )
 
 type Type string
@@ -23,11 +23,11 @@ func (t *Type) Validate(ctx context.Context) error {
 	switch *t {
 	case IOs, Android, Web, Server:
 	default:
-		return errors.BadRequest.New(ctx, "Unknown application type",
-			errors.SkipThisCallOption(),
-			errors.ParamsOption("type", *t),
-			errors.HumanTextOption("Неизвестный тип приложения"),
-		)
+		return errors.BadRequest.New("Unknown application type").
+			WithContextParams(ctx).
+			SkipThisCall().
+			WithParams("type", *t).
+			WithCustomHumanText("Неизвестный тип приложения")
 	}
 	return nil
 }

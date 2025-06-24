@@ -4,15 +4,17 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"go.opentelemetry.io/otel"
 
-	"pkg/errors"
+	"github.com/go-chi/chi/v5"
+
+	pkgErrors "pkg/errors"
 	"pkg/http/chain"
 	"pkg/jwtManager"
 	"server/internal/services/auth/model"
 	"server/internal/utils/auth"
 	"server/internal/utils/contextKeys"
+	"server/internal/utils/errors"
 )
 
 var tracer = otel.Tracer("/server/internal/services/auth/endpoint")
@@ -58,7 +60,7 @@ func deviceIDValidator(ctx context.Context, r *http.Request) (context.Context, e
 	// Получаем DeviceID из заголовка
 	deviceID := r.Header.Get("DeviceID")
 	if deviceID == "" {
-		return ctx, errors.BadRequest.New(ctx, "DeviceID is empty")
+		return ctx, errors.BadRequest.New("DeviceID is empty").WithContextParams(ctx)
 	}
 
 	// Сохраняем DeviceID в контекст
@@ -74,7 +76,7 @@ func extractDataFromToken(ctx context.Context, r *http.Request) (context.Context
 	if err != nil {
 
 		// Если ошибка истекшего токена, то это ок, так как мы смогли его распарсить и получить оттуда данные
-		if errors.Is(err, jwtManager.ErrTokenExpired) {
+		if pkgErrors.Is(err, jwtManager.ErrTokenExpired) {
 			return ctx, nil
 		}
 

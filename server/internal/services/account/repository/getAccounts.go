@@ -6,10 +6,10 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"pkg/ddlHelper"
-	"pkg/errors"
 	"server/internal/services/account/model"
 	"server/internal/services/account/repository/accountDDL"
 	accountRepoModel "server/internal/services/account/repository/model"
+	"server/internal/utils/errors"
 )
 
 // GetAccounts возвращает все счета, удовлетворяющие фильтрам
@@ -49,7 +49,7 @@ func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoMode
 
 	// Проверяем, что хоть один фильтр был передан
 	if len(filters) == 0 {
-		return accounts, errors.BadRequest.New(ctx, "No filters")
+		return accounts, errors.BadRequest.New("No filters").WithContextParams(ctx)
 	}
 
 	// Выполняем запрос

@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
-	"pkg/errors"
+	"server/internal/utils/errors"
 
 	"server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
@@ -33,7 +33,7 @@ func (s *AccountService) ChangeAccountRemainder(ctx context.Context, account mod
 
 	// Проверяем, что остаток счета не равен написанному
 	if remainderToUpdate == remainders[account.ID] {
-		return res, errors.BadRequest.New(ctx, "Остаток счета равен написанному")
+		return res, errors.BadRequest.New("Остаток счета равен написанному").WithContextParams(ctx)
 	}
 
 	// Получаем балансировочный счет

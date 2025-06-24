@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"pkg/errors"
 	"pkg/http/decoder"
 	"pkg/validator"
+	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 
 	"server/internal/services/user/model"
@@ -36,20 +36,20 @@ func (s *endpoint) getUser(ctx context.Context, r *http.Request) (any, error) {
 	}
 
 	// Валидируем запрос
-	if err := validator.Validate(ctx, req); err != nil {
+	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
 
 	// Вызываем метод сервиса
 	users, err := s.service.GetUsers(ctx, req)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(ctx, err)
+		return nil, errors.InternalServer.Wrap(err).WithContextParams(ctx)
 	}
 
 	if len(users) == 0 {
-		return nil, errors.InternalServer.New(ctx, "Пользователь не найден",
-			errors.ParamsOption("UserID", req.Necessary.UserID),
-		)
+		return nil, errors.InternalServer.New("Пользователь не найден").
+			WithContextParams(ctx).
+			WithParams("UserID", req.Necessary.UserID)
 	}
 
 	// Конвертируем ответ во внутреннюю структуру

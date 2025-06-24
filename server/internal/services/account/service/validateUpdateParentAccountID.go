@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 
 	"server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
@@ -14,9 +14,9 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 	defer span.End()
 
 	if account.IsParent {
-		return errors.BadRequest.New(ctx, "Счет уже является родительским",
-			errors.ParamsOption("accountID", account.ID),
-		)
+		return errors.BadRequest.New("Счет уже является родительским").
+			WithContextParams(ctx).
+			WithParams("accountID", account.ID)
 	}
 
 	if err := s.CheckAccess(ctx, userID, []uint32{parentAccountID}); err != nil {
@@ -29,39 +29,41 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 		return err
 	}
 	if len(parentAccounts) == 0 {
-		return errors.NotFound.New(ctx, "Родительский счет не найден",
-			errors.ParamsOption("accountID", parentAccountID),
-		)
+		return errors.NotFound.New("Родительский счет не найден").
+			WithContextParams(ctx).
+			WithParams("accountID", parentAccountID)
 	}
 	parentAccount := parentAccounts[0]
 
 	// Проверяем, что указанный счет является родительским
 	if parentAccount.ID != parentAccountID {
-		return errors.BadRequest.New(ctx, "Указанный счет не является родительским",
-			errors.ParamsOption("accountID", parentAccountID),
-		)
+		return errors.BadRequest.New("Указанный счет не является родительским").
+			WithContextParams(ctx).
+			WithParams("accountID", parentAccountID)
 	}
 
 	// Проверяем, что счета находятся в одной группе
 	if account.AccountGroupID != parentAccount.AccountGroupID {
-		return errors.BadRequest.New(ctx, "Счета находятся в разных группах",
-			errors.ParamsOption(
+		return errors.BadRequest.New("Счета находятся в разных группах").
+			WithContextParams(ctx).
+			WithParams(
 				"childAccountID", account.ID,
 				"childAccountGroupID", account.AccountGroupID,
 				"parentAccountID", parentAccount.ID,
 				"parentAccountGroupID", parentAccount.AccountGroupID,
-			))
+			)
 	}
 
 	// Проверяем, что типы счетов совпадают
 	if account.Type != parentAccount.Type {
-		return errors.BadRequest.New(ctx, "Типы счетов не совпадают",
-			errors.ParamsOption(
+		return errors.BadRequest.New("Типы счетов не совпадают").
+			WithContextParams(ctx).
+			WithParams(
 				"childAccountID", account.ID,
 				"childType", account.Type,
 				"parentAccountID", parentAccount.ID,
 				"parentType", parentAccount.Type,
-			))
+			)
 	}
 
 	return nil

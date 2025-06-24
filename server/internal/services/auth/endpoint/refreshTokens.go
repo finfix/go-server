@@ -40,7 +40,7 @@ func (s *endpoint) refreshTokens(ctx context.Context, r *http.Request) (any, err
 	}
 
 	// Валидируем запрос
-	if err := validator.Validate(ctx, req); err != nil {
+	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
 

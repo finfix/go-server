@@ -15,12 +15,12 @@ var tracer = otel.Tracer("/server/internal/services/accountPermissions/repositor
 
 type AccountPermissionsRepository struct {
 	db    *sql.DB
-	cache *cache.Cache[struct{}, model.PermissionSet]
+	cache *cache.ItemCache[struct{}, model.PermissionSet]
 }
 
 func NewAccountPermissionsRepository(db *sql.DB) *AccountPermissionsRepository {
 	return &AccountPermissionsRepository{
 		db:    db,
-		cache: cache.NewCache[struct{}, model.PermissionSet](time.Minute),
+		cache: cache.NewItemCache[struct{}, model.PermissionSet](time.Minute),
 	}
 }

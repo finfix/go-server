@@ -6,8 +6,8 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"pkg/errors"
 	"pkg/pointer"
+	"server/internal/utils/errors"
 
 	"server/internal/services/account/model"
 	"server/internal/services/account/model/accountType"
@@ -49,11 +49,12 @@ func (s *AccountService) GetBalancingAccountID(ctx context.Context, account mode
 
 	// Если общий балансировочный счет не найден
 	if len(parentBalancingAccounts) == 0 {
-		return balancingAccountID, serialNumber, wasCreate, errors.InternalServer.New(ctx, "Родительский балансировочный счет не найден", errors.ParamsOption(
-			"accountID", account,
-			"accountGroupID", account.AccountGroupID,
-		),
-		)
+		return balancingAccountID, serialNumber, wasCreate, errors.InternalServer.New("Родительский балансировочный счет не найден").
+			WithContextParams(ctx).
+			WithParams(
+				"accountID", account,
+				"accountGroupID", account.AccountGroupID,
+			)
 	}
 
 	parentBalancingAccount = parentBalancingAccounts[0]

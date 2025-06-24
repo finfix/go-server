@@ -3,7 +3,7 @@ package transactionType
 import (
 	"context"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 )
 
 type Type string
@@ -23,11 +23,11 @@ func (t *Type) Validate(ctx context.Context) error {
 	switch *t {
 	case Transfer, Consumption, Balancing, Income:
 	default:
-		return errors.BadRequest.New(ctx, "Unknown transaction type",
-			errors.SkipThisCallOption(),
-			errors.ParamsOption("type", *t),
-			errors.HumanTextOption("Неизвестный тип транзакции"),
-		)
+		return errors.BadRequest.New("Unknown transaction type").
+			WithContextParams(ctx).
+			SkipThisCall().
+			WithParams("type", *t).
+			WithCustomHumanText("Неизвестный тип транзакции")
 	}
 	return nil
 }

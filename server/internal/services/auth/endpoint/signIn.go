@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"pkg/errors"
 	"pkg/http/decoder"
 	"pkg/validator"
 	"server/internal/services/auth/model"
 	"server/internal/utils/contextKeys"
+	"server/internal/utils/errors"
 )
 
 // @Summary Авторизация пользователя по логину и паролю
@@ -28,7 +28,7 @@ func (s *endpoint) signIn(ctx context.Context, r *http.Request) (any, error) {
 
 	deviceID := contextKeys.GetDeviceID(ctx)
 	if deviceID == nil {
-		return nil, errors.BadRequest.New(ctx, "DeviceID не задан")
+		return nil, errors.BadRequest.New("DeviceID не задан").WithContextParams(ctx)
 	}
 	req.DeviceID = *deviceID
 
@@ -41,7 +41,7 @@ func (s *endpoint) signIn(ctx context.Context, r *http.Request) (any, error) {
 	req.Device.UserAgent = r.Header.Get("User-Agent")
 
 	// Валидируем запрос
-	if err := validator.Validate(ctx, req); err != nil {
+	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
 

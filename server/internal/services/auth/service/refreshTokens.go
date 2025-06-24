@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"pkg/jwtManager"
 	"server/internal/utils/auth"
+	"server/internal/utils/errors"
 
 	"server/internal/services/auth/model"
 	"server/internal/services/auth/service/utils"
@@ -26,33 +26,35 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 		return newTokens, err
 	}
 	if len(devices) == 0 {
-		return newTokens, errors.Unauthorized.New(ctx, "Device not found",
-			errors.HumanTextOption("Девайс не найден"),
-		)
+		return newTokens, errors.Unauthorized.New("Device not found").WithContextParams(ctx).
+			WithCustomHumanText("Девайс не найден")
 	}
 	device := devices[0]
 
 	// Сравниваем токен из базы данных с переданным пользователем токеном
 	if req.Token != device.RefreshToken {
-		return newTokens, errors.Forbidden.New(ctx, "Auth is incorrect")
+		return newTokens, errors.Forbidden.New("Auth is incorrect").
+			WithContextParams(ctx)
 	}
 
 	// Парсим токен
-	claims, err := jwtManager.ParseToken[auth.Claims](ctx, device.RefreshToken)
+	claims, err := jwtManager.ParseToken[auth.Claims](device.RefreshToken, jwtManager.RefreshToken)
 	if err != nil {
 		return newTokens, err
 	}
 
 	// Дополнительно проверяем идентификаторы
 	if claims.UserID != req.Necessary.UserID {
-		return newTokens, errors.Forbidden.New(ctx, "UserID not matched")
+		return newTokens, errors.Forbidden.New("UserID not matched").
+			WithContextParams(ctx)
 	}
 	if claims.DeviceID != req.Necessary.DeviceID {
-		return newTokens, errors.Forbidden.New(ctx, "DeviceID not matched")
+		return newTokens, errors.Forbidden.New("DeviceID not matched").
+			WithContextParams(ctx)
 	}
 
 	// Создаем новую пару токенов
-	newTokens.Tokens, err = utils.CreatePairTokens(ctx, req.Necessary.UserID, req.Necessary.DeviceID)
+	newTokens.Tokens, err = utils.CreatePairTokens(req.Necessary.UserID, req.Necessary.DeviceID)
 	if err != nil {
 		return newTokens, err
 	}

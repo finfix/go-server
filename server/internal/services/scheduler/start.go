@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"pkg/errors"
 	"pkg/log"
+	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 
 	"server/internal/services/settings/model"
@@ -27,11 +27,11 @@ func (s *Scheduler) Start(ctx context.Context) error {
 				DeviceID: "system",
 			},
 		}); err != nil {
-			log.Error(context.Background(), err)
+			log.WithContextParams(ctx).Error(err)
 		}
 	})
 	if err != nil {
-		return errors.InternalServer.Wrap(ctx, err)
+		return errors.InternalServer.Wrap(err).WithContextParams(ctx)
 	}
 
 	s.cron.Start()

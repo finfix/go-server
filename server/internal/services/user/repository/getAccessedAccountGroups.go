@@ -24,7 +24,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID ui
 		return accessedAccountGroupIDs, nil
 	}
 
-	log.Info(ctx, "Обновляем кэш с доступами пользователей к группам счетов")
+	log.WithContextParams(ctx).Info("Обновляем кэш с доступами пользователей к группам счетов")
 
 	var usersToAccountGroups []model.UserToAccountGroup
 
@@ -51,8 +51,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID ui
 			userDDL.WithPrefix(userDDL.ColumnID),
 			userToAccountGroupDDL.WithPrefix(userToAccountGroupDDL.ColumnUserID),
 		)),
-	)
-		err != nil {
+	); err != nil {
 		return nil, err
 	}
 

@@ -6,7 +6,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
-	"pkg/errors"
+	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 )
 
@@ -26,10 +26,10 @@ type UpdateTransactionReq struct {
 
 func (s UpdateTransactionReq) Validate(ctx context.Context) error {
 	if s.AmountFrom != nil && s.AmountFrom.LessThanOrEqual(decimal.Zero) {
-		return errors.BadRequest.New(ctx, "amountFrom must be greater than 0")
+		return errors.BadRequest.New("amountFrom must be greater than 0").WithContextParams(ctx)
 	}
 	if s.AmountTo != nil && s.AmountTo.LessThanOrEqual(decimal.Zero) {
-		return errors.BadRequest.New(ctx, "amountTo must be greater than 0")
+		return errors.BadRequest.New("amountTo must be greater than 0").WithContextParams(ctx)
 	}
 	return nil
 }

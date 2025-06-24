@@ -13,12 +13,12 @@ var tracer = otel.Tracer("/server/internal/services/user/repository")
 
 type UserRepository struct {
 	db                           *sql.DB
-	accessedAccountGroupIDsCache *cache.Cache[uint32, []uint32] // Кэш юзер - массив доступных ему групп счетов
+	accessedAccountGroupIDsCache *cache.ItemCache[uint32, []uint32] // Кэш юзер - массив доступных ему групп счетов
 }
 
 func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{
 		db:                           db,
-		accessedAccountGroupIDsCache: cache.NewCache[uint32, []uint32](time.Minute),
+		accessedAccountGroupIDsCache: cache.NewItemCache[uint32, []uint32](time.Minute),
 	}
 }

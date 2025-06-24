@@ -6,7 +6,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
-	"pkg/errors"
+	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 
 	"server/internal/services/transaction/model/transactionType"
@@ -35,7 +35,8 @@ func (s CreateTransactionReq) Validate(ctx context.Context) error {
 		return err
 	}
 	if s.AmountFrom.LessThanOrEqual(decimal.Zero) || s.AmountTo.LessThanOrEqual(decimal.Zero) {
-		return errors.BadRequest.New(ctx, "amountFrom and amountTo must be greater than 0")
+		return errors.BadRequest.New("amountFrom and amountTo must be greater than 0").
+			WithContextParams(ctx)
 	}
 	return nil
 }

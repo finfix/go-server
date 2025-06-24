@@ -5,7 +5,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 
 	"server/internal/services/account/model"
 	"server/internal/services/account/model/accountType"
@@ -32,7 +32,7 @@ func (s *AccountService) calculateRemainders(ctx context.Context, filters model.
 	if filters.Type == nil || *filters.Type == accountType.Earnings || *filters.Type == accountType.Expense || *filters.Type == accountType.Balancing {
 
 		if filters.DateFrom == nil || filters.DateTo == nil {
-			return nil, errors.BadRequest.New(ctx, "dateFrom and dateTo must be specified")
+			return nil, errors.BadRequest.New("dateFrom and dateTo must be specified").WithContextParams(ctx)
 		}
 
 		// Считаем расходы и доходы за указанный период или даты

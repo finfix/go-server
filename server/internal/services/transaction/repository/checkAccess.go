@@ -2,12 +2,11 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	"server/internal/services/transaction/repository/transactionDDL"
+	"server/internal/utils/errors"
 )
 
 // CheckAccess проверяет, имеет ли набор групп счетов пользователя доступ к указанным идентификаторам транзакций
@@ -44,9 +43,9 @@ func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs
 	}
 
 	if len(accessedTransactionIDs) == 0 {
-		return errors.Forbidden.New(ctx, "You don't have access to any of the requested transactions",
-			errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TransactionIDs", transactionIDs),
-		)
+		return errors.Forbidden.New("You don't have access to any of the requested transactions").
+			WithContextParams(ctx).
+			WithParams("AccountGroupIDs", accountGroupIDs, "TransactionIDs", transactionIDs)
 	}
 
 	// Проходимся по каждой запрашиваемой транзакции
@@ -54,10 +53,13 @@ func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs
 
 		// Если счета нет в мапе доступных транзакций, возвращаем ошибку
 		if _, ok := accessedTransactionIDs[transactionID]; !ok {
-			return errors.Forbidden.New(ctx, fmt.Sprintf("You don't have access to transaction with ID %v", transactionID),
-				errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TransactionID", transactionID),
-				errors.SkipPreviousCallerOption(),
-			)
+			return errors.Forbidden.New("You don't have access to transaction").
+				WithContextParams(ctx).
+				WithParams(
+					"AccountGroupIDs", accountGroupIDs,
+					"TransactionID", transactionID,
+				).
+				SkipPreviousCaller()
 		}
 	}
 

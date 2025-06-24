@@ -36,9 +36,9 @@ func (r *Transactor) WithinTransaction(ctx context.Context, callback func(ctx co
 	err = callback(sql.InjectTx(ctx, tx))
 	if err != nil {
 		// Если произошла ошибка, откатываем изменения
-		_ = tx.Rollback(ctx)
+		_ = tx.Rollback()
 		return err
 	}
 	// Если ошибок нет, подтверждаем изменения
-	return tx.Commit(ctx)
+	return tx.Commit()
 }

@@ -5,9 +5,9 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	userRepoModel "server/internal/services/user/repository/model"
 	"server/internal/services/user/repository/userDDL"
+	"server/internal/utils/errors"
 )
 
 // UpdateUser редактирует пользователя
@@ -34,7 +34,8 @@ func (r *UserRepository) UpdateUser(ctx context.Context, fields userRepoModel.Up
 	}
 
 	if len(updates) == 0 {
-		return errors.BadRequest.New(ctx, "No fields to update")
+		return errors.BadRequest.New("No fields to update").
+			WithContextParams(ctx)
 	}
 
 	// Обновляем пользователя

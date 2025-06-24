@@ -2,12 +2,11 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	"server/internal/services/tag/repository/tagDDL"
+	"server/internal/utils/errors"
 )
 
 // CheckAccess проверяет, имеет ли набор групп подкатегорий пользователя доступ к указанным идентификаторам подкатегорий
@@ -45,9 +44,12 @@ func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs
 	}
 
 	if len(accessedTagIDs) == 0 {
-		return errors.Forbidden.New(ctx, "You don't have access to any of the requested tags",
-			errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TagIDs", tagIDs),
-		)
+		return errors.Forbidden.New("You don't have access to any of the requested tags").
+			WithContextParams(ctx).
+			WithParams(
+				"AccountGroupIDs", accountGroupIDs,
+				"TagIDs", tagIDs,
+			)
 	}
 
 	// Проходимся по каждому запрашиваемой подкатегории
@@ -55,10 +57,12 @@ func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs
 
 		// Если подкатегории нет в мапе доступных подкатегорий, возвращаем ошибку
 		if _, ok := accessedTagIDs[tagID]; !ok {
-			return errors.Forbidden.New(ctx, fmt.Sprintf("You don't have access to tag with ID %v", tagID),
-				errors.ParamsOption("AccountGroupIDs", accountGroupIDs, "TagID", tagID),
-				errors.SkipPreviousCallerOption(),
-			)
+			return errors.Forbidden.New("You don't have access to tag").
+				WithContextParams(ctx).
+				WithParams(
+					"AccountGroupIDs", accountGroupIDs,
+					"TagID", tagID,
+				).SkipPreviousCaller()
 		}
 	}
 

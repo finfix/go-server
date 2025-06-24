@@ -5,9 +5,9 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	"server/internal/services/account/repository/accountDDL"
 	accountRepoModel "server/internal/services/account/repository/model"
+	"server/internal/utils/errors"
 )
 
 // UpdateAccount обновляет счет
@@ -65,7 +65,7 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[ui
 		// Проверяем, переданы ли поля для обновления
 		if len(updates) == 0 {
 			if fields.Remainder == nil {
-				return errors.BadRequest.New(ctx, "No fields to update")
+				return errors.BadRequest.New("No fields to update").WithContextParams(ctx)
 			}
 			return nil
 		}

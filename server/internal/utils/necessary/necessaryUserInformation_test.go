@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"pkg/contextKeys"
-	"pkg/errors"
 	"pkg/testUtils"
+	"server/internal/utils/errors"
 )
 
 func TestExtractNecessaryFromCtx(t *testing.T) {

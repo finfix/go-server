@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"pkg/datetime"
-	"pkg/errors"
+	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 
 	"server/internal/services/transaction/model/transactionType"
@@ -28,7 +28,7 @@ func (s GetTransactionsReq) Validate(ctx context.Context) error {
 	}
 	if s.DateFrom != nil && s.DateTo != nil {
 		if s.DateFrom.After(s.DateTo.Time) || s.DateFrom.Equal(s.DateTo.Time) {
-			return errors.BadRequest.New(ctx, "date_from must be less than date_to")
+			return errors.BadRequest.New("date_from must be less than date_to").WithContextParams(ctx)
 		}
 	}
 	return nil

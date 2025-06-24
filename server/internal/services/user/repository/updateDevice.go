@@ -5,8 +5,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	"server/internal/services/user/repository/deviceDDL"
+	"server/internal/utils/errors"
 
 	userRepoModel "server/internal/services/user/repository/model"
 )
@@ -45,7 +45,8 @@ func (r *UserRepository) UpdateDevice(ctx context.Context, fields userRepoModel.
 	}
 
 	if len(updates) == 0 {
-		return errors.BadRequest.New(ctx, "No fields to update")
+		return errors.BadRequest.New("No fields to update").
+			WithContextParams(ctx)
 	}
 
 	// Обновляем девайс

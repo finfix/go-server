@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"pkg/passwordManager"
+	"server/internal/utils/errors"
 
 	"server/internal/services/auth/model"
 	"server/internal/services/auth/service/utils"
@@ -22,9 +22,9 @@ func (s *AuthService) SignIn(ctx context.Context, loginData model.SignInReq) (ac
 		return accessData, err
 	}
 	if len(users) == 0 {
-		return accessData, errors.NotFound.New(ctx, "User not found",
-			errors.HumanTextOption("Пользователь не найден"),
-		)
+		return accessData, errors.NotFound.New("User not found").
+			WithContextParams(ctx).
+			WithCustomHumanText("Пользователь не найден")
 	}
 	user := users[0]
 
@@ -32,13 +32,13 @@ func (s *AuthService) SignIn(ctx context.Context, loginData model.SignInReq) (ac
 
 	_, span1 := tracer.Start(ctx, "CompareHashAndPassword")
 	// Сравниваем пришедший пароль и хэш пароля из базы данных
-	if err = passwordManager.CompareHashAndPassword(ctx, user.PasswordHash, []byte(loginData.Password), user.PasswordSalt, s.generalSalt); err != nil {
+	if err = passwordManager.CompareHashAndPassword(user.PasswordHash, []byte(loginData.Password), user.PasswordSalt, s.generalSalt); err != nil {
 		return accessData, err
 	}
 	span1.End()
 
 	// Создаем пару токенов
-	accessData.Tokens, err = utils.CreatePairTokens(ctx, user.ID, loginData.DeviceID)
+	accessData.Tokens, err = utils.CreatePairTokens(user.ID, loginData.DeviceID)
 	if err != nil {
 		return accessData, err
 	}

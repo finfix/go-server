@@ -49,7 +49,7 @@ func (s *UserService) SendNotification(ctx context.Context, userID uint32, push 
 			break
 		}
 		if err != nil {
-			log.Error(ctx, err)
+			log.WithContextParams(ctx).Error(err)
 		}
 		count++
 	}

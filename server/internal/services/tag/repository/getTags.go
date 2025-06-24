@@ -6,8 +6,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"pkg/ddlHelper"
-	"pkg/errors"
 	"server/internal/services/tag/repository/tagDDL"
+	"server/internal/utils/errors"
 
 	"server/internal/services/tag/model"
 )
@@ -25,7 +25,7 @@ func (r *TagRepository) GetTags(ctx context.Context, req model.GetTagsReq) (tags
 
 	// Проверяем, что есть фильтры
 	if len(filtersEq) == 0 {
-		return nil, errors.BadRequest.New(ctx, "No filters specified")
+		return nil, errors.BadRequest.New("No filters specified").WithContextParams(ctx)
 	}
 
 	// Получаем подкатегории

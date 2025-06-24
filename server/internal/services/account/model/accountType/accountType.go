@@ -3,7 +3,7 @@ package accountType
 import (
 	"context"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 )
 
 type Type string
@@ -24,11 +24,10 @@ func (t *Type) Validate(ctx context.Context) error {
 	switch *t {
 	case Earnings, Expense, Debt, Regular, Balancing:
 	default:
-		return errors.BadRequest.New(ctx, "Unknown account type",
-			errors.SkipThisCallOption(),
-			errors.ParamsOption("type", *t),
-			errors.HumanTextOption("Неизвестный тип счета"),
-		)
+		return errors.BadRequest.New("Unknown account type").
+			SkipThisCall().
+			WithParams("type", *t).
+			WithCustomHumanText("Неизвестный тип счета")
 	}
 	return nil
 }

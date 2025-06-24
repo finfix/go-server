@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"pkg/slices"
+	"server/internal/utils/errors"
 
 	accountModel "server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
@@ -30,9 +30,9 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		return err
 	}
 	if len(transactions) == 0 {
-		return errors.NotFound.New(ctx, "Транзакция не найдена",
-			errors.ParamsOption("ID", fields.ID),
-		)
+		return errors.NotFound.New("Транзакция не найдена").
+			WithContextParams(ctx).
+			WithParams("ID", fields.ID)
 	}
 	transaction := transactions[0]
 

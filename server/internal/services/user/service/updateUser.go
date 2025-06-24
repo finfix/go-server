@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"pkg/passwordManager"
+	"server/internal/utils/errors"
 
 	"server/internal/services/user/model"
 	userRepoModel "server/internal/services/user/repository/model"
@@ -45,7 +45,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 		if req.Password != nil {
 
 			if req.OldPassword != nil {
-				return errors.BadRequest.New(ctx, "OldPassword must be filled")
+				return errors.BadRequest.New("OldPassword must be filled").WithContextParams(ctx)
 			}
 
 			// Получаем актуальный пароль пользователя
@@ -56,23 +56,24 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 				return err
 			}
 			if len(users) == 0 {
-				return errors.NotFound.New(ctx, "User not found")
+				return errors.NotFound.New("User not found").
+					WithContextParams(ctx)
 			}
 			user := users[0]
 
 			// Сравниваем пришедший пароль и хэш пароля из базы данных
-			if err = passwordManager.CompareHashAndPassword(ctx, user.PasswordHash, []byte(*req.OldPassword), user.PasswordSalt, s.generalSalt); err != nil {
+			if err = passwordManager.CompareHashAndPassword(user.PasswordHash, []byte(*req.OldPassword), user.PasswordSalt, s.generalSalt); err != nil {
 				return err
 			}
 
 			// Генерируем соль для юзера
-			userSalt, err := passwordManager.GenerateRandomSalt(ctx)
+			userSalt, err := passwordManager.GenerateRandomSalt()
 			if err != nil {
 				return err
 			}
 
 			// Получаем хэш и соль нового пароля
-			passwordHash, err := passwordManager.CreateNewPassword(ctx, []byte(*req.Password), s.generalSalt, userSalt)
+			passwordHash, err := passwordManager.CreateNewPassword([]byte(*req.Password), s.generalSalt, userSalt)
 			if err != nil {
 				return err
 			}

@@ -4,9 +4,9 @@ import (
 	"context"
 	"reflect"
 
-	"pkg/errors"
 	"pkg/reflectUtils"
 	"server/internal/utils/contextKeys"
+	"server/internal/utils/errors"
 )
 
 type NecessaryUserInformation struct {
@@ -21,10 +21,10 @@ func extractNecessaryFromCtx(ctx context.Context) (necessary NecessaryUserInform
 	deviceID := contextKeys.GetDeviceID(ctx)
 
 	if userID == nil {
-		return necessary, errors.InternalServer.New(ctx, "UserID is empty in ctx")
+		return necessary, errors.InternalServer.New("UserID is empty in ctx").WithContextParams(ctx)
 	}
 	if deviceID == nil {
-		return necessary, errors.InternalServer.New(ctx, "Device is empty in ctx")
+		return necessary, errors.InternalServer.New("Device is empty in ctx").WithContextParams(ctx)
 	}
 
 	return NecessaryUserInformation{
@@ -36,7 +36,7 @@ func extractNecessaryFromCtx(ctx context.Context) (necessary NecessaryUserInform
 func setNecessary(ctx context.Context, necessaryInformation NecessaryUserInformation, dest any) error {
 
 	// Проверяем типы данных
-	if err := reflectUtils.CheckPointerToStruct(ctx, dest); err != nil {
+	if err := reflectUtils.CheckPointerToStruct(dest); err != nil {
 		return err
 	}
 
@@ -53,7 +53,7 @@ func setNecessary(ctx context.Context, necessaryInformation NecessaryUserInforma
 
 	// Проверяем, является ли поле экспортированным и можно ли его устанавливать
 	if !necessaryField.CanSet() {
-		return errors.InternalServer.New(ctx, "Поле Necessary является неэкспортируемым")
+		return errors.InternalServer.New("Поле Necessary является неэкспортируемым").WithContextParams(ctx)
 	}
 
 	// Получаем значение структуры necessaryData с использованием отражения

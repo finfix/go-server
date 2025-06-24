@@ -1,14 +1,13 @@
 package service
 
 import (
-	"context"
+	"go.opentelemetry.io/otel"
 
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/token"
-	"go.opentelemetry.io/otel"
 
-	"pkg/errors"
 	"pkg/log"
+	"server/internal/utils/errors"
 
 	"server/internal/services/pushNotificator/model"
 )
@@ -20,10 +19,10 @@ type PushNotificatorService struct {
 	isOn bool
 }
 
-func NewPushNotificatorService(ctx context.Context, isOn bool, apnsCredentials model.APNsCredentials) (*PushNotificatorService, error) {
+func NewPushNotificatorService(isOn bool, apnsCredentials model.APNsCredentials) (*PushNotificatorService, error) {
 
 	if !isOn {
-		log.Warning(context.Background(), "SendNotification notificator is off")
+		log.Warning("SendNotification notificator is off")
 		return &PushNotificatorService{
 			isOn: isOn,
 			apns: nil,
@@ -32,7 +31,7 @@ func NewPushNotificatorService(ctx context.Context, isOn bool, apnsCredentials m
 
 	authKey, err := token.AuthKeyFromFile(apnsCredentials.KeyFilePath)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(ctx, err)
+		return nil, errors.InternalServer.Wrap(err)
 	}
 
 	apnsClient := apns2.NewTokenClient(&token.Token{ // nolint:exhaustruct

@@ -36,7 +36,7 @@ func (s *endpoint) getTagsToTransaction(ctx context.Context, r *http.Request) (a
 	}
 
 	// Валидируем запрос
-	if err := validator.Validate(ctx, req); err != nil {
+	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
 

@@ -5,7 +5,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
+	"server/internal/utils/errors"
 
 	"server/internal/services/accountGroup/model"
 )
@@ -33,7 +33,8 @@ func (r *AccountGroupRepository) UpdateAccountGroup(ctx context.Context, fields 
 
 	// Проверяем, что хоть одно поле было передано
 	if len(updates) == 0 {
-		return errors.BadRequest.New(ctx, "No fields to update")
+		return errors.BadRequest.New("No fields to update").
+			WithContextParams(ctx)
 	}
 
 	// Обновляем группы счетов

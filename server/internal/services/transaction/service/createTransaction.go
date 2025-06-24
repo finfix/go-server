@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"pkg/errors"
 	"pkg/slices"
+	"server/internal/utils/errors"
 
 	accountModel "server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
@@ -48,23 +48,24 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 
 	// Проверяем, что счета можно использовать для создания транзакции
 	if !permissionsArr[0].CreateTransaction || !permissionsArr[1].CreateTransaction {
-		return id, errors.BadRequest.New(ctx, "Нельзя создать транзакцию для этих счетов",
-			errors.ParamsOption(
+		return id, errors.BadRequest.New("Нельзя создать транзакцию для этих счетов").
+			WithContextParams(ctx).
+			WithParams(
 				"AccountFromID", transaction.AccountFromID,
 				"AccountGroupFromID", accountsMap[transaction.AccountFromID].AccountGroupID,
 				"AccountToID", transaction.AccountToID,
 				"AccountGroupToID", accountsMap[transaction.AccountToID].AccountGroupID,
-			),
-		)
+			)
 	}
 
 	// Проверяем, что счета находятся в одной группе
 	if accountsMap[transaction.AccountFromID].AccountGroupID != accountsMap[transaction.AccountToID].AccountGroupID {
-		return id, errors.BadRequest.New(ctx, "Счета находятся в разных группах",
-			errors.ParamsOption(
+		return id, errors.BadRequest.New("Счета находятся в разных группах").
+			WithContextParams(ctx).
+			WithParams(
 				"AccountFromID", transaction.AccountFromID,
 				"AccountToID", transaction.AccountToID,
-			))
+			)
 	}
 
 	return id, s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {

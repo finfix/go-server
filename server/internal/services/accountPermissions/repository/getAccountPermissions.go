@@ -30,7 +30,7 @@ func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context
 		return permissionSet, nil
 	}
 
-	log.Info(ctx, "Обновляем кэш с пермишенами на действия со счетами")
+	log.WithContextParams(ctx).Info("Обновляем кэш с пермишенами на действия со счетами")
 
 	var permissions []permissionItem
 

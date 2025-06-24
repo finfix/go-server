@@ -7,10 +7,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"go.opentelemetry.io/otel"
 
-	"pkg/errors"
+	"github.com/shopspring/decimal"
+
+	"server/internal/utils/errors"
 )
 
 var tracer = otel.Tracer("/server/internal/services/settings/network")
@@ -38,14 +39,14 @@ func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.De
 
 	uri, err := url.ParseRequestURI(urlString)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(ctx, err)
+		return nil, errors.InternalServer.Wrap(err).WithContextParams(ctx)
 	}
 	uri.RawQuery = urlValues.Encode()
 
 	// Отправляем запрос
 	req, err := http.NewRequest(http.MethodGet, uri.String(), nil)
 	if err != nil {
-		return nil, errors.InternalServer.Wrap(ctx, err)
+		return nil, errors.InternalServer.Wrap(err).WithContextParams(ctx)
 	}
 
 	req = req.WithContext(ctx)
@@ -53,7 +54,7 @@ func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.De
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.BadGateway.Wrap(ctx, err)
+		return nil, errors.BadGateway.Wrap(err).WithContextParams(ctx)
 	}
 	defer resp.Body.Close()
 
@@ -63,12 +64,12 @@ func GetCurrencyRates(ctx context.Context, apiKey string) (map[string]decimal.De
 
 		// Декодируем ответ
 		if err = json.NewDecoder(resp.Body).Decode(&providerModel); err != nil {
-			return nil, errors.InternalServer.Wrap(ctx, err)
+			return nil, errors.InternalServer.Wrap(err).WithContextParams(ctx)
 		}
 	default:
-		return nil, errors.BadGateway.New(ctx, "Error while getting currency rates",
-			errors.ParamsOption("HTTP code", resp.StatusCode),
-		)
+		return nil, errors.BadGateway.New("Error while getting currency rates").
+			WithContextParams(ctx).
+			WithParams("HTTPCode", resp.StatusCode)
 	}
 
 	rates := make(map[string]decimal.Decimal, len(providerModel.Rates))

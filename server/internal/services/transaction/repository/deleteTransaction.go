@@ -5,8 +5,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"pkg/errors"
 	"server/internal/services/transaction/repository/transactionDDL"
+	"server/internal/utils/errors"
 )
 
 // DeleteTransaction удаляет транзакцию
@@ -25,9 +25,9 @@ func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id, userI
 
 	// Проверяем, что в базе данных что-то изменилось
 	if rows == 0 {
-		return errors.NotFound.New(ctx, "No such model found for model",
-			errors.ParamsOption("UserID", userID, "TransactionID", id),
-		)
+		return errors.NotFound.New("No such model found for model").
+			WithContextParams(ctx).
+			WithParams("UserID", userID, "TransactionID", id)
 	}
 
 	return nil

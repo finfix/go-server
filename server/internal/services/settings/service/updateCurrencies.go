@@ -33,7 +33,7 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 	defer func() {
 		err := s.tgBot.SendMessage(ctx, tgMessage)
 		if err != nil {
-			log.Error(ctx, err)
+			log.WithContextParams(ctx).Error(err)
 		}
 	}()
 

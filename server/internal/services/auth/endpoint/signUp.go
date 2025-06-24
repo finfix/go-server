@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"pkg/errors"
 	"pkg/http/decoder"
 	"pkg/validator"
 	"server/internal/services/auth/model"
 	"server/internal/utils/contextKeys"
+	"server/internal/utils/errors"
 )
 
 // @Summary Регистрация пользователя
@@ -30,7 +30,7 @@ func (s *endpoint) signUp(ctx context.Context, r *http.Request) (any, error) {
 	if deviceID != nil {
 		req.DeviceID = *deviceID
 	} else {
-		return nil, errors.BadRequest.New(ctx, "Не передан DeviceID в заголовке запроса")
+		return nil, errors.BadRequest.New("Не передан DeviceID в заголовке запроса").WithContextParams(ctx)
 	}
 
 	// Декодируем запрос
@@ -42,7 +42,7 @@ func (s *endpoint) signUp(ctx context.Context, r *http.Request) (any, error) {
 	req.Device.UserAgent = r.Header.Get("User-Agent")
 
 	// Валидируем запрос
-	if err := validator.Validate(ctx, req); err != nil {
+	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
 
