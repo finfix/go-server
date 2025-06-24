@@ -1,17 +1,16 @@
-name: prod deploy
+name: dev deploy
 
 on:
   push:
-    tags:
-      - v*
-    paths:
-      - 'server/**'
+    branches:
+    - release/*
+    - hotfix/*
 
 jobs:
   general-deploy-pipeline:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
-      image_name: ${{ github.repository }}
-      ansible_playbook_filename: deploy-go-server.yml
+      image_name: ${{ github.repository }}-dev
+      ansible_playbook_filename: deploy-go-server-dev.yml
       devops_repository: finfix/devops
     secrets: inherit
