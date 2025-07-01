@@ -23,10 +23,10 @@
       <env name="PGSQL_PASSWORD" value="password" />
       <env name="PGSQL_USER" value="postgres" />
       <env name="SERVICE_NAME" value="server" />
+      <env name="STACK_TRACE_ENABLED" value="true" />
       <env name="TG_BOT_ENABLED" value="false" />
       <env name="TG_BOT_TOKEN" value="" />
       <env name="TG_CHAT_ID" value="0" />
-      <env name="STACK_TRACE_ENABLED" value="true" />
     </envs>
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />

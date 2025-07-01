@@ -29,7 +29,7 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRe
 	}
 
 	// Сканируем результат
-	if err = row.Scan(ctx, &serialNumber); err != nil {
+	if err = row.Scan(&serialNumber); err != nil {
 		return id, serialNumber, err
 	}
 
