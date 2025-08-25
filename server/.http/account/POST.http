@@ -1,0 +1,23 @@
+POST {{host}}/account
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "accountGroupID": 1,
+  "accountingInCharts": true,
+  "accountingInHeader": true,
+  "budget": {
+    "amount": 0,
+    "daysOffset": 0,
+    "fixedSum": 0,
+    "gradualFilling": true
+  },
+  "currency": "RUB",
+  "datetimeCreate": "string",
+  "iconID": 1,
+  "isParent": true,
+  "name": "string",
+  "parentAccountID": 0,
+  "remainder": 0,
+  "type": "regular"
+}

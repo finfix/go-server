@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"net/http"
+	"server/internal/utils/errors"
 
 	"go.opentelemetry.io/otel"
 
@@ -22,7 +23,7 @@ func DefaultAuthorization(ctx context.Context, r *http.Request) (context.Context
 	// Пытаемся распарсить токен
 	claims, jwtErr := jwtManager.ParseToken[Claims](r.Header.Get(authorizationHeader), jwtManager.AccessToken)
 	if jwtErr != nil && !pkgErrors.Is(jwtErr, jwtManager.ErrTokenExpired) {
-		return ctx, jwtErr
+		return ctx, errors.Forbidden.Wrap(jwtErr)
 	}
 
 	// Валидируем наличие всех полей в токене

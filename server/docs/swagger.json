@@ -1,0 +1,2870 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API Documentation for Coin",
+        "title": "COIN Server Documentation",
+        "contact": {
+            "name": "Ilia Ivanov",
+            "email": "bonavii@icloud.com"
+        },
+        "version": "@{version} (build @{build})"
+    },
+    "paths": {
+        "/account": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Получение счетов по фильтрам",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Идентификаторы групп счетов",
+                        "name": "accountGroupIDs",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Учитывать ли счет в графиках",
+                        "name": "accountingInCharts",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Учитывать ли счет в шапке",
+                        "name": "accountingInHeader",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Дата начала выборки (Обязательна при type = expense or earnings и отсутствующем периоде)",
+                        "name": "dateFrom",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Дата конца выборки (Обязательна при type = expense or earnings и отсутствующем периоде)",
+                        "name": "dateTo",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "regular",
+                            "expense",
+                            "debt",
+                            "earnings",
+                            "balancing"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "Regular",
+                            "Expense",
+                            "Debt",
+                            "Earnings",
+                            "Balancing"
+                        ],
+                        "description": "Тип счета",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Видимость счета",
+                        "name": "visible",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Account"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Создается новый счет, если у него есть остаток, то создается транзакция от нулевого счета для баланса",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Создание счета",
+                "parameters": [
+                    {
+                        "description": "model.CreateAccountReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_account_model.CreateAccountReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAccountRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Удаление данных по счету",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Удаление счета",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Идентификатор счета",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если удаление счета прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Изменение данных счета",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Редактирование счета",
+                "parameters": [
+                    {
+                        "description": "model.UpdateAccountReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_account_model.UpdateAccountReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если редактирование счета прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/accountGroup": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accountGroup"
+                ],
+                "summary": "Получение списка групп счетов",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Идентификаторы групп счетов",
+                        "name": "accountGroupIDs",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "[]model.AccountGroup",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.AccountGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Создается новая группа счетов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accountGroup"
+                ],
+                "summary": "Создание группы счетов",
+                "parameters": [
+                    {
+                        "description": "model.CreateAccountGroupReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_accountGroup_model.CreateAccountGroupReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAccountGroupRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accountGroup"
+                ],
+                "summary": "Удаление группы счетов",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Идентификатор счета",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если удаление группы счетов прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accountGroup"
+                ],
+                "summary": "Редактирование группы счетов",
+                "parameters": [
+                    {
+                        "description": "model.UpdateAccountGroupReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateAccountGroupReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если редактирование группы счетов прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refreshTokens": {
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Обновление токенов",
+                "parameters": [
+                    {
+                        "description": "model.RefreshTokensReq",
+                        "name": "Dody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshTokensReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshTokensRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signIn": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Авторизация пользователя по логину и паролю",
+                "parameters": [
+                    {
+                        "description": "model.SignInReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.SignInReq"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Нужен для идентификации устройства",
+                        "name": "DeviceID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.AuthRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signOut": {
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Выход пользователя из приложения",
+                "responses": {
+                    "200": {
+                        "description": "При успешном выходе возвращается null"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signUp": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
+                    {
+                        "description": "model.SignUpReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.SignUpReq"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Нужен для идентификации устройства",
+                        "name": "DeviceID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.AuthRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/currencies": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Получение списка валют",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Currency"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/icons": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Получение иконок с их адресами",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Icon"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/sendNotification": {
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Отправка уведомления пользователю",
+                "parameters": [
+                    {
+                        "description": "model.SendNotificationReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_settings_model.SendNotificationReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "При успешном выполнении возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/updateCurrencies": {
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Обновление курсов валют",
+                "responses": {
+                    "200": {
+                        "description": "При успешном выполнении возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/version/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Получение текущей версии сервера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Version"
+                        }
+                    }
+                }
+            }
+        },
+        "/tag": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Получение всех транзакций по фильтрам",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tag"
+                ],
+                "summary": "Получение всех транзакций",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Идентификаторы групп счетов",
+                        "name": "accountGroupIDs",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Tag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Создание подкатегории",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tag"
+                ],
+                "summary": "Создание подкатегории",
+                "parameters": [
+                    {
+                        "description": "model.CreateTagReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_tag_model.CreateTagReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateTagRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Удаление данных транзакции и изменение баланса счетов",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tag"
+                ],
+                "summary": "Удаление транзакции",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Идентификатор подкатегории",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если удаление транзакции прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Изменение данных транзакции",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tag"
+                ],
+                "summary": "Редактирование транзакции",
+                "parameters": [
+                    {
+                        "description": "model.UpdateTagReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateTagReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "При успешном выполнении запроса возвращает пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/tag/to_transactions": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tag"
+                ],
+                "summary": "Получение всех связей между подкатегориями и транзакциями",
+                "parameters": [
+                    {
+                        "description": "model.GetTagsToTransactionsReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GetTagsToTransactionsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "При успешном выполнении запроса возвращает пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/transaction": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Получение всех транзакций по фильтрам",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transaction"
+                ],
+                "summary": "Получение всех транзакций",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Идентификаторы групп счетов",
+                        "name": "accountGroupIDs",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Транзакции какого счета нас интересуют",
+                        "name": "accountID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Дата, от которой начинать учитывать транзакции",
+                        "name": "dateFrom",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Дата, до которой учитывать транзакции",
+                        "name": "dateTo",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Количество транзакций в списке для пагинации",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Смещение относительно начала списка для пагинации",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "transfer",
+                            "consumption",
+                            "balancing",
+                            "income"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "Transfer",
+                            "Consumption",
+                            "Balancing",
+                            "Income"
+                        ],
+                        "description": "Тип транзакции",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Transaction"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Создание транзакции и изменение баланса счетов, между которыми она произошла",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transaction"
+                ],
+                "summary": "Создание транзакции",
+                "parameters": [
+                    {
+                        "description": "model.CreateTransactionReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_transaction_model.CreateTransactionReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateTransactionRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Удаление данных транзакции и изменение баланса счетов",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transaction"
+                ],
+                "summary": "Удаление транзакции",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Идентификатор транзакции",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если удаление транзакции прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Изменение данных транзакции",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transaction"
+                ],
+                "summary": "Редактирование транзакции",
+                "parameters": [
+                    {
+                        "description": "model.UpdateTransactionReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateTransactionReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "При успешном выполнении запроса возвращает пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "get": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Получение данных пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AuthJWT": []
+                    }
+                ],
+                "description": "Изменение данных пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Редактирование пользователя",
+                "parameters": [
+                    {
+                        "description": "model.UpdateUserReq",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server_internal_services_user_model.UpdateUserReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Если редактирование пользователя прошло успешно, возвращается пустой ответ"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "OS.OS": {
+            "type": "string",
+            "enum": [
+                "android",
+                "iOS",
+                "iPadOS",
+                "OSX",
+                "WatchOS"
+            ],
+            "x-enum-varnames": [
+                "Android",
+                "IOS",
+                "IPadOS",
+                "OSX",
+                "WatchOS"
+            ]
+        },
+        "errors.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "description": "Поскольку стандартный энкодер json в го не умеет нормально сериализовать тип ошибок, эта переменная\nИспользуется для подставления значения Err прямо перед сериализацией ошибки в функции JSON",
+                    "type": "string"
+                },
+                "humanText": {
+                    "description": "Человекочитаемый текст, который можно показать клиенту\nПеременная настраивается через errors.WithCustomHumanText(messageWithFmt, args...)\nЕсли значения нет, то автоматически проставляется шаблонными данными в функции middleware.DefaultErrorEncoder",
+                    "type": "string"
+                },
+                "parameters": {
+                    "description": "Дополнительные параметры, направленные на дополнение ошибки контекстом, которые проставляются\nЧерез errors.WithParams(key1, value1, key2, value2, ...)",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "path": {
+                    "description": "Стектрейс от места враппинга ошибки. Если необходимо начать стектрейс с уровня выше, то\nНеобходимо воспользоваться errors.SkipThisCall(errors.\u003cconst\u003e)\nconst = SkipThisCall - начать стектрейс на один уровень выше враппера errors.Type.Wrap по дереву\nconst = SkipPreviousCaller и остальные работают по аналогии, пропуская все больше уровней стека вызовов",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "systemInfo": {
+                    "description": "Служебное поле, которое автоматически заполняется в функции middleware.DefaultErrorEncoder\nвспомогательными данными из контекста\n\nПрограммист это поле руками не меняет!",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.SystemInfo"
+                        }
+                    ]
+                }
+            }
+        },
+        "model.Account": {
+            "type": "object",
+            "required": [
+                "parentAccountID"
+            ],
+            "properties": {
+                "accountGroupID": {
+                    "description": "Идентификатор группы счета",
+                    "type": "integer"
+                },
+                "accountingInCharts": {
+                    "description": "Учитывать ли счет в графиках",
+                    "type": "boolean"
+                },
+                "accountingInHeader": {
+                    "description": "Будет ли счет учитываться в шапке",
+                    "type": "boolean"
+                },
+                "budget": {
+                    "description": "Бюджет",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.AccountBudget"
+                        }
+                    ]
+                },
+                "createdByUserID": {
+                    "description": "Идентификатор пользователя, создавшего счет",
+                    "type": "integer"
+                },
+                "currency": {
+                    "description": "Валюта счета",
+                    "type": "string"
+                },
+                "datetimeCreate": {
+                    "description": "Дата и время создания счета",
+                    "type": "string"
+                },
+                "iconID": {
+                    "description": "Идентификатор иконки",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "Идентификатор счета",
+                    "type": "integer"
+                },
+                "isParent": {
+                    "description": "Является ли счет родительским",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Название счета",
+                    "type": "string"
+                },
+                "parentAccountID": {
+                    "description": "Идентификатор родительского аккаунта",
+                    "type": "integer"
+                },
+                "remainder": {
+                    "description": "Остаток средств на счету",
+                    "type": "number"
+                },
+                "serialNumber": {
+                    "description": "Порядковый номер счета",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "Тип счета",
+                    "enum": [
+                        "regular",
+                        "expense",
+                        "debt",
+                        "earnings"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/server_internal_services_account_model_accountType.Type"
+                        }
+                    ]
+                },
+                "visible": {
+                    "description": "Видимость счета",
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.AccountBudget": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Сумма бюджета",
+                    "type": "number"
+                },
+                "daysOffset": {
+                    "description": "Смещение в днях",
+                    "type": "integer"
+                },
+                "fixedSum": {
+                    "description": "Фиксированная сумма",
+                    "type": "number"
+                },
+                "gradualFilling": {
+                    "description": "Постепенное пополнение",
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.AccountGroup": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "description": "Валюта группы счетов",
+                    "type": "string"
+                },
+                "datetimeCreate": {
+                    "description": "Дата и время создания группы счетов",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Идентификатор группы счетов",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Название группы счетов",
+                    "type": "string"
+                },
+                "serialNumber": {
+                    "description": "Порядковый номер группы счетов",
+                    "type": "integer"
+                },
+                "visible": {
+                    "description": "Видимость группы счетов",
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.ApplicationInformation": {
+            "type": "object",
+            "required": [
+                "build",
+                "bundleID",
+                "version"
+            ],
+            "properties": {
+                "build": {
+                    "description": "Билд приложения",
+                    "type": "string"
+                },
+                "bundleID": {
+                    "description": "Бандл приложения",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Версия приложения",
+                    "type": "string"
+                }
+            }
+        },
+        "model.AuthRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "Идентификатор пользователя",
+                    "type": "integer"
+                },
+                "token": {
+                    "description": "Токены доступа",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Tokens"
+                        }
+                    ]
+                }
+            }
+        },
+        "model.CreateAccountBudgetReq": {
+            "type": "object",
+            "required": [
+                "gradualFilling"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "Сумма",
+                    "type": "number"
+                },
+                "daysOffset": {
+                    "description": "Смещение в днях",
+                    "type": "integer"
+                },
+                "fixedSum": {
+                    "description": "Фиксированная сумма",
+                    "type": "number"
+                },
+                "gradualFilling": {
+                    "description": "Постепенное пополнение",
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.CreateAccountGroupRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "Идентификатор созданной группы счетов",
+                    "type": "integer"
+                },
+                "serialNumber": {
+                    "description": "Порядковый номер группы счетов",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.CreateAccountRes": {
+            "type": "object",
+            "required": [
+                "balancingAccountID",
+                "balancingAccountSerialNumber",
+                "balancingTransactionID"
+            ],
+            "properties": {
+                "balancingAccountID": {
+                    "description": "Идентификатор балансировочного счета",
+                    "type": "integer"
+                },
+                "balancingAccountSerialNumber": {
+                    "description": "Порядковый номер балансировочного счета",
+                    "type": "integer"
+                },
+                "balancingTransactionID": {
+                    "description": "Идентификатор транзакции балансировки",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "Идентификатор созданного счета",
+                    "type": "integer"
+                },
+                "serialNumber": {
+                    "description": "Порядковый номер счета",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.CreateTagRes": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Идентификатор транзакции",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "model.CreateTransactionRes": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Идентификатор транзакции",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "model.Currency": {
+            "type": "object",
+            "properties": {
+                "isoCode": {
+                    "description": "Сигнатура валюты",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Название валюты",
+                    "type": "string"
+                },
+                "rate": {
+                    "description": "Курс валюты",
+                    "type": "number"
+                },
+                "symbol": {
+                    "description": "Символ валюты",
+                    "type": "string"
+                }
+            }
+        },
+        "model.DeviceInformation": {
+            "type": "object",
+            "required": [
+                "deviceName",
+                "modelName",
+                "nameOS",
+                "versionOS"
+            ],
+            "properties": {
+                "deviceName": {
+                    "description": "Название девайса",
+                    "type": "string"
+                },
+                "modelName": {
+                    "description": "Название модели",
+                    "type": "string"
+                },
+                "nameOS": {
+                    "description": "Название операционной системы",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/OS.OS"
+                        }
+                    ]
+                },
+                "versionOS": {
+                    "description": "Версия операционной системы",
+                    "type": "string"
+                }
+            }
+        },
+        "model.GetTagsToTransactionsReq": {
+            "type": "object",
+            "properties": {
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                }
+            }
+        },
+        "model.Icon": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "ID иконки",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Название иконки",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "URL иконки",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Notification": {
+            "type": "object",
+            "properties": {
+                "badgeCount": {
+                    "description": "Индикатор какое значение показывать в бадже",
+                    "type": "integer"
+                },
+                "message": {
+                    "description": "Сообщение уведомления",
+                    "type": "string"
+                },
+                "subtitle": {
+                    "description": "Подзаголовок уведомления",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Заголовок уведомления",
+                    "type": "string"
+                }
+            }
+        },
+        "model.RefreshTokensReq": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "application": {
+                    "description": "Информация о приложении",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.ApplicationInformation"
+                        }
+                    ]
+                },
+                "device": {
+                    "description": "Информация о девайсе",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DeviceInformation"
+                        }
+                    ]
+                },
+                "token": {
+                    "description": "Токен восстановления доступа",
+                    "type": "string"
+                }
+            }
+        },
+        "model.RefreshTokensRes": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "Токен доступа",
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "description": "Токен восстановления доступа",
+                    "type": "string"
+                }
+            }
+        },
+        "model.SignInReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "application": {
+                    "description": "Информация о приложении",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.ApplicationInformation"
+                        }
+                    ]
+                },
+                "device": {
+                    "description": "Информация о девайсе",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DeviceInformation"
+                        }
+                    ]
+                },
+                "email": {
+                    "description": "Электронная почта пользователя",
+                    "type": "string",
+                    "format": "email"
+                },
+                "password": {
+                    "description": "Пароль пользователя",
+                    "type": "string"
+                }
+            }
+        },
+        "model.SignUpReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "application": {
+                    "description": "Информация о приложении",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.ApplicationInformation"
+                        }
+                    ]
+                },
+                "device": {
+                    "description": "Информация о девайсе",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DeviceInformation"
+                        }
+                    ]
+                },
+                "email": {
+                    "description": "Электронная почта пользователя",
+                    "type": "string",
+                    "format": "email"
+                },
+                "name": {
+                    "description": "Имя пользователя",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Пароль пользователя",
+                    "type": "string"
+                }
+            }
+        },
+        "model.SystemInfo": {
+            "type": "object",
+            "properties": {
+                "build": {
+                    "type": "string"
+                },
+                "buildDate": {
+                    "type": "string"
+                },
+                "env": {
+                    "type": "string"
+                },
+                "hostname": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Tag": {
+            "type": "object",
+            "properties": {
+                "accountGroupID": {
+                    "description": "Идентификатор группы счетов",
+                    "type": "integer"
+                },
+                "datetimeCreate": {
+                    "description": "Дата и время создания",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Идентификатор подкатегории",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "Название подкатегории",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Tokens": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "Токен доступа",
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "description": "Токен восстановления доступа",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Transaction": {
+            "type": "object",
+            "properties": {
+                "accountFromID": {
+                    "description": "Идентификатор счета списания",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountGroupID": {
+                    "description": "Идентификатор группы счетов",
+                    "type": "integer"
+                },
+                "accountToID": {
+                    "description": "Идентификатор счета пополнения",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountingInCharts": {
+                    "description": "Учитывается ли транзакция в графиках или нет",
+                    "type": "boolean"
+                },
+                "amountFrom": {
+                    "description": "Сумма сделки в первой валюте",
+                    "type": "number",
+                    "minimum": 1
+                },
+                "amountTo": {
+                    "description": "Сумма сделки во второй валюте",
+                    "type": "number",
+                    "minimum": 1
+                },
+                "createdByUserID": {
+                    "description": "Идентификатор пользователя, создавшего транзакцию",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "dateTransaction": {
+                    "description": "Дата транзакции (пользовательские)",
+                    "type": "string",
+                    "format": "date"
+                },
+                "datetimeCreate": {
+                    "description": "Дата и время создания транзакции",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "id": {
+                    "description": "Идентификатор транзакции",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "isExecuted": {
+                    "description": "Исполнена операция или нет (если нет, сделки как бы не существует)",
+                    "type": "boolean"
+                },
+                "note": {
+                    "description": "Заметка сделки",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Тип транзакции",
+                    "enum": [
+                        "consumption",
+                        "income",
+                        "transfer"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/transactionType.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "model.UpdateAccountGroupReq": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "description": "Валюта группы счетов",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Идентификатор группы счетов",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Название группы счетов",
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "serialNumber": {
+                    "description": "Порядковый номер группы счетов",
+                    "type": "integer"
+                },
+                "visible": {
+                    "description": "Видимость группы счетов",
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.UpdateTagReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Идентификатор подкатегории",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "Название подкатегории",
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                }
+            }
+        },
+        "model.UpdateTransactionReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "accountFromID": {
+                    "description": "Идентификатор счета списания",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountToID": {
+                    "description": "Идентификатор счета пополнения",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountingInCharts": {
+                    "description": "Учитывается ли транзакция в графиках или нет",
+                    "type": "boolean"
+                },
+                "amountFrom": {
+                    "description": "Сумма списания с первого счета",
+                    "type": "number",
+                    "minimum": 1
+                },
+                "amountTo": {
+                    "description": "Сумма пополнения второго счета",
+                    "type": "number",
+                    "minimum": 1
+                },
+                "dateTransaction": {
+                    "description": "Дата транзакции",
+                    "type": "string",
+                    "format": "date"
+                },
+                "id": {
+                    "description": "Идентификатор транзакции",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "isExecuted": {
+                    "description": "Исполнена операция или нет (если нет, сделки как бы не существует)",
+                    "type": "boolean"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "note": {
+                    "description": "Заметка для транзакции",
+                    "type": "string"
+                },
+                "tagIDs": {
+                    "description": "Идентификаторы тегов",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "defaultCurrency": {
+                    "description": "Валюта по умолчанию",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Электронная почта",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Идентификатор пользователя",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Имя пользователя",
+                    "type": "string"
+                },
+                "timeCreate": {
+                    "description": "Дата и время создания аккаунта",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Version": {
+            "type": "object",
+            "properties": {
+                "build": {
+                    "description": "Номер сборки",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Версия приложения",
+                    "type": "string"
+                }
+            }
+        },
+        "necessary.NecessaryUserInformation": {
+            "type": "object"
+        },
+        "server_internal_services_accountGroup_model.CreateAccountGroupReq": {
+            "type": "object",
+            "required": [
+                "currency",
+                "datetimeCreate",
+                "name"
+            ],
+            "properties": {
+                "currency": {
+                    "description": "Валюта группы счетов",
+                    "type": "string"
+                },
+                "datetimeCreate": {
+                    "description": "Дата и время создания группы счетов",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Название группы счетов",
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                }
+            }
+        },
+        "server_internal_services_account_model.CreateAccountReq": {
+            "type": "object",
+            "required": [
+                "accountGroupID",
+                "accountingInCharts",
+                "accountingInHeader",
+                "currency",
+                "datetimeCreate",
+                "iconID",
+                "isParent",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "accountGroupID": {
+                    "description": "Группа счета",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountingInCharts": {
+                    "description": "Учитывать ли счет в графиках",
+                    "type": "boolean"
+                },
+                "accountingInHeader": {
+                    "description": "Подсчет суммы счета в статистике",
+                    "type": "boolean"
+                },
+                "budget": {
+                    "description": "Бюджет",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.CreateAccountBudgetReq"
+                        }
+                    ]
+                },
+                "currency": {
+                    "description": "Валюта счета",
+                    "type": "string"
+                },
+                "datetimeCreate": {
+                    "description": "Дата создания счета",
+                    "type": "string"
+                },
+                "iconID": {
+                    "description": "Идентификатор иконки",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "isParent": {
+                    "description": "Является ли счет родительским",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Название счета",
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "parentAccountID": {
+                    "description": "Идентификатор родительского счета",
+                    "type": "integer"
+                },
+                "remainder": {
+                    "description": "Остаток средств на счету",
+                    "type": "number"
+                },
+                "type": {
+                    "description": "Тип счета",
+                    "enum": [
+                        "regular",
+                        "expense",
+                        "credit",
+                        "debt",
+                        "earnings",
+                        "investments"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/server_internal_services_account_model_accountType.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "server_internal_services_account_model.UpdateAccountBudgetReq": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Сумма",
+                    "type": "number"
+                },
+                "daysOffset": {
+                    "description": "Смещение в днях",
+                    "type": "integer"
+                },
+                "fixedSum": {
+                    "description": "Фиксированная сумма",
+                    "type": "number"
+                },
+                "gradualFilling": {
+                    "description": "Постепенное пополнение",
+                    "type": "boolean"
+                }
+            }
+        },
+        "server_internal_services_account_model.UpdateAccountReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "accountingInCharts": {
+                    "description": "Будет ли счет учитываться в графиках",
+                    "type": "boolean"
+                },
+                "accountingInHeader": {
+                    "description": "Будет ли счет учитываться в статистике",
+                    "type": "boolean"
+                },
+                "budget": {
+                    "description": "Месячный бюджет",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/server_internal_services_account_model.UpdateAccountBudgetReq"
+                        }
+                    ]
+                },
+                "currencyCode": {
+                    "description": "Валюта счета",
+                    "type": "string"
+                },
+                "iconID": {
+                    "description": "Идентификатор иконки",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "id": {
+                    "description": "Идентификатор счета",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "Название счета",
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "parentAccountID": {
+                    "description": "Идентификатор родительского счета",
+                    "type": "integer"
+                },
+                "remainder": {
+                    "description": "Остаток средств на счету",
+                    "type": "number"
+                },
+                "serialNumber": {
+                    "description": "Порядковый номер счета",
+                    "type": "integer"
+                },
+                "visible": {
+                    "description": "Видимость счета",
+                    "type": "boolean"
+                }
+            }
+        },
+        "server_internal_services_account_model_accountType.Type": {
+            "type": "string",
+            "enum": [
+                "regular",
+                "expense",
+                "debt",
+                "earnings",
+                "balancing"
+            ],
+            "x-enum-varnames": [
+                "Regular",
+                "Expense",
+                "Debt",
+                "Earnings",
+                "Balancing"
+            ]
+        },
+        "server_internal_services_settings_model.SendNotificationReq": {
+            "type": "object",
+            "properties": {
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "notification": {
+                    "$ref": "#/definitions/model.Notification"
+                },
+                "userID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "server_internal_services_tag_model.CreateTagReq": {
+            "type": "object",
+            "required": [
+                "accountGroupID",
+                "datetimeCreate",
+                "name"
+            ],
+            "properties": {
+                "accountGroupID": {
+                    "description": "Идентификатор группы счетов",
+                    "type": "integer"
+                },
+                "datetimeCreate": {
+                    "description": "Дата создания подкатегории",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Название подкатегории",
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                }
+            }
+        },
+        "server_internal_services_transaction_model.CreateTransactionReq": {
+            "type": "object",
+            "required": [
+                "accountFromID",
+                "accountGroupID",
+                "accountToID",
+                "accountingInCharts",
+                "amountFrom",
+                "amountTo",
+                "dateTransaction",
+                "datetimeCreate",
+                "isExecuted",
+                "type"
+            ],
+            "properties": {
+                "accountFromID": {
+                    "description": "Идентификатор счета списания",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountGroupID": {
+                    "description": "Идентификатор группы счетов",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountToID": {
+                    "description": "Идентификатор счета пополнения",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "accountingInCharts": {
+                    "description": "Учитывается ли транзакция в графиках или нет",
+                    "type": "boolean"
+                },
+                "amountFrom": {
+                    "description": "Сумма списания с первого счета",
+                    "type": "number",
+                    "minimum": 1
+                },
+                "amountTo": {
+                    "description": "Сумма пополнения второго счета (в случаях меж валютной транзакции цифры отличаются)",
+                    "type": "number",
+                    "minimum": 1
+                },
+                "dateTransaction": {
+                    "description": "Дата транзакции",
+                    "type": "string",
+                    "format": "date"
+                },
+                "datetimeCreate": {
+                    "description": "Дата создания транзакции",
+                    "type": "string"
+                },
+                "isExecuted": {
+                    "description": "Исполнена операция или нет (если нет, сделки как бы не существует)",
+                    "type": "boolean"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "note": {
+                    "description": "Заметка для транзакции",
+                    "type": "string"
+                },
+                "tagIDs": {
+                    "description": "Идентификаторы тегов",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "description": "Тип транзакции",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/transactionType.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "server_internal_services_user_model.UpdateUserReq": {
+            "type": "object",
+            "properties": {
+                "defaultCurrency": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "necessary": {
+                    "$ref": "#/definitions/necessary.NecessaryUserInformation"
+                },
+                "notificationToken": {
+                    "type": "string"
+                },
+                "oldPassword": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "transactionType.Type": {
+            "type": "string",
+            "enum": [
+                "transfer",
+                "consumption",
+                "balancing",
+                "income"
+            ],
+            "x-enum-varnames": [
+                "Transfer",
+                "Consumption",
+                "Balancing",
+                "Income"
+            ]
+        }
+    },
+    "securityDefinitions": {
+        "AuthJWT": {
+            "description": "JWT-токен авторизации",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

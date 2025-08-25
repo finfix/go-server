@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"pkg/log/model"
-	"pkg/stackTrace"
 	"syscall"
 	"time"
 
@@ -277,7 +276,7 @@ func run() error {
 	eg.Go(func() error {
 
 		log.Info(fmt.Sprintf("Server is listening: %s", conf.HTTP))
-		
+
 		return server.Serve()
 	})
 
@@ -299,7 +298,7 @@ func run() error {
 
 func initSingletons(conf config.Config) error {
 
-	stackTrace.Init(conf.ServiceName, conf.StackTraceEnabled)
+	// stackTrace.Init(conf.ServiceName, conf.StackTraceEnabled)
 
 	// Конфигурируем decimal, чтобы в JSON не было кавычек
 	decimal.MarshalJSONWithoutQuotes = true
@@ -315,9 +314,9 @@ func initSingletons(conf config.Config) error {
 	}
 	jwtManager.Init([]byte(conf.Auth.SigningKey), accessTokenTTL, refreshTokenTTL)
 
-	//if err = middleware.(conf.ServiceName); err != nil {
+	// if err = middleware.(conf.ServiceName); err != nil {
 	//	return err
-	//}
+	// }
 
 	return nil
 }

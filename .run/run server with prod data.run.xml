@@ -6,6 +6,7 @@
       <env name="API_KEY_CURRENCY_PROVIDER" value="" />
       <env name="AUTH_ACCESS_TOKEN_TTL" value="10h" />
       <env name="AUTH_REFRESH_TOKEN_TTL" value="720h" />
+      <env name="AUTH_TOKEN_SIGNING_KEY" value="signingKey" />
       <env name="ENVIRONMENT" value="local" />
       <env name="LISTEN_HTTP" value="0.0.0.0:8080" />
       <env name="LOG_FORMAT" value="text" />
@@ -22,7 +23,9 @@
       <env name="PGSQL_HOST" value="localhost:6131" />
       <env name="PGSQL_PASSWORD" value="password" />
       <env name="PGSQL_USER" value="postgres" />
+      <env name="SERVER_DB_PASSWORD" value="password" />
       <env name="SERVICE_NAME" value="server" />
+      <env name="SHA_SALT" value="salt" />
       <env name="STACK_TRACE_ENABLED" value="true" />
       <env name="TG_BOT_ENABLED" value="false" />
       <env name="TG_BOT_TOKEN" value="" />

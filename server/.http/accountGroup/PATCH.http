@@ -1,0 +1,11 @@
+PATCH {{host}}/account
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "id": 0,
+  "currency": null,
+  "name": null,
+  "serialNumber": null,
+  "visible": null
+}

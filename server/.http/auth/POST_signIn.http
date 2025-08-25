@@ -1,0 +1,19 @@
+POST {{host}}/auth/signIn
+Content-Type: application/json
+DeviceID: test
+
+{
+  "application": {
+    "build": "123",
+    "bundleID": "coin.bonavii",
+    "version": "12.2.2"
+  },
+  "device": {
+    "deviceName": "iPhone",
+    "modelName": "iPhone 15 Pro",
+    "nameOS": "iOS",
+    "versionOS": "17.0.1"
+  },
+  "email": "bonavii@icloud.com",
+  "password": "zidhab-nazmes-7vovQe"
+}

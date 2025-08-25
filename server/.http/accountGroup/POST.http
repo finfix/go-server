@@ -1,0 +1,10 @@
+POST {{host}}/accountGroup
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "currency": "RUB",
+  "datetimeCreate": "string",
+  "name": "string",
+  "necessary": {}
+}
