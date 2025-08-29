@@ -3,16 +3,18 @@ package auth
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"server/internal/utils/errors"
 )
 
 type Claims struct {
-	UserID   uint32
+	UserID   uuid.UUID
 	DeviceID string
 }
 
 func (c *Claims) Validate(ctx context.Context) error {
-	if c.UserID == 0 {
+	if c.UserID == uuid.Nil {
 		return errors.Unauthorized.New("UserID is empty").WithContextParams(ctx)
 	}
 	if c.DeviceID == "" {
