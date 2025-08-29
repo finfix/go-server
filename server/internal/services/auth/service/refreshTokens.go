@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"pkg/jwtManager"
 	"server/internal/utils/auth"
 	"server/internal/utils/errors"
@@ -20,7 +21,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 	// Получаем девайс по идентификатору пользователя и девайса
 	devices, err := s.userRepository.GetDevices(ctx, userRepoModel.GetDevicesReq{ // nolint:exhaustruct
 		DeviceIDs: []string{req.Necessary.DeviceID},
-		UserIDs:   []uint32{req.Necessary.UserID},
+		UserIDs:   []uuid.UUID{req.Necessary.UserID},
 	})
 	if err != nil {
 		return newTokens, err

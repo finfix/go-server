@@ -3,13 +3,14 @@ package repository
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
-
 	"pkg/ddlHelper"
 	"server/internal/services/account/repository/accountDDL"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 )
 
-func (r *AccountRepository) ChangeSerialNumbers(ctx context.Context, accountGroupID, oldValue, newValue uint32) error {
+func (r *AccountRepository) ChangeSerialNumbers(ctx context.Context, accountGroupID uuid.UUID, oldValue, newValue uint32) error {
 	ctx, span := tracer.Start(ctx, "ChangeSerialNumbers")
 	defer span.End()
 

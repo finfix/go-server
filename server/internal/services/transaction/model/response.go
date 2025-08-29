@@ -1,7 +1,9 @@
 package model
 
+import "github.com/google/uuid"
+
 type CreateTransactionRes struct {
-	ID uint32 `json:"id" validate:"required" minimum:"1"` // Идентификатор транзакции
+	ID uuid.UUID `json:"id" validate:"required" minimum:"1"` // Идентификатор транзакции
 }
 
 type GetTransactionsRes struct {

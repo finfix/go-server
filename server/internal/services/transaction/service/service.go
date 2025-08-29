@@ -19,6 +19,8 @@ import (
 	transactionRepoModel "server/internal/services/transaction/repository/model"
 	"server/internal/services/transactor"
 	userService "server/internal/services/user/service"
+
+	"github.com/google/uuid"
 )
 
 var tracer = otel.Tracer("/server/internal/services/transaction/service")
@@ -43,12 +45,12 @@ type Transactor interface {
 var _ TransactionRepository = new(transactionRepository.TransactionRepository)
 
 type TransactionRepository interface {
-	CreateTransaction(context.Context, transactionRepoModel.CreateTransactionReq) (uint32, error)
+	CreateTransaction(context.Context, transactionRepoModel.CreateTransactionReq) (uuid.UUID, error)
 	UpdateTransaction(context.Context, transactionModel.UpdateTransactionReq) error
-	DeleteTransaction(ctx context.Context, id, userID uint32) error
+	DeleteTransaction(ctx context.Context, id, userID uuid.UUID) error
 	GetTransactions(context.Context, transactionModel.GetTransactionsReq) (res []transactionModel.Transaction, err error)
 
-	CheckAccess(ctx context.Context, accountGroupIDs, transactionIDs []uint32) error
+	CheckAccess(ctx context.Context, accountGroupIDs, transactionIDs []uuid.UUID) error
 }
 
 var _ AccountPermissionsService = new(service.AccountPermissionsService)
@@ -67,26 +69,26 @@ var _ TagRepository = new(tagRepository.TagRepository)
 
 type TagRepository interface {
 	GetTagsToTransactions(context.Context, tagModel.GetTagsToTransactionsReq) ([]tagModel.TagToTransaction, error)
-	LinkTagsToTransaction(context.Context, []uint32, uint32) error
-	UnlinkTagsFromTransaction(context.Context, []uint32, uint32) error
+	LinkTagsToTransaction(context.Context, []uuid.UUID, uuid.UUID) error
+	UnlinkTagsFromTransaction(context.Context, []uuid.UUID, uuid.UUID) error
 }
 
 var _ UserService = new(userService.UserService)
 
 type UserService interface {
-	GetAccessedAccountGroups(ctx context.Context, userID uint32) (accesses []uint32, err error)
+	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
 var _ AccountService = new(accountService.AccountService)
 
 type AccountService interface {
-	CheckAccess(ctx context.Context, userID uint32, accountIDs []uint32) error
+	CheckAccess(ctx context.Context, userID uuid.UUID, accountIDs []uuid.UUID) error
 }
 
 var _ TagService = new(tagService.TagService)
 
 type TagService interface {
-	CheckAccess(ctx context.Context, userID uint32, tagIDs []uint32) error
+	CheckAccess(ctx context.Context, userID uuid.UUID, tagIDs []uuid.UUID) error
 }
 
 func NewTransactionService(

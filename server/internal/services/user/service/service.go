@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 
 	pushNotificatorModel "server/internal/services/pushNotificator/model"
@@ -24,16 +25,16 @@ type GeneralRepository interface {
 }
 
 type UserRepository interface {
-	CreateUser(context.Context, userModel.CreateReq) (uint32, error)
+	CreateUser(context.Context, userModel.CreateReq) (uuid.UUID, error)
 	GetUsers(context.Context, userModel.GetUsersReq) ([]userModel.User, error)
 	UpdateUser(context.Context, userRepoModel.UpdateUserReq) error
 
-	LinkUserToAccountGroup(context.Context, uint32, uint32) error
+	LinkUserToAccountGroup(context.Context, uuid.UUID, uuid.UUID) error
 
 	GetDevices(context.Context, userRepoModel.GetDevicesReq) ([]userModel.Device, error)
 	UpdateDevice(context.Context, userRepoModel.UpdateDeviceReq) error
 
-	GetAccessedAccountGroups(ctx context.Context, userID uint32) ([]uint32, error)
+	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type PushNotificatorService interface {

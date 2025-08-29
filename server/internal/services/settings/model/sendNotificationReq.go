@@ -1,12 +1,14 @@
 package model
 
 import (
+	"github.com/google/uuid"
+
 	userModel "server/internal/services/user/model"
 	"server/internal/utils/necessary"
 )
 
 type SendNotificationReq struct {
 	Necessary    necessary.NecessaryUserInformation
-	UserID       uint32                 `json:"userID"`
+	UserID       uuid.UUID              `json:"userID"`
 	Notification userModel.Notification `json:"notification"`
 }

@@ -4,13 +4,14 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"server/internal/services/account/repository/accountDDL"
 	"server/internal/utils/errors"
 )
 
 // CheckAccess проверяет, имеет ли набор групп счетов пользователя доступ к указанным идентификаторам счетов
-func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, accountIDs []uint32) error {
+func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, accountIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "CheckAccess")
 	defer span.End()
 
@@ -28,13 +29,13 @@ func (r *AccountRepository) CheckAccess(ctx context.Context, accountGroupIDs, ac
 	}
 
 	// Формируем мапу доступных счетов
-	accessedAccountIDs := make(map[uint32]struct{})
+	accessedAccountIDs := make(map[uuid.UUID]struct{})
 
 	// Проходимся по каждому доступному счету
 	for rows.Next() {
 
 		// Считываем ID счета
-		var accountID uint32
+		var accountID uuid.UUID
 		if err = rows.Scan(&accountID); err != nil {
 			return err
 		}

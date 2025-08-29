@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"github.com/google/uuid"
+
 	"pkg/pointer"
 
 	"server/internal/services/account/model"
@@ -8,11 +10,11 @@ import (
 )
 
 func HandleAccountingInHeader(
-	repoUpdateReqs map[uint32]accountRepoModel.UpdateAccountReq,
+	repoUpdateReqs map[uuid.UUID]accountRepoModel.UpdateAccountReq,
 	mainAccount model.Account,
 	childrenAccounts []model.Account,
 	parentAccount *model.Account,
-) map[uint32]accountRepoModel.UpdateAccountReq {
+) map[uuid.UUID]accountRepoModel.UpdateAccountReq {
 
 	// Если значение родительского счета отрицательное, а у дочернего счета положительное
 	if parentAccount != nil && !parentAccount.AccountingInHeader && mainAccount.AccountingInHeader {

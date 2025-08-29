@@ -1,8 +1,12 @@
 package service
 
-import "context"
+import (
+	"context"
 
-func (s *TagService) CheckAccess(ctx context.Context, userID uint32, tagIDs []uint32) error {
+	"github.com/google/uuid"
+)
+
+func (s *TagService) CheckAccess(ctx context.Context, userID uuid.UUID, tagIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "CheckAccess")
 	defer span.End()
 

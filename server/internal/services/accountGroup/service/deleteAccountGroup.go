@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"server/internal/services/accountGroup/model"
+
+	"github.com/google/uuid"
 )
 
 // DeleteAccountGroup удаляет группу счетов
@@ -12,7 +14,7 @@ func (s *AccountGroupService) DeleteAccountGroup(ctx context.Context, id model.D
 	defer span.End()
 
 	// Проверяем доступ пользователя к счету
-	if err := s.CheckAccess(ctx, id.Necessary.UserID, []uint32{id.ID}); err != nil {
+	if err := s.CheckAccess(ctx, id.Necessary.UserID, []uuid.UUID{id.ID}); err != nil {
 		return err
 	}
 

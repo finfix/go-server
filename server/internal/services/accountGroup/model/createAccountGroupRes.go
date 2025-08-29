@@ -1,6 +1,8 @@
 package model
 
+import "github.com/google/uuid"
+
 type CreateAccountGroupRes struct {
-	ID           uint32 `json:"id"`           // Идентификатор созданной группы счетов
-	SerialNumber uint32 `json:"serialNumber"` // Порядковый номер группы счетов
+	ID           uuid.UUID `json:"id"`           // Идентификатор созданной группы счетов
+	SerialNumber uint32    `json:"serialNumber"` // Порядковый номер группы счетов
 }

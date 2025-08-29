@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	tagRepoModel "server/internal/services/tag/repository/model"
@@ -10,12 +11,12 @@ import (
 )
 
 // CreateTag создает новую подкатегорию
-func (r *TagRepository) CreateTag(ctx context.Context, req tagRepoModel.CreateTagReq) (id uint32, err error) {
+func (r *TagRepository) CreateTag(ctx context.Context, req tagRepoModel.CreateTagReq) (id uuid.UUID, err error) {
 	ctx, span := tracer.Start(ctx, "CreateTag")
 	defer span.End()
 
 	// Создаем подкатегорию
-	return r.db.ExecWithLastInsertID(ctx, sq.
+	return r.db.ExecWithLastUUID(ctx, sq.
 		Insert(tagDDL.Table).
 		SetMap(map[string]any{
 			tagDDL.ColumnName:            req.Name,

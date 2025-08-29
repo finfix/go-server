@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/shopspring/decimal"
 	"go.opentelemetry.io/otel"
+
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
 	settingsModel "server/internal/services/settings/model"
 	"server/internal/services/settings/model/applicationType"
@@ -29,7 +31,7 @@ type SettingsRepository interface {
 var _ UserService = new(userService.UserService)
 
 type UserService interface {
-	SendNotification(ctx context.Context, userID uint32, push userModel.Notification) (uint8, error)
+	SendNotification(ctx context.Context, userID uuid.UUID, push userModel.Notification) (uint8, error)
 	GetUsers(ctx context.Context, filters userModel.GetUsersReq) (users []userModel.User, err error)
 }
 

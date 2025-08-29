@@ -4,13 +4,14 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"server/internal/services/transaction/repository/transactionDDL"
 	"server/internal/utils/errors"
 )
 
 // DeleteTransaction удаляет транзакцию
-func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id, userID uint32) error {
+func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id, userID uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "DeleteTransaction")
 	defer span.End()
 

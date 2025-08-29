@@ -9,6 +9,8 @@ import (
 	"server/internal/utils/necessary"
 
 	"server/internal/services/settings/model"
+
+	"github.com/google/uuid"
 )
 
 func (s *Scheduler) Start(ctx context.Context) error {
@@ -23,7 +25,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 
 		if err := s.settingsService.UpdateCurrencies(ctx, model.UpdateCurrenciesReq{
 			Necessary: necessary.NecessaryUserInformation{
-				UserID:   adminUser,
+				UserID:   uuid.New(),
 				DeviceID: "system",
 			},
 		}); err != nil {

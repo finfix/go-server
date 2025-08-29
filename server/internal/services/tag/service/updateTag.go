@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"server/internal/services/tag/model"
+
+	"github.com/google/uuid"
 )
 
 // UpdateTag редактирует подкатегорию
@@ -12,7 +14,7 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 	defer span.End()
 
 	// Проверяем доступ пользователя к подкатегории
-	if err := s.CheckAccess(ctx, fields.Necessary.UserID, []uint32{fields.ID}); err != nil {
+	if err := s.CheckAccess(ctx, fields.Necessary.UserID, []uuid.UUID{fields.ID}); err != nil {
 		return err
 	}
 

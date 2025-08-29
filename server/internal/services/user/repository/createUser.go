@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	userModel "server/internal/services/user/model"
@@ -10,11 +11,11 @@ import (
 )
 
 // CreateUser Создает нового пользователя
-func (r *UserRepository) CreateUser(ctx context.Context, user userModel.CreateReq) (uint32, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, user userModel.CreateReq) (uuid.UUID, error) {
 	ctx, span := tracer.Start(ctx, "CreateUser")
 	defer span.End()
 
-	return r.db.ExecWithLastInsertID(ctx, sq.
+	return r.db.ExecWithLastUUID(ctx, sq.
 		Insert(`coin.users`).
 		SetMap(map[string]any{
 			userDDL.ColumnName:            user.Name,

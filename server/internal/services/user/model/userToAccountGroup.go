@@ -1,6 +1,8 @@
 package model
 
+import "github.com/google/uuid"
+
 type UserToAccountGroup struct {
-	UserID         uint32 `db:"user_id"`
-	AccountGroupID uint32 `db:"account_group_id"`
+	UserID         uuid.UUID `db:"user_id"`
+	AccountGroupID uuid.UUID `db:"account_group_id"`
 }

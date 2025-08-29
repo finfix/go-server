@@ -3,13 +3,14 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	"server/internal/services/user/repository/deviceDDL"
 )
 
 // DeleteDevice Удаляет девайс пользователя
-func (r *UserRepository) DeleteDevice(ctx context.Context, userID uint32, deviceID string) error {
+func (r *UserRepository) DeleteDevice(ctx context.Context, userID uuid.UUID, deviceID string) error {
 	ctx, span := tracer.Start(ctx, "DeleteDevice")
 	defer span.End()
 

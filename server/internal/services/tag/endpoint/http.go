@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
@@ -20,7 +21,7 @@ type endpoint struct {
 }
 
 type tagService interface {
-	CreateTag(context.Context, model.CreateTagReq) (uint32, error)
+	CreateTag(context.Context, model.CreateTagReq) (uuid.UUID, error)
 	GetTags(context.Context, model.GetTagsReq) ([]model.Tag, error)
 	UpdateTag(context.Context, model.UpdateTagReq) error
 	DeleteTag(context.Context, model.DeleteTagReq) error

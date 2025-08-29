@@ -1,6 +1,8 @@
 package model
 
 import (
+	"github.com/google/uuid"
+
 	"pkg/datetime"
 	"server/internal/utils/necessary"
 
@@ -9,7 +11,7 @@ import (
 
 type CreateTagReq struct {
 	Necessary      necessary.NecessaryUserInformation
-	AccountGroupID uint32        `json:"accountGroupID" validate:"required"` // Идентификатор группы счетов
+	AccountGroupID uuid.UUID     `json:"accountGroupID" validate:"required"` // Идентификатор группы счетов
 	Name           string        `json:"name" validate:"required"`           // Название подкатегории
 	DatetimeCreate datetime.Time `json:"datetimeCreate" validate:"required"` // Дата создания подкатегории
 }

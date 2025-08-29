@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"server/internal/services/accountGroup/model"
+
+	"github.com/google/uuid"
 )
 
 // UpdateAccountGroup обновляет группу счетов по конкретным полям
@@ -12,7 +14,7 @@ func (s *AccountGroupService) UpdateAccountGroup(ctx context.Context, updateReq 
 	defer span.End()
 
 	// Проверяем доступ пользователя к группе счетов
-	if err := s.CheckAccess(ctx, updateReq.Necessary.UserID, []uint32{updateReq.ID}); err != nil {
+	if err := s.CheckAccess(ctx, updateReq.Necessary.UserID, []uuid.UUID{updateReq.ID}); err != nil {
 		return err
 	}
 

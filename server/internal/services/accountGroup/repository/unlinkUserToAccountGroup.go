@@ -4,9 +4,10 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 )
 
-func (r *AccountGroupRepository) UnlinkUserFromAccountGroup(ctx context.Context, userID, accountGroupID uint32) error {
+func (r *AccountGroupRepository) UnlinkUserFromAccountGroup(ctx context.Context, userID, accountGroupID uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "UnlinkUserFromAccountGroup")
 	defer span.End()
 

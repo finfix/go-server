@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"pkg/slices"
 	"server/internal/utils/errors"
 
@@ -13,23 +15,23 @@ import (
 )
 
 // CreateTransaction создает новую транзакцию
-func (s *TransactionService) CreateTransaction(ctx context.Context, transaction transactionModel.CreateTransactionReq) (id uint32, err error) {
+func (s *TransactionService) CreateTransaction(ctx context.Context, transaction transactionModel.CreateTransactionReq) (id uuid.UUID, err error) {
 	ctx, span := tracer.Start(ctx, "CreateTransaction")
 	defer span.End()
 
 	// Проверяем доступ пользователя к счетам
-	if err = s.accountService.CheckAccess(ctx, transaction.Necessary.UserID, []uint32{transaction.AccountFromID, transaction.AccountToID}); err != nil {
+	if err = s.accountService.CheckAccess(ctx, transaction.Necessary.UserID, []uuid.UUID{transaction.AccountFromID, transaction.AccountToID}); err != nil {
 		return id, err
 	}
 
 	// Получаем счета
 	_accounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-		IDs: []uint32{transaction.AccountFromID, transaction.AccountToID},
+		IDs: []uuid.UUID{transaction.AccountFromID, transaction.AccountToID},
 	})
 	if err != nil {
 		return id, err
 	}
-	accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uint32 { return account.ID })
+	accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uuid.UUID { return account.ID })
 
 	// Проверяем, может ли пользователь использовать счета
 	if err = utils.TransactionAndAccountTypesValidation(ctx,

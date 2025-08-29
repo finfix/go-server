@@ -1,6 +1,8 @@
 package model
 
+import "github.com/google/uuid"
+
 type AuthRes struct {
 	Tokens `json:"token"`     // Токены доступа
-	ID     uint32 `json:"id"` // Идентификатор пользователя
+	ID     uuid.UUID `json:"id"` // Идентификатор пользователя
 }

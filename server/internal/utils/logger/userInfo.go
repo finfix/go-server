@@ -16,10 +16,13 @@ func GetUserInfo(ctx context.Context) *UserInfo {
 		return nil
 	}
 
-	claims, err := contextKeys2.GetAuthClaims(ctx)
-	if err == nil {
-		userInfo.UserID = &claims.UserID
-		userInfo.DeviceID = &claims.DeviceID
+	userID := contextKeys2.GetUserID(ctx)
+	deviceID := contextKeys2.GetDeviceID(ctx)
+	if userID != nil {
+		userInfo.UserID = userID
+	}
+	if deviceID != nil {
+		userInfo.DeviceID = deviceID
 	}
 
 	userInfo.RequestID = contextKeys.GetRequestID(ctx)

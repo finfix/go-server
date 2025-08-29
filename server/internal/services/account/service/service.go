@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/shopspring/decimal"
 	"go.opentelemetry.io/otel"
+
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
 	accountModel "server/internal/services/account/model"
 	accountRepository "server/internal/services/account/repository"
@@ -30,21 +32,21 @@ type Transactor interface {
 var _ AccountRepository = new(accountRepository.AccountRepository)
 
 type AccountRepository interface {
-	CreateAccount(context.Context, accountRepoModel.CreateAccountReq) (uint32, uint32, error)
+	CreateAccount(context.Context, accountRepoModel.CreateAccountReq) (uuid.UUID, uint32, error)
 	GetAccounts(context.Context, accountRepoModel.GetAccountsReq) ([]accountModel.Account, error)
-	UpdateAccount(context.Context, map[uint32]accountRepoModel.UpdateAccountReq) error
-	DeleteAccount(ctx context.Context, id uint32) error
+	UpdateAccount(context.Context, map[uuid.UUID]accountRepoModel.UpdateAccountReq) error
+	DeleteAccount(ctx context.Context, id uuid.UUID) error
 
-	ChangeSerialNumbers(ctx context.Context, accountGroupID, oldValue, newValue uint32) error
-	GetSumAllTransactionsToAccount(context.Context, accountRepoModel.CalculateRemaindersAccountsReq) (map[uint32]decimal.Decimal, error)
+	ChangeSerialNumbers(ctx context.Context, accountGroupID uuid.UUID, oldValue, newValue uint32) error
+	GetSumAllTransactionsToAccount(context.Context, accountRepoModel.CalculateRemaindersAccountsReq) (map[uuid.UUID]decimal.Decimal, error)
 
-	CheckAccess(context.Context, []uint32, []uint32) error
+	CheckAccess(context.Context, []uuid.UUID, []uuid.UUID) error
 }
 
 var _ TransactionRepository = new(transactionRepository.TransactionRepository)
 
 type TransactionRepository interface {
-	CreateTransaction(context.Context, transactionRepoModel.CreateTransactionReq) (uint32, error)
+	CreateTransaction(context.Context, transactionRepoModel.CreateTransactionReq) (uuid.UUID, error)
 }
 
 var _ UserRepository = new(userRepository.UserRepository)
@@ -62,13 +64,13 @@ type AccountPermissionsService interface {
 var _ AccountGroupService = new(accountGroupService.AccountGroupService)
 
 type AccountGroupService interface {
-	CheckAccess(context.Context, uint32, []uint32) error
+	CheckAccess(context.Context, uuid.UUID, []uuid.UUID) error
 }
 
 var _ UserService = new(userRepository.UserRepository)
 
 type UserService interface {
-	GetAccessedAccountGroups(ctx context.Context, userID uint32) (accesses []uint32, err error)
+	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
 type AccountService struct {

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	"pkg/ddlHelper"
@@ -14,7 +15,7 @@ import (
 )
 
 // GetAccessedAccountGroups возвращает доступы пользователей к группам счетов
-func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uint32) (accessedAccountGroupIDs []uint32, err error) {
+func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accessedAccountGroupIDs []uuid.UUID, err error) {
 	ctx, span := tracer.Start(ctx, "GetAccessedAccountGroups")
 	defer span.End()
 
@@ -56,7 +57,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID ui
 	}
 
 	// Формируем мапу userID - []accountGroupID
-	usersToAccountsGroups := make(map[uint32][]uint32)
+	usersToAccountsGroups := make(map[uuid.UUID][]uuid.UUID)
 
 	// Проходимся по каждой связке пользователя и группы счетов
 	for _, userToAccountGroup := range usersToAccountGroups {

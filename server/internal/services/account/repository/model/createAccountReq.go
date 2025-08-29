@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"server/internal/services/account/model/accountType"
@@ -12,15 +13,15 @@ type CreateAccountReq struct {
 	Budget             CreateReqBudget
 	Name               string
 	Visible            bool
-	IconID             uint32
+	IconID             uuid.UUID
 	Type               accountType.Type
 	Currency           string
-	AccountGroupID     uint32
+	AccountGroupID     uuid.UUID
 	AccountingInHeader bool
 	AccountingInCharts bool
 	IsParent           bool
-	ParentAccountID    *uint32
-	UserID             uint32
+	ParentAccountID    *uuid.UUID
+	UserID             uuid.UUID
 	DatetimeCreate     time.Time
 }
 

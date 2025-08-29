@@ -7,16 +7,18 @@ import (
 	"server/internal/utils/errors"
 
 	userModel "server/internal/services/user/model"
+
+	"github.com/google/uuid"
 )
 
-func (s *SettingsService) checkAdmin(ctx context.Context, userID uint32) error {
+func (s *SettingsService) checkAdmin(ctx context.Context, userID uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "checkAdmin")
 	defer span.End()
 
 	// Получаем пользователя по ID
 	user, err := slices.FirstWithError(
 		s.userService.GetUsers(ctx, userModel.GetUsersReq{ //nolint:exhaustruct
-			IDs: []uint32{userID},
+			IDs: []uuid.UUID{userID},
 		}),
 	)
 	if err != nil {

@@ -1,8 +1,12 @@
 package service
 
-import "context"
+import (
+	"context"
 
-func (s *AccountService) CheckAccess(ctx context.Context, userID uint32, accountIDs []uint32) error {
+	"github.com/google/uuid"
+)
+
+func (s *AccountService) CheckAccess(ctx context.Context, userID uuid.UUID, accountIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "CheckAccess")
 	defer span.End()
 

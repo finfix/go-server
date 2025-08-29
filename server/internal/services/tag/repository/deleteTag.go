@@ -4,13 +4,14 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"server/internal/services/tag/repository/tagDDL"
 	"server/internal/utils/errors"
 )
 
 // DeleteTag удаляет подкатегорию
-func (r *TagRepository) DeleteTag(ctx context.Context, id, userID uint32) error {
+func (r *TagRepository) DeleteTag(ctx context.Context, id, userID uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "DeleteTag")
 	defer span.End()
 

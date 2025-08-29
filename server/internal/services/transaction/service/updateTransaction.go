@@ -10,6 +10,8 @@ import (
 	accountRepoModel "server/internal/services/account/repository/model"
 	transactionModel "server/internal/services/transaction/model"
 	"server/internal/services/transaction/service/utils"
+
+	"github.com/google/uuid"
 )
 
 // UpdateTransaction редактирует транзакцию
@@ -18,13 +20,13 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 	defer span.End()
 
 	// Проверяем доступ пользователя к транзакции
-	if err := s.CheckAccess(ctx, fields.Necessary.UserID, []uint32{fields.ID}); err != nil {
+	if err := s.CheckAccess(ctx, fields.Necessary.UserID, []uuid.UUID{fields.ID}); err != nil {
 		return err
 	}
 
 	// Получаем транзакцию
 	transactions, err := s.transactionRepository.GetTransactions(ctx, transactionModel.GetTransactionsReq{ //nolint:exhaustruct
-		IDs: []uint32{fields.ID},
+		IDs: []uuid.UUID{fields.ID},
 	})
 	if err != nil {
 		return err
@@ -46,18 +48,18 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		}
 
 		// Проверяем доступ пользователя к счетам
-		if err = s.accountService.CheckAccess(ctx, fields.Necessary.UserID, []uint32{transaction.AccountFromID, transaction.AccountToID}); err != nil {
+		if err = s.accountService.CheckAccess(ctx, fields.Necessary.UserID, []uuid.UUID{transaction.AccountFromID, transaction.AccountToID}); err != nil {
 			return err
 		}
 
 		// Получаем счета
 		_accounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-			IDs: []uint32{transaction.AccountFromID, transaction.AccountToID},
+			IDs: []uuid.UUID{transaction.AccountFromID, transaction.AccountToID},
 		})
 		if err != nil {
 			return err
 		}
-		accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uint32 { return account.ID })
+		accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uuid.UUID { return account.ID })
 
 		// Проверяем соответствие типов счета и типа транзакции
 		if err = utils.TransactionAndAccountTypesValidation(ctx,

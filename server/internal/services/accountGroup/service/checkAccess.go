@@ -5,9 +5,11 @@ import (
 
 	"pkg/slices"
 	"server/internal/utils/errors"
+
+	"github.com/google/uuid"
 )
 
-func (s *AccountGroupService) CheckAccess(ctx context.Context, userID uint32, accountGroupIDs []uint32) error {
+func (s *AccountGroupService) CheckAccess(ctx context.Context, userID uuid.UUID, accountGroupIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "CheckAccess")
 	defer span.End()
 
@@ -25,7 +27,7 @@ func (s *AccountGroupService) CheckAccess(ctx context.Context, userID uint32, ac
 	}
 
 	// Преобразуем доступные группы счетов в map
-	accessedAccountGroupIDsMap := slices.ToMap(accessedAccountGroupIDs, func(userID uint32) uint32 { return userID })
+	accessedAccountGroupIDsMap := slices.ToMap(accessedAccountGroupIDs, func(userID uuid.UUID) uuid.UUID { return userID })
 
 	// Проходимся по каждой доступной группе счетов
 	for _, accountGroupID := range accountGroupIDs {

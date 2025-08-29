@@ -4,13 +4,14 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"server/internal/services/tag/repository/tagDDL"
 	"server/internal/utils/errors"
 )
 
 // CheckAccess проверяет, имеет ли набор групп подкатегорий пользователя доступ к указанным идентификаторам подкатегорий
-func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs []uint32) error {
+func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "CheckAccess")
 	defer span.End()
 
@@ -28,13 +29,13 @@ func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs
 	}
 
 	// Формируем мапу доступных подкатегорий
-	accessedTagIDs := make(map[uint32]struct{})
+	accessedTagIDs := make(map[uuid.UUID]struct{})
 
 	// Проходимся по каждой доступной подкатегории
 	for rows.Next() {
 
 		// Считываем ID подкатегории
-		var tagID uint32
+		var tagID uuid.UUID
 		if err = rows.Scan(&tagID); err != nil {
 			return err
 		}

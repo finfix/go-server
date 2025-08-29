@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	userModel "server/internal/services/user/model"
 	userRepoModel "server/internal/services/user/repository/model"
 )
@@ -14,7 +16,7 @@ func (s *AuthService) upsertDevice(ctx context.Context, device userModel.Device)
 	// Получаем девайс пользователя
 	devices, err := s.userRepository.GetDevices(ctx, userRepoModel.GetDevicesReq{ //nolint:exhaustruct
 		DeviceIDs: []string{device.DeviceID},
-		UserIDs:   []uint32{device.UserID},
+		UserIDs:   []uuid.UUID{device.UserID},
 	})
 	if err != nil {
 		return err

@@ -1,15 +1,19 @@
 package model
 
-import "server/internal/services/account/model/accountType"
+import (
+	"github.com/google/uuid"
+
+	"server/internal/services/account/model/accountType"
+)
 
 type GetAccountsReq struct {
-	IDs                []uint32
-	AccountGroupIDs    []uint32
+	IDs                []uuid.UUID
+	AccountGroupIDs    []uuid.UUID
 	Types              []accountType.Type
 	AccountingInHeader *bool
 	AccountingInCharts *bool
 	Visible            *bool
 	Currencies         []string
 	IsParent           *bool
-	ParentAccountIDs   []uint32
+	ParentAccountIDs   []uuid.UUID
 }

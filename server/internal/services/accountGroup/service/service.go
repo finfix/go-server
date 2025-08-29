@@ -10,6 +10,8 @@ import (
 	accountGroupRepoModel "server/internal/services/accountGroup/repository/model"
 	"server/internal/services/transactor"
 	userService "server/internal/services/user/service"
+
+	"github.com/google/uuid"
 )
 
 var tracer = otel.Tracer("/server/internal/services/accountGroup/service")
@@ -23,19 +25,19 @@ type Transactor interface {
 var _ AccountGroupRepository = new(accountGroupRepository.AccountGroupRepository)
 
 type AccountGroupRepository interface {
-	CreateAccountGroup(context.Context, accountGroupRepoModel.CreateAccountGroupReq) (uint32, uint32, error)
+	CreateAccountGroup(context.Context, accountGroupRepoModel.CreateAccountGroupReq) (uuid.UUID, uint32, error)
 	GetAccountGroups(context.Context, accountGroupModel.GetAccountGroupsReq) ([]accountGroupModel.AccountGroup, error)
 	UpdateAccountGroup(context.Context, accountGroupModel.UpdateAccountGroupReq) error
-	DeleteAccountGroup(ctx context.Context, id uint32) error
+	DeleteAccountGroup(ctx context.Context, id uuid.UUID) error
 
-	LinkUserToAccountGroup(ctx context.Context, userID, accountGroupID uint32) error
-	UnlinkUserFromAccountGroup(ctx context.Context, userID, accountGroupID uint32) error
+	LinkUserToAccountGroup(ctx context.Context, userID, accountGroupID uuid.UUID) error
+	UnlinkUserFromAccountGroup(ctx context.Context, userID, accountGroupID uuid.UUID) error
 }
 
 var _ UserService = new(userService.UserService)
 
 type UserService interface {
-	GetAccessedAccountGroups(ctx context.Context, userID uint32) (accesses []uint32, err error)
+	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
 type AccountGroupService struct {

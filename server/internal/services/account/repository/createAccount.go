@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"pkg/ddlHelper"
 	"server/internal/services/account/repository/accountDDL"
@@ -11,7 +12,7 @@ import (
 )
 
 // CreateAccount создает новый счет
-func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) (id uint32, serialNumber uint32, err error) {
+func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) (id uuid.UUID, serialNumber uint32, err error) {
 	ctx, span := tracer.Start(ctx, "createAccount")
 	defer span.End()
 
@@ -37,7 +38,7 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRe
 	serialNumber++
 
 	// Создаем счет
-	id, err = r.db.ExecWithLastInsertID(ctx, sq.
+	id, err = r.db.ExecWithLastUUID(ctx, sq.
 		Insert(accountDDL.Table).
 		SetMap(map[string]any{
 			accountDDL.ColumnBudgetAmount:         account.Budget.Amount,

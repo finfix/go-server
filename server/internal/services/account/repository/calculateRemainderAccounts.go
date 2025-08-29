@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/ddlHelper"
@@ -13,7 +14,7 @@ import (
 )
 
 type amountsArray struct {
-	ID        uint32          `db:"id"`
+	ID        uuid.UUID       `db:"id"`
 	Remainder decimal.Decimal `db:"remainder"`
 }
 
@@ -82,7 +83,7 @@ func buildRequestForGettingSumTransactions(req accountRepoModel.CalculateRemaind
 }
 
 // GetSumAllTransactionsToAccount возвращает суммы всех транзакций, которые исходили из счетов
-func (r *AccountRepository) GetSumAllTransactionsToAccount(ctx context.Context, req accountRepoModel.CalculateRemaindersAccountsReq) (map[uint32]decimal.Decimal, error) {
+func (r *AccountRepository) GetSumAllTransactionsToAccount(ctx context.Context, req accountRepoModel.CalculateRemaindersAccountsReq) (map[uuid.UUID]decimal.Decimal, error) {
 	ctx, span := tracer.Start(ctx, "GetSumAllTransactionsToAccount")
 	defer span.End()
 
@@ -94,7 +95,7 @@ func (r *AccountRepository) GetSumAllTransactionsToAccount(ctx context.Context, 
 	}
 
 	// Формируем мапу с суммой исходящих транзакций в виде map[accountID]amountTransactions
-	amountFromAccount := make(map[uint32]decimal.Decimal, len(amountsArray))
+	amountFromAccount := make(map[uuid.UUID]decimal.Decimal, len(amountsArray))
 	for _, remainder := range amountsArray {
 		amountFromAccount[remainder.ID] = remainder.Remainder
 	}
@@ -107,13 +108,13 @@ func (r *AccountRepository) GetSumAllTransactionsToAccount(ctx context.Context, 
 	}
 
 	// Формируем мапу с суммой входящих транзакций в виде map[accountID]amountTransactions
-	amountToAccount := make(map[uint32]decimal.Decimal, len(amountFromAccount))
+	amountToAccount := make(map[uuid.UUID]decimal.Decimal, len(amountFromAccount))
 	for _, remainder := range amountsArray {
 		amountToAccount[remainder.ID] = remainder.Remainder
 	}
 
 	// Проходим по всем счетам и вычисляем остаток разницей суммы в и из счета, формируем новую мапу
-	amountMapToAccountID := make(map[uint32]decimal.Decimal)
+	amountMapToAccountID := make(map[uuid.UUID]decimal.Decimal)
 	for id := range amountToAccount {
 		amountMapToAccountID[id] = amountFromAccount[id].Sub(amountToAccount[id])
 	}

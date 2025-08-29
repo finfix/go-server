@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"server/internal/utils/errors"
@@ -12,7 +13,7 @@ import (
 	accountRepoModel "server/internal/services/account/repository/model"
 )
 
-func (s *AccountService) calculateRemainders(ctx context.Context, filters model.GetAccountsReq) (map[uint32]decimal.Decimal, error) {
+func (s *AccountService) calculateRemainders(ctx context.Context, filters model.GetAccountsReq) (map[uuid.UUID]decimal.Decimal, error) {
 	ctx, span := tracer.Start(ctx, "calculateRemainders")
 	defer span.End()
 

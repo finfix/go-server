@@ -3,10 +3,10 @@ package repository
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
-
 	"pkg/ddlHelper"
 	"server/internal/services/accountGroup/repository/accountGroupDDL"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 // ChangeSerialNumbers вставляет группу счетов на новое место

@@ -4,13 +4,14 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"server/internal/services/transaction/repository/transactionDDL"
 	"server/internal/utils/errors"
 )
 
 // CheckAccess проверяет, имеет ли набор групп счетов пользователя доступ к указанным идентификаторам транзакций
-func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs, transactionIDs []uint32) error {
+func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs, transactionIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "CheckAccess")
 	defer span.End()
 
@@ -27,13 +28,13 @@ func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs
 	}
 
 	// Формируем мапу доступных транзакций
-	accessedTransactionIDs := make(map[uint32]struct{})
+	accessedTransactionIDs := make(map[uuid.UUID]struct{})
 
 	// Проходимся по каждой доступной транзакции
 	for rows.Next() {
 
 		// Считываем ID транзакции
-		var transactionID uint32
+		var transactionID uuid.UUID
 		if err = rows.Scan(&transactionID); err != nil {
 			return err
 		}

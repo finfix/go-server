@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/pointer"
@@ -15,14 +16,14 @@ import (
 )
 
 // GetBalancingAccountID получает ID балансировочного счета, подходящего для конкретного счета
-func (s *AccountService) GetBalancingAccountID(ctx context.Context, account model.Account) (balancingAccountID uint32, serialNumber uint32, wasCreate bool, err error) {
+func (s *AccountService) GetBalancingAccountID(ctx context.Context, account model.Account) (balancingAccountID uuid.UUID, serialNumber uint32, wasCreate bool, err error) {
 	ctx, span := tracer.Start(ctx, "GetBalancingAccountID")
 	defer span.End()
 
 	// Получаем балансировочный счет группы в нужной валюте, чтобы создать для нее транзакцию
 	balancingAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
 		Types:           []accountType.Type{accountType.Balancing},
-		AccountGroupIDs: []uint32{account.AccountGroupID},
+		AccountGroupIDs: []uuid.UUID{account.AccountGroupID},
 		Currencies:      []string{account.Currency},
 		IsParent:        pointer.Pointer(false),
 	})
@@ -38,7 +39,7 @@ func (s *AccountService) GetBalancingAccountID(ctx context.Context, account mode
 	// Получаем общий балансировочный счет
 	parentBalancingAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
 		Types:           []accountType.Type{accountType.Balancing},
-		AccountGroupIDs: []uint32{account.AccountGroupID},
+		AccountGroupIDs: []uuid.UUID{account.AccountGroupID},
 		IsParent:        pointer.Pointer(true),
 	})
 	if err != nil {

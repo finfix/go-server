@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"pkg/passwordManager"
 	"server/internal/utils/errors"
 
@@ -50,7 +51,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 
 			// Получаем актуальный пароль пользователя
 			users, err := s.userRepository.GetUsers(ctx, model.GetUsersReq{ //nolint:exhaustruct
-				IDs: []uint32{req.Necessary.UserID},
+				IDs: []uuid.UUID{req.Necessary.UserID},
 			})
 			if err != nil {
 				return err

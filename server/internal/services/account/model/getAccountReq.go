@@ -3,6 +3,8 @@ package model
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"pkg/datetime"
 	"server/internal/utils/necessary"
 
@@ -15,13 +17,13 @@ type GetAccountsReq struct {
 	Type               *accountType.Type `json:"type" schema:"type" enums:"regular,expense,credit,debt,earnings,investments"` // Тип счета
 	AccountingInHeader *bool             `json:"accountingInHeader" schema:"accountingInHeader"`                              // Учитывать ли счет в шапке
 	AccountingInCharts *bool             `json:"accountingInCharts" schema:"accountingInCharts"`                              // Учитывать ли счет в графиках
-	AccountGroupIDs    []uint32          `json:"accountGroupIDs" schema:"accountGroupIDs" minimum:"1"`                        // Идентификаторы групп счетов
+	AccountGroupIDs    []uuid.UUID       `json:"accountGroupIDs" schema:"accountGroupIDs" minimum:"1"`                        // Идентификаторы групп счетов
 	DateFrom           *datetime.Date    `json:"dateFrom" schema:"dateFrom" format:"date" swaggertype:"primitive,string"`     // Дата начала выборки (Обязательна при type = expense or earnings и отсутствующем периоде)
 	DateTo             *datetime.Date    `json:"dateTo" schema:"dateTo" format:"date" swaggertype:"primitive,string"`         // Дата конца выборки (Обязательна при type = expense or earnings и отсутствующем периоде)
 	Visible            *bool             `json:"visible" schema:"visible"`                                                    // Видимость счета
 	Currency           *string           `json:"-" schema:"-"`                                                                // Валюта счета
 	IsParent           *bool             `json:"-" schema:"-"`                                                                // Является ли счет родительским
-	IDs                []uint32          `json:"-" schema:"-"`
+	IDs                []uuid.UUID       `json:"-" schema:"-"`
 }
 
 func (s GetAccountsReq) Validate(ctx context.Context) error {

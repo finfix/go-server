@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
@@ -12,15 +13,15 @@ import (
 
 type UpdateTransactionReq struct {
 	Necessary          necessary.NecessaryUserInformation
-	ID                 uint32           `json:"id" validate:"required" minimum:"1"`                           // Идентификатор транзакции
+	ID                 uuid.UUID        `json:"id" validate:"required" minimum:"1"`                           // Идентификатор транзакции
 	AmountFrom         *decimal.Decimal `json:"amountFrom" minimum:"1"`                                       // Сумма списания с первого счета
 	AmountTo           *decimal.Decimal `json:"amountTo" minimum:"1"`                                         // Сумма пополнения второго счета
 	Note               *string          `json:"note"`                                                         // Заметка для транзакции
-	AccountFromID      *uint32          `json:"accountFromID" minimum:"1"`                                    // Идентификатор счета списания
-	AccountToID        *uint32          `json:"accountToID" minimum:"1"`                                      // Идентификатор счета пополнения
+	AccountFromID      *uuid.UUID       `json:"accountFromID" minimum:"1"`                                    // Идентификатор счета списания
+	AccountToID        *uuid.UUID       `json:"accountToID" minimum:"1"`                                      // Идентификатор счета пополнения
 	DateTransaction    *datetime.Date   `json:"dateTransaction" format:"date" swaggertype:"primitive,string"` // Дата транзакции
 	IsExecuted         *bool            `json:"isExecuted"`                                                   // Исполнена операция или нет (если нет, сделки как бы не существует)
-	TagIDs             *[]uint32        `json:"tagIDs"`                                                       // Идентификаторы тегов
+	TagIDs             *[]uuid.UUID     `json:"tagIDs"`                                                       // Идентификаторы тегов
 	AccountingInCharts *bool            `json:"accountingInCharts"`                                           // Учитывается ли транзакция в графиках или нет
 }
 

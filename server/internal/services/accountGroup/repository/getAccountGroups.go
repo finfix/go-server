@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	"pkg/ddlHelper"
@@ -27,7 +28,7 @@ func (r *AccountGroupRepository) GetAccountGroups(ctx context.Context, req model
 	}
 
 	// Фильтр по пользователю
-	if req.Necessary.UserID != 0 {
+	if req.Necessary.UserID != uuid.Nil {
 		q = q.
 			Join(ddlHelper.BuildJoin(
 				userToAccountGroupDDL.TableWithAlias,

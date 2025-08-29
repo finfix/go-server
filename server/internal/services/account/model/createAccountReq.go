@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
@@ -16,17 +17,17 @@ import (
 type CreateAccountReq struct {
 	Necessary          necessary.NecessaryUserInformation
 	Name               string                 `json:"name" validate:"required"`                                                          // Название счета
-	IconID             uint32                 `json:"iconID" validate:"required" minimum:"1"`                                            // Идентификатор иконки
+	IconID             uuid.UUID              `json:"iconID" validate:"required" minimum:"1"`                                            // Идентификатор иконки
 	Type               accountType.Type       `json:"type" validate:"required" enums:"regular,expense,credit,debt,earnings,investments"` // Тип счета
 	Currency           string                 `json:"currency" validate:"required"`                                                      // Валюта счета
-	AccountGroupID     uint32                 `json:"accountGroupID" validate:"required" minimum:"1"`                                    // Группа счета
+	AccountGroupID     uuid.UUID              `json:"accountGroupID" validate:"required" minimum:"1"`                                    // Группа счета
 	AccountingInHeader *bool                  `json:"accountingInHeader" validate:"required"`                                            // Подсчет суммы счета в статистике
 	AccountingInCharts *bool                  `json:"accountingInCharts" validate:"required"`                                            // Учитывать ли счет в графиках
 	DatetimeCreate     datetime.Time          `json:"datetimeCreate" validate:"required"`                                                // Дата создания счета
 	Remainder          decimal.Decimal        `json:"remainder"`                                                                         // Остаток средств на счету
 	Budget             CreateAccountBudgetReq `json:"budget"`                                                                            // Бюджет
 	IsParent           *bool                  `json:"isParent" validate:"required"`                                                      // Является ли счет родительским
-	ParentAccountID    *uint32                `json:"parentAccountID"`                                                                   // Идентификатор родительского счета
+	ParentAccountID    *uuid.UUID             `json:"parentAccountID"`                                                                   // Идентификатор родительского счета
 	Visible            *bool                  `json:"-"`                                                                                 // Видимость счета
 }
 
@@ -36,7 +37,7 @@ func (s CreateAccountReq) Validate(ctx context.Context) error {
 
 func (s CreateAccountReq) ConvertToAccount() Account {
 	return Account{
-		ID:                 0,
+		ID:                 uuid.UUID{},
 		Remainder:          s.Remainder,
 		Name:               s.Name,
 		IconID:             s.IconID,

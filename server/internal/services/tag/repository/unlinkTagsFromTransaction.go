@@ -4,12 +4,13 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"server/internal/services/tag/repository/tagToTransactionDDL"
 )
 
 // UnlinkTagsFromTransaction отвязывает подкатегории от транзакции
-func (r *TagRepository) UnlinkTagsFromTransaction(ctx context.Context, tagIDs []uint32, transactionID uint32) error {
+func (r *TagRepository) UnlinkTagsFromTransaction(ctx context.Context, tagIDs []uuid.UUID, transactionID uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "UnlinkTagsFromTransaction")
 	defer span.End()
 

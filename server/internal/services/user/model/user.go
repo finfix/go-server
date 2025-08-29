@@ -1,11 +1,13 @@
 package model
 
 import (
+	"github.com/google/uuid"
+
 	"pkg/datetime"
 )
 
 type User struct {
-	ID              uint32        `db:"id" json:"id"`                                      // Идентификатор пользователя
+	ID              uuid.UUID     `db:"id" json:"id"`                                      // Идентификатор пользователя
 	Name            string        `db:"name" json:"name"`                                  // Имя пользователя
 	Email           string        `db:"email" json:"email"`                                // Электронная почта
 	PasswordHash    []byte        `db:"password_hash" json:"-"`                            // Хэш пароля

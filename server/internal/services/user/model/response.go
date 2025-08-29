@@ -1,5 +1,7 @@
 package model
 
+import "github.com/google/uuid"
+
 type CreateRes struct {
-	ID uint32 `json:"id"`
+	ID uuid.UUID `json:"id"`
 }

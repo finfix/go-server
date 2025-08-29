@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 
 	"pkg/http/chain"
@@ -20,7 +21,7 @@ type endpoint struct {
 }
 
 type transactionService interface {
-	CreateTransaction(context.Context, model.CreateTransactionReq) (uint32, error)
+	CreateTransaction(context.Context, model.CreateTransactionReq) (uuid.UUID, error)
 	GetTransactions(context.Context, model.GetTransactionsReq) ([]model.Transaction, error)
 	UpdateTransaction(context.Context, model.UpdateTransactionReq) error
 	DeleteTransaction(context.Context, model.DeleteTransactionReq) error

@@ -1,7 +1,9 @@
 package model
 
+import "github.com/google/uuid"
+
 type UpdateDeviceReq struct {
-	UserID                 uint32
+	UserID                 uuid.UUID
 	DeviceID               string
 	RefreshToken           *string
 	NotificationToken      *string

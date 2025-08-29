@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"server/internal/services/transaction/model"
+
+	"github.com/google/uuid"
 )
 
 // DeleteTransaction удаляет транзакцию
@@ -12,7 +14,7 @@ func (s *TransactionService) DeleteTransaction(ctx context.Context, id model.Del
 	defer span.End()
 
 	// Проверяем доступ пользователя к транзакции
-	if err := s.CheckAccess(ctx, id.Necessary.UserID, []uint32{id.ID}); err != nil {
+	if err := s.CheckAccess(ctx, id.Necessary.UserID, []uuid.UUID{id.ID}); err != nil {
 		return err
 	}
 

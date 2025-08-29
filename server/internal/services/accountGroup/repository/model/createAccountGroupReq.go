@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type CreateAccountGroupReq struct {
@@ -9,5 +11,5 @@ type CreateAccountGroupReq struct {
 	Currency       string    // Валюта группы счетов
 	Visible        bool      // Видимость группы счетов
 	DatetimeCreate time.Time // Дата и время создания группы счетов
-	UserID         uint32    // Каким пользователем создан объект
+	UserID         uuid.UUID // Каким пользователем создан объект
 }

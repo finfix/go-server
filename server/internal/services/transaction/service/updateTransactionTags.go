@@ -6,9 +6,11 @@ import (
 	"pkg/slices"
 
 	"server/internal/services/tag/model"
+
+	"github.com/google/uuid"
 )
 
-func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, transactionID uint32, tagIDs []uint32) error {
+func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, transactionID uuid.UUID, tagIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "UpdateTransactionTags")
 	defer span.End()
 
@@ -21,13 +23,13 @@ func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, 
 
 	// Получаем все теги, привязанные к транзакции
 	transactionTags, err := s.tagRepository.GetTagsToTransactions(ctx, model.GetTagsToTransactionsReq{ //nolint:exhaustruct
-		TransactionIDs: []uint32{transactionID},
+		TransactionIDs: []uuid.UUID{transactionID},
 	})
 	if err != nil {
 		return err
 	}
 
-	existTagIDs := slices.GetFields(transactionTags, func(tag model.TagToTransaction) uint32 { return tag.TagID })
+	existTagIDs := slices.GetFields(transactionTags, func(tag model.TagToTransaction) uuid.UUID { return tag.TagID })
 
 	toDelete, toCreate := slices.JoinExclusive(existTagIDs, tagIDs)
 

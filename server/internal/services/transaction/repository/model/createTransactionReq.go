@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
@@ -15,12 +16,12 @@ type CreateTransactionReq struct {
 	AmountFrom         decimal.Decimal
 	AmountTo           decimal.Decimal
 	Note               string
-	AccountFromID      uint32
-	AccountToID        uint32
+	AccountFromID      uuid.UUID
+	AccountToID        uuid.UUID
 	DateTransaction    datetime.Date
 	IsExecuted         bool
-	CreatedByUserID    uint32
+	CreatedByUserID    uuid.UUID
 	DatetimeCreate     time.Time
 	AccountingInCharts bool
-	AccountGroupID     uint32
+	AccountGroupID     uuid.UUID
 }

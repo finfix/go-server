@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"pkg/log"
 
 	model2 "server/internal/services/pushNotificator/model"
@@ -12,13 +13,13 @@ import (
 )
 
 // SendNotification отправляет пуш на все устройства пользователя
-func (s *UserService) SendNotification(ctx context.Context, userID uint32, push model.Notification) (count uint8, err error) {
+func (s *UserService) SendNotification(ctx context.Context, userID uuid.UUID, push model.Notification) (count uint8, err error) {
 	ctx, span := tracer.Start(ctx, "SendNotification")
 	defer span.End()
 
 	// Получаем все девайсы пользователя
 	devices, err := s.userRepository.GetDevices(ctx, userRepoModel.GetDevicesReq{ //nolint:exhaustruct
-		UserIDs: []uint32{userID},
+		UserIDs: []uuid.UUID{userID},
 	})
 	if err != nil {
 		return count, err

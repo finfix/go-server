@@ -8,6 +8,8 @@ import (
 	"server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
 	"server/internal/services/account/service/utils"
+
+	"github.com/google/uuid"
 )
 
 // UpdateAccount обновляет счет по конкретным полям
@@ -15,16 +17,16 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	ctx, span := tracer.Start(ctx, "UpdateAccount")
 	defer span.End()
 
-	repoUpdateReqs := make(map[uint32]accountRepoModel.UpdateAccountReq)
+	repoUpdateReqs := make(map[uuid.UUID]accountRepoModel.UpdateAccountReq)
 	repoUpdateReqs[updateReq.ID] = updateReq.ConvertToRepoReq()
 
 	// Проверяем доступ пользователя к счету
-	if err = s.CheckAccess(ctx, updateReq.Necessary.UserID, []uint32{updateReq.ID}); err != nil {
+	if err = s.CheckAccess(ctx, updateReq.Necessary.UserID, []uuid.UUID{updateReq.ID}); err != nil {
 		return res, err
 	}
 
 	// Получаем счет
-	account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uint32{updateReq.ID}})) //nolint:exhaustruct
+	account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{updateReq.ID}})) //nolint:exhaustruct
 	if err != nil {
 		return res, err
 	}
@@ -42,7 +44,7 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	if updateReq.ParentAccountID != nil {
 
 		// Если привязываем счет к родительскому счету
-		if *updateReq.ParentAccountID != 0 {
+		if *updateReq.ParentAccountID != uuid.Nil {
 
 			// Проверяем возможность привязки
 			if err := s.ValidateUpdateParentAccountID(ctx, account, *updateReq.ParentAccountID, updateReq.Necessary.UserID); err != nil {
@@ -58,7 +60,7 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	// Получаем дочерние счета
 	var childrenAccounts []model.Account
 	if account.IsParent {
-		childrenAccounts, err = s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ParentAccountIDs: []uint32{updateReq.ID}}) //nolint:exhaustruct
+		childrenAccounts, err = s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ParentAccountIDs: []uuid.UUID{updateReq.ID}}) //nolint:exhaustruct
 		if err != nil {
 			return res, err
 		}
@@ -67,7 +69,7 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	// Получаем родительский счет
 	var parentAccount *model.Account
 	if account.ParentAccountID != nil {
-		parentAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uint32{*account.ParentAccountID}}) //nolint:exhaustruct
+		parentAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{*account.ParentAccountID}}) //nolint:exhaustruct
 		if err != nil {
 			return res, err
 		}
@@ -103,7 +105,7 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	})
 }
 
-func (s *AccountService) updateAccounts(ctx context.Context, account model.Account, updateReqs map[uint32]accountRepoModel.UpdateAccountReq, userID uint32) (res model.UpdateAccountRes, err error) {
+func (s *AccountService) updateAccounts(ctx context.Context, account model.Account, updateReqs map[uuid.UUID]accountRepoModel.UpdateAccountReq, userID uuid.UUID) (res model.UpdateAccountRes, err error) {
 
 	// Если передан остаток, редактируем его
 	if updateReqs[account.ID].Remainder != nil {

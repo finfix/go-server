@@ -7,6 +7,8 @@ import (
 
 	"server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
+
+	"github.com/google/uuid"
 )
 
 // CreateAccount создает новый счет
@@ -15,7 +17,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 	defer span.End()
 
 	// Проверяем доступ пользователя к группе счетов
-	if err = s.accountGroupService.CheckAccess(ctx, accountToCreate.Necessary.UserID, []uint32{accountToCreate.AccountGroupID}); err != nil {
+	if err = s.accountGroupService.CheckAccess(ctx, accountToCreate.Necessary.UserID, []uuid.UUID{accountToCreate.AccountGroupID}); err != nil {
 		return res, err
 	}
 
@@ -45,7 +47,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 			// Получаем счет
 			account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx,
 				accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-					IDs: []uint32{res.ID},
+					IDs: []uuid.UUID{res.ID},
 				},
 			))
 			if err != nil {

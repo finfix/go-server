@@ -5,6 +5,8 @@ import (
 
 	"server/internal/services/tag/model"
 	"server/internal/utils/errors"
+
+	"github.com/google/uuid"
 )
 
 func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tags []model.Tag, err error) {
@@ -32,7 +34,7 @@ func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tag
 	}
 
 	// Заполняем массив ID транзакций
-	tagIDs := make([]uint32, len(tags))
+	tagIDs := make([]uuid.UUID, len(tags))
 	for i, tag := range tags {
 		tagIDs[i] = tag.ID
 	}

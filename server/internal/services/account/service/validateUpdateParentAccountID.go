@@ -7,9 +7,11 @@ import (
 
 	"server/internal/services/account/model"
 	accountRepoModel "server/internal/services/account/repository/model"
+
+	"github.com/google/uuid"
 )
 
-func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, account model.Account, parentAccountID, userID uint32) error {
+func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, account model.Account, parentAccountID, userID uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "ValidateUpdateParentAccountID")
 	defer span.End()
 
@@ -19,12 +21,12 @@ func (s *AccountService) ValidateUpdateParentAccountID(ctx context.Context, acco
 			WithParams("accountID", account.ID)
 	}
 
-	if err := s.CheckAccess(ctx, userID, []uint32{parentAccountID}); err != nil {
+	if err := s.CheckAccess(ctx, userID, []uuid.UUID{parentAccountID}); err != nil {
 		return err
 	}
 
 	// Получаем родительский счет
-	parentAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uint32{parentAccountID}}) //nolint:exhaustruct
+	parentAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{parentAccountID}}) //nolint:exhaustruct
 	if err != nil {
 		return err
 	}

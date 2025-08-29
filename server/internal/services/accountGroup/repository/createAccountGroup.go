@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"pkg/ddlHelper"
 	"server/internal/services/accountGroup/repository/accountGroupDDL"
@@ -11,7 +12,7 @@ import (
 )
 
 // CreateAccountGroup создает новую группу счетов
-func (r *AccountGroupRepository) CreateAccountGroup(ctx context.Context, accountGroup accountGroupRepoModel.CreateAccountGroupReq) (id uint32, serialNumber uint32, err error) {
+func (r *AccountGroupRepository) CreateAccountGroup(ctx context.Context, accountGroup accountGroupRepoModel.CreateAccountGroupReq) (id uuid.UUID, serialNumber uint32, err error) {
 	ctx, span := tracer.Start(ctx, "CreateAccountGroup")
 	defer span.End()
 
@@ -36,7 +37,7 @@ func (r *AccountGroupRepository) CreateAccountGroup(ctx context.Context, account
 	serialNumber++
 
 	// Создаем группу счетов
-	id, err = r.db.ExecWithLastInsertID(ctx, sq.
+	id, err = r.db.ExecWithLastUUID(ctx, sq.
 		Insert(accountGroupDDL.TableName).
 		SetMap(map[string]any{
 			accountGroupDDL.ColumnName:            accountGroup.Name,

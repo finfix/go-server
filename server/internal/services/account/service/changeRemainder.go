@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
@@ -15,13 +16,13 @@ import (
 	transactionRepoModel "server/internal/services/transaction/repository/model"
 )
 
-func (s *AccountService) ChangeAccountRemainder(ctx context.Context, account model.Account, remainderToUpdate decimal.Decimal, userID uint32) (res model.UpdateAccountRes, err error) {
+func (s *AccountService) ChangeAccountRemainder(ctx context.Context, account model.Account, remainderToUpdate decimal.Decimal, userID uuid.UUID) (res model.UpdateAccountRes, err error) {
 	ctx, span := tracer.Start(ctx, "ChangeAccountRemainder")
 	defer span.End()
 
 	// Получаем остаток счета
 	remainders, err := s.accountRepository.GetSumAllTransactionsToAccount(ctx, accountRepoModel.CalculateRemaindersAccountsReq{
-		IDs:             []uint32{account.ID},
+		IDs:             []uuid.UUID{account.ID},
 		AccountGroupIDs: nil,
 		Types:           nil,
 		DateFrom:        nil,
@@ -37,13 +38,13 @@ func (s *AccountService) ChangeAccountRemainder(ctx context.Context, account mod
 	}
 
 	// Получаем балансировочный счет
-	balancingAccountID, serialNumber, wasCreate, err := s.GetBalancingAccountID(ctx, account)
+	balancingAccountID, _, wasCreate, err := s.GetBalancingAccountID(ctx, account)
 	if err != nil {
 		return res, err
 	}
 	if wasCreate {
 		res.BalancingAccountID = &balancingAccountID
-		res.BalancingTransactionID = &serialNumber
+		// res.BalancingTransactionID = &serialNumber
 	}
 
 	amount := remainderToUpdate.Sub(remainders[account.ID])

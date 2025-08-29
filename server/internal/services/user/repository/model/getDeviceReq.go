@@ -1,7 +1,9 @@
 package model
 
+import "github.com/google/uuid"
+
 type GetDevicesReq struct {
-	IDs       []uint32
+	IDs       []uuid.UUID
 	DeviceIDs []string
-	UserIDs   []uint32
+	UserIDs   []uuid.UUID
 }

@@ -3,6 +3,8 @@ package model
 import (
 	"time"
 
+	"github.com/google/uuid"
+
 	userRepoModel "server/internal/services/user/repository/model"
 	"server/internal/utils/necessary"
 )
@@ -18,7 +20,7 @@ type CreateReq struct {
 
 type GetUsersReq struct {
 	Necessary necessary.NecessaryUserInformation
-	IDs       []uint32
+	IDs       []uuid.UUID
 	Emails    []string
 }
 

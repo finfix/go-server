@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"server/internal/services/tag/model"
+
+	"github.com/google/uuid"
 )
 
 // DeleteTag удаляет подкатегорию
@@ -12,7 +14,7 @@ func (s *TagService) DeleteTag(ctx context.Context, req model.DeleteTagReq) erro
 	defer span.End()
 
 	// Проверяем доступ пользователя к подкатегории
-	if err := s.CheckAccess(ctx, req.Necessary.UserID, []uint32{req.ID}); err != nil {
+	if err := s.CheckAccess(ctx, req.Necessary.UserID, []uuid.UUID{req.ID}); err != nil {
 		return err
 	}
 

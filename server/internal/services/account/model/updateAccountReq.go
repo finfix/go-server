@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	repoModel "server/internal/services/account/repository/model"
@@ -9,16 +10,16 @@ import (
 
 type UpdateAccountReq struct {
 	Necessary          necessary.NecessaryUserInformation
-	ID                 uint32                 `json:"id" validate:"required" minimum:"1"` // Идентификатор счета
+	ID                 uuid.UUID              `json:"id" validate:"required" minimum:"1"` // Идентификатор счета
 	Remainder          *decimal.Decimal       `json:"remainder"`                          // Остаток средств на счету
 	Name               *string                `json:"name"`                               // Название счета
-	IconID             *uint32                `json:"iconID" minimum:"1"`                 // Идентификатор иконки
+	IconID             *int64                 `json:"iconID" minimum:"1"`                 // Идентификатор иконки
 	Visible            *bool                  `json:"visible"`                            // Видимость счета
 	AccountingInHeader *bool                  `json:"accountingInHeader"`                 // Будет ли счет учитываться в статистике
 	AccountingInCharts *bool                  `json:"accountingInCharts"`                 // Будет ли счет учитываться в графиках
 	Currency           *string                `json:"currencyCode"`                       // Валюта счета
 	SerialNumber       *uint32                `json:"serialNumber"`                       // Порядковый номер счета
-	ParentAccountID    *uint32                `json:"parentAccountID"`                    // Идентификатор родительского счета
+	ParentAccountID    *uuid.UUID             `json:"parentAccountID"`                    // Идентификатор родительского счета
 	Budget             UpdateAccountBudgetReq `json:"budget"`                             // Месячный бюджет
 }
 
@@ -40,7 +41,7 @@ func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
 type UpdateAccountBudgetReq struct {
 	Amount         *decimal.Decimal `json:"amount"`         // Сумма
 	FixedSum       *decimal.Decimal `json:"fixedSum"`       // Фиксированная сумма
-	DaysOffset     *uint32          `json:"daysOffset"`     // Смещение в днях
+	DaysOffset     *uuid.UUID       `json:"daysOffset"`     // Смещение в днях
 	GradualFilling *bool            `json:"gradualFilling"` // Постепенное пополнение
 }
 

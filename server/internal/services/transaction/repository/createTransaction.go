@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	"server/internal/services/transaction/repository/model"
@@ -10,12 +11,12 @@ import (
 )
 
 // CreateTransaction создает новую транзакцию
-func (r *TransactionRepository) CreateTransaction(ctx context.Context, req model.CreateTransactionReq) (id uint32, err error) {
+func (r *TransactionRepository) CreateTransaction(ctx context.Context, req model.CreateTransactionReq) (id uuid.UUID, err error) {
 	ctx, span := tracer.Start(ctx, "CreateTransaction")
 	defer span.End()
 
 	// Создаем транзакцию
-	return r.db.ExecWithLastInsertID(ctx, sq.Insert(`coin.transactions`).
+	return r.db.ExecWithLastUUID(ctx, sq.Insert(`coin.transactions`).
 		SetMap(map[string]any{
 			transactionDDL.ColumnType:               req.Type,
 			transactionDDL.ColumnDate:               req.DateTransaction,

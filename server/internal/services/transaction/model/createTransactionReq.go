@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
@@ -19,14 +20,14 @@ type CreateTransactionReq struct {
 	AmountFrom         decimal.Decimal      `json:"amountFrom" validate:"required" minimum:"1"`                                       // Сумма списания с первого счета
 	AmountTo           decimal.Decimal      `json:"amountTo" validate:"required" minimum:"1"`                                         // Сумма пополнения второго счета (в случаях меж валютной транзакции цифры отличаются)
 	Note               string               `json:"note"`                                                                             // Заметка для транзакции
-	AccountFromID      uint32               `json:"accountFromID" validate:"required" minimum:"1"`                                    // Идентификатор счета списания
-	AccountToID        uint32               `json:"accountToID" validate:"required" minimum:"1"`                                      // Идентификатор счета пополнения
+	AccountFromID      uuid.UUID            `json:"accountFromID" validate:"required" minimum:"1"`                                    // Идентификатор счета списания
+	AccountToID        uuid.UUID            `json:"accountToID" validate:"required" minimum:"1"`                                      // Идентификатор счета пополнения
 	DateTransaction    datetime.Date        `json:"dateTransaction" validate:"required" format:"date" swaggertype:"primitive,string"` // Дата транзакции
 	IsExecuted         *bool                `json:"isExecuted" validate:"required"`                                                   // Исполнена операция или нет (если нет, сделки как бы не существует)
-	TagIDs             []uint32             `json:"tagIDs"`                                                                           // Идентификаторы тегов
+	TagIDs             []uuid.UUID          `json:"tagIDs"`                                                                           // Идентификаторы тегов
 	DatetimeCreate     datetime.Time        `json:"datetimeCreate" validate:"required"`                                               // Дата создания транзакции
 	AccountingInCharts *bool                `json:"accountingInCharts" validate:"required"`                                           // Учитывается ли транзакция в графиках или нет
-	AccountGroupID     uint32               `json:"accountGroupID" validate:"required" minimum:"1"`                                   // Идентификатор группы счетов
+	AccountGroupID     uuid.UUID            `json:"accountGroupID" validate:"required" minimum:"1"`                                   // Идентификатор группы счетов
 }
 
 func (s CreateTransactionReq) Validate(ctx context.Context) error {

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	sq "github.com/Masterminds/squirrel"
 
 	"server/internal/services/account/repository/accountDDL"
@@ -11,7 +12,7 @@ import (
 )
 
 // UpdateAccount обновляет счет
-func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uint32]accountRepoModel.UpdateAccountReq) error {
+func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uuid.UUID]accountRepoModel.UpdateAccountReq) error {
 	ctx, span := tracer.Start(ctx, "updateAccount")
 	defer span.End()
 
@@ -55,7 +56,7 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[ui
 			updates[accountDDL.ColumnSerialNumber] = *fields.SerialNumber
 		}
 		if fields.ParentAccountID != nil {
-			if *fields.ParentAccountID == 0 {
+			if *fields.ParentAccountID == uuid.Nil {
 				updates[accountDDL.ColumnParentAccountID] = nil
 			} else {
 				updates[accountDDL.ColumnParentAccountID] = *fields.ParentAccountID

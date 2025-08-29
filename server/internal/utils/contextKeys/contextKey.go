@@ -2,6 +2,8 @@ package contextKeys
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type contextKey int
@@ -16,7 +18,7 @@ func SetDeviceID(ctx context.Context, deviceID string) context.Context {
 	return context.WithValue(ctx, deviceIDKey, deviceID)
 }
 
-func SetUserID(ctx context.Context, userID uint32) context.Context {
+func SetUserID(ctx context.Context, userID uuid.UUID) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
 }
 
@@ -27,8 +29,8 @@ func GetDeviceID(ctx context.Context) *string {
 	return nil
 }
 
-func GetUserID(ctx context.Context) *uint32 {
-	if v, ok := ctx.Value(userIDKey).(uint32); ok {
+func GetUserID(ctx context.Context) *uuid.UUID {
+	if v, ok := ctx.Value(userIDKey).(uuid.UUID); ok {
 		return &v
 	}
 	return nil
