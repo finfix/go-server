@@ -1,7 +1,9 @@
 package logger
 
+import "github.com/google/uuid"
+
 type UserInfo struct {
-	UserID    *uint32 `json:"userID,omitempty"`
+	UserID    *uuid.UUID `json:"userID,omitempty"`
 	RequestID *string `json:"requestID,omitempty"`
 	DeviceID  *string `json:"deviceID,omitempty"`
 }
