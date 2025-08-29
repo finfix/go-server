@@ -16,8 +16,8 @@ import (
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/pressly/goose/v3"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shopspring/decimal"
-	httpSwagger "github.com/swaggo/http-swagger"
 
 	"pkg/database/pgsql"
 	grpcServer "pkg/grpc/server"
@@ -61,22 +61,6 @@ import (
 	"server/internal/utils/errors"
 	pgsqlMigrations "server/migrations/pgsql"
 )
-
-// @title COIN Server Documentation
-// @version @{version} (build @{build})
-// @description API Documentation for Coin
-// @contact.name Ilia Ivanov
-// @contact.email bonavii@icloud.com
-// @contact.url
-
-// @securityDefinitions.apikey AuthJWT
-// @in header
-// @name Authorization
-// @description JWT-токен авторизации
-
-//go:generate go install github.com/swaggo/swag/cmd/swag@v1.8.2
-//go:generate go mod download
-//go:generate swag init -o docs --parseInternal --parseDependency
 
 const version = "@{version}"
 const build = "@{build}"
@@ -284,7 +268,7 @@ func run() error {
 	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
 
 	r := router.NewRouter()
-	r.Mount("/swagger", httpSwagger.WrapHandler)
+	r.Handle("/metrics", promhttp.Handler())
 
 	// Создаем слушателя порта для gRPC-сервера
 	grpcLn, err := net.Listen("tcp", conf.Port.GRPC)
