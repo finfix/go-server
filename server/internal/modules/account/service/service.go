@@ -32,7 +32,7 @@ type Transactor interface {
 var _ AccountRepository = new(accountRepository.AccountRepository)
 
 type AccountRepository interface {
-	CreateAccount(context.Context, accountRepoModel.CreateAccountReq) (uuid.UUID, uint32, error)
+	CreateAccount(context.Context, accountRepoModel.CreateAccountReq) (uint32, error)
 	GetAccounts(context.Context, accountRepoModel.GetAccountsReq) ([]accountModel.Account, error)
 	UpdateAccount(context.Context, map[uuid.UUID]accountRepoModel.UpdateAccountReq) error
 	DeleteAccount(ctx context.Context, id uuid.UUID) error

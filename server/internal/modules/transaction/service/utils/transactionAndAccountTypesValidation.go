@@ -2,16 +2,16 @@ package utils
 
 import (
 	"context"
+	"server/internal/enum/accountType"
+	"server/internal/enum/transactionType"
 
 	"pkg/slices"
 	"server/internal/utils/errors"
 
 	"server/internal/modules/account/model"
-	"server/internal/modules/account/model/accountType"
-	"server/internal/modules/transaction/model/transactionType"
 )
 
-func TransactionAndAccountTypesValidation(ctx context.Context, accountFrom, accountTo model.Account, tranType transactionType.Type) error {
+func TransactionAndAccountTypesValidation(ctx context.Context, accountFrom, accountTo model.Account, tranType transactionType.TransactionType) error {
 
 	var accesses string
 	var isAccess bool

@@ -25,7 +25,8 @@ func (s *AuthService) upsertDevice(ctx context.Context, device userModel.Device)
 	// Если девайс не нашелся
 	if len(devices) == 0 {
 
-		_, err = s.userRepository.CreateDevice(ctx, device)
+		device.ID = uuid.New()
+		err = s.userRepository.CreateDevice(ctx, device)
 
 	} else { // Если девайс нашелся
 

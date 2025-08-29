@@ -14,7 +14,7 @@ const (
 	ColumnEmail           = "email"
 	ColumnPasswordHash    = "password_hash"
 	ColumnTimeCreate      = "time_create"
-	ColumnDefaultCurrency = "default_currency_signatura"
+	ColumnDefaultCurrency = "default_currency"
 	ColumnPasswordSalt    = "password_salt"
 	ColumnIsAdmin         = "is_admin"
 )

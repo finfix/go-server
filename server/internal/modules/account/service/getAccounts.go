@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"server/internal/enum/accountType"
 
 	"server/internal/modules/account/model"
-	"server/internal/modules/account/model/accountType"
 )
 
 // GetAccounts возвращает все счета, удовлетворяющие фильтрам

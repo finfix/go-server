@@ -8,7 +8,7 @@ import (
 type UpdateAccountReq struct {
 	Remainder          *decimal.Decimal
 	Name               *string
-	IconID             *int64
+	IconID             *uuid.UUID
 	Visible            *bool
 	AccountingInHeader *bool
 	AccountingInCharts *bool
@@ -21,6 +21,6 @@ type UpdateAccountReq struct {
 type UpdateAccountBudgetReq struct {
 	Amount         *decimal.Decimal
 	FixedSum       *decimal.Decimal
-	DaysOffset     *uuid.UUID
+	DaysOffset     *uint32
 	GradualFilling *bool
 }

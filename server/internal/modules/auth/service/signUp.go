@@ -10,6 +10,8 @@ import (
 	"server/internal/modules/auth/model"
 	"server/internal/modules/auth/service/utils"
 	userModel "server/internal/modules/user/model"
+
+	"github.com/google/uuid"
 )
 
 // SignUp регистрирует пользователя и возвращает токены доступа
@@ -41,8 +43,11 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 
 	return accessData, s.generalRepository.WithinTransaction(ctx, func(ctx context.Context) error {
 
+		accessData.ID = uuid.New()
+
 		// Создаем пользователя
-		accessData.ID, err = s.userRepository.CreateUser(ctx, userModel.CreateReq{
+		err = s.userRepository.CreateUser(ctx, userModel.CreateReq{
+			ID:              accessData.ID,
 			Name:            loginData.Name,
 			Email:           loginData.Email,
 			PasswordHash:    passwordHash,

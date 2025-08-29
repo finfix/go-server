@@ -9,7 +9,6 @@ import (
 	"github.com/shopspring/decimal"
 
 	settingsModel "server/internal/modules/settings/model"
-	"server/internal/modules/settings/model/applicationType"
 	settingsRepository "server/internal/modules/settings/repository"
 	tgBotModel "server/internal/modules/tgBot/model"
 	tgBotService "server/internal/modules/tgBot/service"
@@ -25,7 +24,7 @@ type SettingsRepository interface {
 	UpdateCurrencies(ctx context.Context, rates map[string]decimal.Decimal) error
 	GetCurrencies(context.Context) ([]settingsModel.Currency, error)
 	GetIcons(context.Context) ([]settingsModel.Icon, error)
-	GetVersion(context.Context, applicationType.Type) (settingsModel.Version, error)
+	GetVersion(context.Context, settingsModel.GetVersionReq) (settingsModel.Version, error)
 }
 
 var _ UserService = new(userService.UserService)

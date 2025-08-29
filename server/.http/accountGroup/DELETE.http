@@ -1,3 +1,0 @@
-DELETE {{host}}/accountGroup?
-    id=0
-Authorization: {{authToken}}

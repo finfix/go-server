@@ -15,11 +15,13 @@ func (s *AccountGroupService) CreateAccountGroup(ctx context.Context, accountGro
 	return res, s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем счет
-		if res.ID, res.SerialNumber, err = s.accountGroupRepository.CreateAccountGroup(ctx, accountGroup.ConvertToRepoReq()); err != nil {
+		serialNumber, err := s.accountGroupRepository.CreateAccountGroup(ctx, accountGroup.ConvertToRepoReq())
+		if err != nil {
 			return err
 		}
+		res.SerialNumber = serialNumber
 
-		if err = s.accountGroupRepository.LinkUserToAccountGroup(ctx, accountGroup.Necessary.UserID, res.ID); err != nil {
+		if err = s.accountGroupRepository.LinkUserToAccountGroup(ctx, accountGroup.Necessary.UserID, accountGroup.ID); err != nil {
 			return err
 		}
 

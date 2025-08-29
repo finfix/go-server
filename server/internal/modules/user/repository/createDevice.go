@@ -3,21 +3,21 @@ package repository
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
-
 	userModel "server/internal/modules/user/model"
 	"server/internal/modules/user/repository/deviceDDL"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 // CreateDevice Создает новый девайс для пользователя
-func (r *UserRepository) CreateDevice(ctx context.Context, req userModel.Device) (id uuid.UUID, err error) {
+func (r *UserRepository) CreateDevice(ctx context.Context, req userModel.Device) error {
 	ctx, span := tracer.Start(ctx, "CreateDevice")
 	defer span.End()
 
-	return r.db.ExecWithLastUUID(ctx, sq.
+	return r.db.Exec(ctx, sq.
 		Insert(deviceDDL.Table).
 		SetMap(map[string]any{
+			deviceDDL.ColumnID:                  req.ID,
 			deviceDDL.ColumnRefreshToken:        req.RefreshToken,
 			deviceDDL.ColumnDeviceID:            req.DeviceID,
 			deviceDDL.ColumnUserID:              req.UserID,

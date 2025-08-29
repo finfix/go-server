@@ -1,20 +1,20 @@
 package model
 
 import (
+	"server/internal/enum/accountType"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-
-	"server/internal/modules/account/model/accountType"
 )
 
 type CreateAccountReq struct {
+	ID                 uuid.UUID
 	Budget             CreateReqBudget
 	Name               string
 	Visible            bool
 	IconID             uuid.UUID
-	Type               accountType.Type
+	Type               accountType.AccountType
 	Currency           string
 	AccountGroupID     uuid.UUID
 	AccountingInHeader bool

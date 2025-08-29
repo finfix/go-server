@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
+
+	"github.com/google/uuid"
 
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
 	pushNotificatorService "server/internal/modules/pushNotificator/service"
@@ -25,7 +26,7 @@ type GeneralRepository interface {
 }
 
 type UserRepository interface {
-	CreateUser(context.Context, userModel.CreateReq) (uuid.UUID, error)
+	CreateUser(context.Context, userModel.CreateReq) error
 	GetUsers(context.Context, userModel.GetUsersReq) ([]userModel.User, error)
 	UpdateUser(context.Context, userRepoModel.UpdateUserReq) error
 

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"server/internal/enum/accountType"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -9,7 +10,6 @@ import (
 	"server/internal/utils/errors"
 
 	"server/internal/modules/account/model"
-	"server/internal/modules/account/model/accountType"
 	accountRepoModel "server/internal/modules/account/repository/model"
 )
 
@@ -20,7 +20,7 @@ func (s *AccountService) calculateRemainders(ctx context.Context, filters model.
 	// Считаем балансы обычных и долговых счетов
 	calculatedRemainders, err := s.accountRepository.GetSumAllTransactionsToAccount(ctx, accountRepoModel.CalculateRemaindersAccountsReq{ //nolint:exhaustruct
 		AccountGroupIDs: filters.AccountGroupIDs,
-		Types: []accountType.Type{
+		Types: []accountType.AccountType{
 			accountType.Debt,
 			accountType.Regular,
 		},
@@ -39,7 +39,7 @@ func (s *AccountService) calculateRemainders(ctx context.Context, filters model.
 		// Считаем расходы и доходы за указанный период или даты
 		earnAndExp, err := s.accountRepository.GetSumAllTransactionsToAccount(ctx, accountRepoModel.CalculateRemaindersAccountsReq{ //nolint:exhaustruct
 			AccountGroupIDs: filters.AccountGroupIDs,
-			Types: []accountType.Type{
+			Types: []accountType.AccountType{
 				accountType.Earnings,
 				accountType.Expense,
 				accountType.Balancing,

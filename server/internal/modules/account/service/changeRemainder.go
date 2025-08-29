@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"server/internal/enum/transactionType"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,7 +13,6 @@ import (
 
 	"server/internal/modules/account/model"
 	accountRepoModel "server/internal/modules/account/repository/model"
-	"server/internal/modules/transaction/model/transactionType"
 	transactionRepoModel "server/internal/modules/transaction/repository/model"
 )
 

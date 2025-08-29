@@ -3,53 +3,59 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"pkg/log/model"
+	"server/internal/metrics"
 	"syscall"
 	"time"
 
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 
+	"github.com/finfix/go-server-grpc/proto"
 	"github.com/pressly/goose/v3"
 	"github.com/shopspring/decimal"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	"pkg/database/pgsql"
+	grpcServer "pkg/grpc/server"
 	"pkg/http/router"
-	"pkg/http/server"
+	httpServer "pkg/http/server"
+	"server/internal/utils/grpc/interceptor"
+
 	"pkg/jwtManager"
 	"pkg/log"
 	"pkg/migrator"
 	"pkg/panicRecover"
 	"pkg/trace"
 	"server/internal/config"
-	_ "server/internal/docs"
-	accountEndpoint "server/internal/modules/account/endpoint"
+	accountEndpointGRPC "server/internal/modules/account/endpoint/grpc"
 	accountRepository "server/internal/modules/account/repository"
 	accountService "server/internal/modules/account/service"
-	accountGroupEndpoint "server/internal/modules/accountGroup/endpoint"
+	accountGroupEndpointGRPC "server/internal/modules/accountGroup/endpoint/grpc"
 	accountGroupRepository "server/internal/modules/accountGroup/repository"
 	accountGroupService "server/internal/modules/accountGroup/service"
 	accountPermisssionsRepository "server/internal/modules/accountPermissions/repository"
 	accountPermisssionsService "server/internal/modules/accountPermissions/service"
-	authEndpoint "server/internal/modules/auth/endpoint"
+	authEndpointGRPC "server/internal/modules/auth/endpoint/grpc"
 	authService "server/internal/modules/auth/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
 	pushNotificatorService "server/internal/modules/pushNotificator/service"
 	"server/internal/modules/scheduler"
-	settingsEndpoint "server/internal/modules/settings/endpoint"
+	settingsEndpointGRPC "server/internal/modules/settings/endpoint/grpc"
 	settingsRepository "server/internal/modules/settings/repository"
 	settingsService "server/internal/modules/settings/service"
-	tagEndpoint "server/internal/modules/tag/endpoint"
+	tagEndpointGRPC "server/internal/modules/tag/endpoint/grpc"
 	tagRepository "server/internal/modules/tag/repository"
 	tagService "server/internal/modules/tag/service"
 	"server/internal/modules/tgBot/service"
-	transactionEndpoint "server/internal/modules/transaction/endpoint"
+	transactionEndpointGRPC "server/internal/modules/transaction/endpoint/grpc"
 	transactionRepository "server/internal/modules/transaction/repository"
 	transactionService "server/internal/modules/transaction/service"
 	"server/internal/modules/transactor"
-	userEndpoint "server/internal/modules/user/endpoint"
+	userEndpointGRPC "server/internal/modules/user/endpoint/grpc"
 	userRepository "server/internal/modules/user/repository"
 	userService "server/internal/modules/user/service"
 	"server/internal/utils/errors"
@@ -254,17 +260,40 @@ func run() error {
 		return err
 	}
 
+	// Настраиваем и получаем GRPC-сервер
+	grpcServer := grpcServer.NewGRPCServer(&grpcServer.ServerOptions{
+		UnaryInterceptors: []grpc.UnaryServerInterceptor{
+			interceptor.NewErrorHandlerInterceptor().Unary(),
+			interceptor.NewTimeInterceptor().Unary(),
+			interceptor.NewAuthInterceptor(config.GetOpenForEveryoneMethods()).Unary(),
+			interceptor.NewLoggerInterceptor().Unary(),
+		},
+		StreamInterceptors: []grpc.StreamServerInterceptor{
+			interceptor.NewErrorHandlerInterceptor().Stream(),
+			interceptor.NewTimeInterceptor().Stream(),
+			interceptor.NewAuthInterceptor(config.GetOpenForEveryoneMethods()).Stream(),
+			interceptor.NewLoggerInterceptor().Stream(),
+		},
+	})
+	proto.RegisterAccountEndpointServer(grpcServer, accountEndpointGRPC.NewAccountEndpoint(accountService))
+	proto.RegisterAccountGroupEndpointServer(grpcServer, accountGroupEndpointGRPC.NewAccountGroupEndpoint(accountGroupService))
+	proto.RegisterTagEndpointServer(grpcServer, tagEndpointGRPC.NewTagEndpoint(tagService))
+	proto.RegisterTransactionEndpointServer(grpcServer, transactionEndpointGRPC.NewTransactionEndpoint(transactionService))
+	proto.RegisterUserEndpointServer(grpcServer, userEndpointGRPC.NewUserEndpoint(userService))
+	proto.RegisterSettingsEndpointServer(grpcServer, settingsEndpointGRPC.NewSettingsEndpoint(settingsService))
+	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
+
 	r := router.NewRouter()
-	accountEndpoint.MountAccountEndpoints(r, accountService)                // ANY /account*
-	accountGroupEndpoint.MountAccountGroupEndpoints(r, accountGroupService) // ANY /accountGroup*
-	transactionEndpoint.MountTransactionEndpoints(r, transactionService)    // ANY /transaction*
-	tagEndpoint.MountTagEndpoints(r, tagService)                            // ANY /tag*
-	authEndpoint.MountAuthEndpoints(r, authService)                         // ANY /auth*
-	userEndpoint.MountUserEndpoints(r, userService)                         // ANY /user*
-	settingsEndpoint.MountSettingsEndpoints(r, settingsService)             // ANY /settings*
 	r.Mount("/swagger", httpSwagger.WrapHandler)
 
-	server, err := server.GetDefaultServer(conf.HTTP, r)
+	// Создаем слушателя порта для gRPC-сервера
+	grpcLn, err := net.Listen("tcp", conf.Port.GRPC)
+	if err != nil {
+		return errors.InternalServer.Wrap(err)
+	}
+	defer grpcLn.Close()
+
+	server, err := httpServer.GetDefaultServer(conf.Port.HTTP, r)
 	if err != nil {
 		return err
 	}
@@ -275,9 +304,21 @@ func run() error {
 	// Запускаем HTTP-сервер
 	eg.Go(func() error {
 
-		log.Info(fmt.Sprintf("Server is listening: %s", conf.HTTP))
+		log.Info(fmt.Sprintf("Server is listening: %s", conf.Port.HTTP))
 
 		return server.Serve()
+	})
+
+	// Создаем горутину на запуск gRPC-сервера
+	eg.Go(func() error {
+		log.Info(fmt.Sprintf("gRPC server is listening: %v", conf.Port.GRPC))
+		if err := grpcServer.Serve(grpcLn); err != nil {
+			if errors.Is(err, grpc.ErrServerStopped) {
+				return nil
+			}
+			return errors.InternalServer.Wrap(err)
+		}
+		return nil
 	})
 
 	// Запускаем горутину, ожидающую завершение контекста
@@ -318,5 +359,5 @@ func initSingletons(conf config.Config) error {
 	//	return err
 	// }
 
-	return nil
+	return metrics.Init(conf.ServiceName)
 }

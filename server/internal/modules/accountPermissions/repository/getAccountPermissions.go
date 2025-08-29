@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"server/internal/enum/accountType"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -10,7 +11,6 @@ import (
 	permissionAccountType "server/internal/modules/accountPermissions/repository/accountType"
 	"server/internal/modules/accountPermissions/repository/actionType"
 
-	"server/internal/modules/account/model/accountType"
 	"server/internal/modules/accountPermissions/model"
 )
 
@@ -44,7 +44,7 @@ func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context
 
 	// Инициализируем структуру
 	permissionSet = model.PermissionSet{
-		TypeToPermissions:     make(map[accountType.Type]model.AccountPermissions),
+		TypeToPermissions:     make(map[accountType.AccountType]model.AccountPermissions),
 		IsParentToPermissions: make(map[bool]model.AccountPermissions),
 	}
 
@@ -57,7 +57,7 @@ func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context
 		var permission model.AccountPermissions
 		switch accountTypeClassification {
 		case permissionAccountType.AccountTypeByType:
-			permission = permissionSet.TypeToPermissions[accountType.Type(permissionItem.AccountType)]
+			permission = permissionSet.TypeToPermissions[accountType.AccountType(permissionItem.AccountType)]
 		case permissionAccountType.AccountTypeByParent:
 			permission = permissionSet.IsParentToPermissions[permissionItem.AccountType == permissionAccountType.Parent]
 		}
@@ -79,7 +79,7 @@ func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context
 		// Сохраняем права доступа в объект permissionSet до следующей итерации
 		switch accountTypeClassification {
 		case permissionAccountType.AccountTypeByType:
-			permissionSet.TypeToPermissions[accountType.Type(permissionItem.AccountType)] = permission
+			permissionSet.TypeToPermissions[accountType.AccountType(permissionItem.AccountType)] = permission
 		case permissionAccountType.AccountTypeByParent:
 			permissionSet.IsParentToPermissions[permissionItem.AccountType == permissionAccountType.Parent] = permission
 		}

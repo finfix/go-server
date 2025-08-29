@@ -2,8 +2,7 @@ package model
 
 import (
 	"pkg/datetime"
-
-	"server/internal/modules/account/model/accountType"
+	"server/internal/enum/accountType"
 
 	"github.com/google/uuid"
 )
@@ -11,7 +10,7 @@ import (
 type CalculateRemaindersAccountsReq struct {
 	IDs             []uuid.UUID
 	AccountGroupIDs []uuid.UUID
-	Types           []accountType.Type
+	Types           []accountType.AccountType
 	DateFrom        *datetime.Date
 	DateTo          *datetime.Date
 }

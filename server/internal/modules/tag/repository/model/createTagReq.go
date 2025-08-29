@@ -7,6 +7,7 @@ import (
 )
 
 type CreateTagReq struct {
+	ID               uuid.UUID // Идентификатор тега
 	CreatedByUserID uuid.UUID // Идентификатор пользователя создавшего транзакцию
 	AccountGroupID  uuid.UUID // Идентификатор группы счетов
 	Name            string    // Название подкатегории

@@ -1,3 +1,0 @@
-DELETE {{host}}/account?
-    id=0
-Authorization: {{authToken}}

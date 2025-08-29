@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"server/internal/enum/accountType"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,7 +12,6 @@ import (
 	"server/internal/utils/errors"
 
 	"server/internal/modules/account/model"
-	"server/internal/modules/account/model/accountType"
 	accountRepoModel "server/internal/modules/account/repository/model"
 )
 
@@ -22,7 +22,7 @@ func (s *AccountService) GetBalancingAccountID(ctx context.Context, account mode
 
 	// Получаем балансировочный счет группы в нужной валюте, чтобы создать для нее транзакцию
 	balancingAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-		Types:           []accountType.Type{accountType.Balancing},
+		Types:           []accountType.AccountType{accountType.Balancing},
 		AccountGroupIDs: []uuid.UUID{account.AccountGroupID},
 		Currencies:      []string{account.Currency},
 		IsParent:        pointer.Pointer(false),
@@ -38,7 +38,7 @@ func (s *AccountService) GetBalancingAccountID(ctx context.Context, account mode
 
 	// Получаем общий балансировочный счет
 	parentBalancingAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-		Types:           []accountType.Type{accountType.Balancing},
+		Types:           []accountType.AccountType{accountType.Balancing},
 		AccountGroupIDs: []uuid.UUID{account.AccountGroupID},
 		IsParent:        pointer.Pointer(true),
 	})
@@ -61,7 +61,7 @@ func (s *AccountService) GetBalancingAccountID(ctx context.Context, account mode
 	parentBalancingAccount = parentBalancingAccounts[0]
 
 	// Создаем балансировочный счет
-	balancingAccountID, serialNumber, err = s.accountRepository.CreateAccount(ctx, accountRepoModel.CreateAccountReq{
+	serialNumber, err = s.accountRepository.CreateAccount(ctx, accountRepoModel.CreateAccountReq{
 		Budget: accountRepoModel.CreateReqBudget{
 			Amount:         decimal.Zero,
 			GradualFilling: false,

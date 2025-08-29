@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
+
+	"github.com/google/uuid"
 
 	"server/internal/modules/transactor"
 	userModel "server/internal/modules/user/model"
@@ -19,9 +20,9 @@ var _ GeneralRepository = new(transactor.Transactor)
 
 type UserRepository interface {
 	GetUsers(context.Context, userModel.GetUsersReq) ([]userModel.User, error)
-	CreateUser(context.Context, userModel.CreateReq) (uuid.UUID, error)
+	CreateUser(context.Context, userModel.CreateReq) error
 
-	CreateDevice(context.Context, userModel.Device) (uuid.UUID, error)
+	CreateDevice(context.Context, userModel.Device) error
 	DeleteDevice(ctx context.Context, userID uuid.UUID, deviceID string) error
 	UpdateDevice(context.Context, userRepoModel.UpdateDeviceReq) error
 	GetDevices(context.Context, userRepoModel.GetDevicesReq) ([]userModel.Device, error)

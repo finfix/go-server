@@ -1,8 +1,10 @@
 package model
 
-import "server/internal/modules/account/model/accountType"
+import (
+	"server/internal/enum/accountType"
+)
 
 type PermissionSet struct {
-	TypeToPermissions     map[accountType.Type]AccountPermissions
+	TypeToPermissions     map[accountType.AccountType]AccountPermissions
 	IsParentToPermissions map[bool]AccountPermissions
 }

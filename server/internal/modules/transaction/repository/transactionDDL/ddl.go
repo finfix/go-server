@@ -11,7 +11,7 @@ const (
 const (
 	ColumnID                 = "id"
 	ColumnDate               = "date_transaction"
-	ColumnType               = "type_signatura"
+	ColumnType               = "transaction_type"
 	ColumnAmountFrom         = "amount_from"
 	ColumnAmountTo           = "amount_to"
 	ColumnNote               = "note"

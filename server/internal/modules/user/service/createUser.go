@@ -13,5 +13,7 @@ func (s *UserService) CreateUser(ctx context.Context, user model.CreateReq) (id 
 	ctx, span := tracer.Start(ctx, "CreateUser")
 	defer span.End()
 
-	return s.userRepository.CreateUser(ctx, user)
+	user.ID = uuid.New()
+
+	return user.ID, s.userRepository.CreateUser(ctx, user)
 }

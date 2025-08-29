@@ -2,13 +2,14 @@ package service
 
 import (
 	"context"
+	"server/internal/enum/osType"
+
+	"pkg/log"
 
 	"github.com/google/uuid"
-	"pkg/log"
 
 	model2 "server/internal/modules/pushNotificator/model"
 	"server/internal/modules/user/model"
-	"server/internal/modules/user/model/OS"
 	userRepoModel "server/internal/modules/user/repository/model"
 )
 
@@ -34,7 +35,7 @@ func (s *UserService) SendNotification(ctx context.Context, userID uuid.UUID, pu
 
 		// Смотрим на операционную систему и отправляем уведомление
 		switch device.DeviceInformation.NameOS {
-		case OS.IOS, OS.IPadOS, OS.OSX, OS.WatchOS:
+		case osType.IOS, osType.IPadOS, osType.OSX, osType.WatchOS:
 			_, err = s.pushNotificator.SendNotification(ctx, model2.SendNotificationReq{
 				Notification: model2.NotificationSettings{
 					Title:    &push.Title,
@@ -46,7 +47,7 @@ func (s *UserService) SendNotification(ctx context.Context, userID uuid.UUID, pu
 				BundleID:          device.ApplicationInformation.BundleID,
 			})
 
-		case OS.Android:
+		case osType.Android:
 			break
 		}
 		if err != nil {

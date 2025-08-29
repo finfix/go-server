@@ -1,15 +1,15 @@
 package model
 
 import (
-	"github.com/google/uuid"
+	"server/internal/enum/accountType"
 
-	"server/internal/modules/account/model/accountType"
+	"github.com/google/uuid"
 )
 
 type GetAccountsReq struct {
 	IDs                []uuid.UUID
 	AccountGroupIDs    []uuid.UUID
-	Types              []accountType.Type
+	Types              []accountType.AccountType
 	AccountingInHeader *bool
 	AccountingInCharts *bool
 	Visible            *bool

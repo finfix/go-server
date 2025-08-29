@@ -37,9 +37,11 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем счет
-		if res.ID, res.SerialNumber, err = s.accountRepository.CreateAccount(ctx, accountToCreate.ConvertToRepoReq()); err != nil {
+		serialNumber, err := s.accountRepository.CreateAccount(ctx, accountToCreate.ConvertToRepoReq())
+		if err != nil {
 			return err
 		}
+		res.SerialNumber = serialNumber
 
 		// Если счет создался с остатком
 		if !accountToCreate.Remainder.IsZero() {
@@ -47,7 +49,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 			// Получаем счет
 			account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx,
 				accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-					IDs: []uuid.UUID{res.ID},
+					IDs: []uuid.UUID{accountToCreate.ID},
 				},
 			))
 			if err != nil {

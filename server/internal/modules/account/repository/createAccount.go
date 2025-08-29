@@ -3,16 +3,15 @@ package repository
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
-
 	"pkg/ddlHelper"
 	"server/internal/modules/account/repository/accountDDL"
 	accountRepoModel "server/internal/modules/account/repository/model"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 // CreateAccount создает новый счет
-func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) (id uuid.UUID, serialNumber uint32, err error) {
+func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) (serialNumber uint32, err error) {
 	ctx, span := tracer.Start(ctx, "createAccount")
 	defer span.End()
 
@@ -26,21 +25,22 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRe
 		Where(sq.Eq{accountDDL.ColumnAccountGroupID: account.AccountGroupID}),
 	)
 	if err != nil {
-		return id, serialNumber, err
+		return serialNumber, err
 	}
 
 	// Сканируем результат
 	if err = row.Scan(&serialNumber); err != nil {
-		return id, serialNumber, err
+		return serialNumber, err
 	}
 
 	// Увеличиваем серийный номер для нового элемента
 	serialNumber++
 
 	// Создаем счет
-	id, err = r.db.ExecWithLastUUID(ctx, sq.
+	return serialNumber, r.db.Exec(ctx, sq.
 		Insert(accountDDL.Table).
 		SetMap(map[string]any{
+			accountDDL.ColumnID:                   account.ID,
 			accountDDL.ColumnBudgetAmount:         account.Budget.Amount,
 			accountDDL.ColumnName:                 account.Name,
 			accountDDL.ColumnIconID:               account.IconID,
@@ -59,9 +59,4 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRe
 			accountDDL.ColumnDatetimeCreate:       account.DatetimeCreate,
 			accountDDL.ColumnSerialNumber:         serialNumber,
 		}))
-	if err != nil {
-		return id, serialNumber, err
-	}
-
-	return id, serialNumber, nil
 }

@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
+
+	"github.com/google/uuid"
 
 	accountGroupService "server/internal/modules/accountGroup/service"
 	tagModel "server/internal/modules/tag/model"
@@ -37,22 +38,22 @@ func NewTagService(
 	}
 }
 
-var _ UserService = &userService.UserService{}
+var _ UserService = new(userService.UserService)
 
 type UserService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
-var _ Transactor = &transactor.Transactor{}
+var _ Transactor = new(transactor.Transactor)
 
 type Transactor interface {
 	WithinTransaction(ctx context.Context, callback func(context.Context) error) error
 }
 
-var _ TagRepository = &tagRepository.TagRepository{}
+var _ TagRepository = new(tagRepository.TagRepository)
 
 type TagRepository interface {
-	CreateTag(context.Context, tagRepoModel.CreateTagReq) (uuid.UUID, error)
+	CreateTag(context.Context, tagRepoModel.CreateTagReq) error
 	UpdateTag(context.Context, tagModel.UpdateTagReq) error
 	DeleteTag(ctx context.Context, id, userID uuid.UUID) error
 	GetTags(context.Context, tagModel.GetTagsReq) (res []tagModel.Tag, err error)
@@ -62,7 +63,7 @@ type TagRepository interface {
 	CheckAccess(ctx context.Context, accountGroupIDs, tagIDs []uuid.UUID) error
 }
 
-var _ AccountGroupService = &accountGroupService.AccountGroupService{}
+var _ AccountGroupService = new(accountGroupService.AccountGroupService)
 
 type AccountGroupService interface {
 	CheckAccess(ctx context.Context, userID uuid.UUID, accountGroupIDs []uuid.UUID) error

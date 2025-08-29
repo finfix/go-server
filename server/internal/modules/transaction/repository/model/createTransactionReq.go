@@ -1,18 +1,18 @@
 package model
 
 import (
+	"server/internal/enum/transactionType"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"pkg/datetime"
-
-	"server/internal/modules/transaction/model/transactionType"
 )
 
 type CreateTransactionReq struct {
-	Type               transactionType.Type
+	ID                 uuid.UUID
+	Type               transactionType.TransactionType
 	AmountFrom         decimal.Decimal
 	AmountTo           decimal.Decimal
 	Note               string

@@ -1,6 +1,8 @@
 package accountType
 
-import "server/internal/modules/account/model/accountType"
+import (
+	"server/internal/enum/accountType"
+)
 
 type Type string
 

@@ -1,7 +1,14 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"github.com/finfix/go-server-grpc/proto"
+)
 
 type CreateTagRes struct {
-	ID uuid.UUID `json:"id" validate:"required" minimum:"1"` // Идентификатор транзакции
+	// ID теперь известен заранее и не возвращается в ответе
+}
+
+// ConvertToProto converts CreateTagRes to proto format
+func (r CreateTagRes) ConvertToProto() *proto.CreateTagResponse {
+	return &proto.CreateTagResponse{}
 }

@@ -15,9 +15,13 @@ func (r *TransactionRepository) CreateTransaction(ctx context.Context, req model
 	ctx, span := tracer.Start(ctx, "CreateTransaction")
 	defer span.End()
 
+	// Используем ID из запроса
+	id = req.ID
+
 	// Создаем транзакцию
-	return r.db.ExecWithLastUUID(ctx, sq.Insert(`coin.transactions`).
+	err = r.db.Exec(ctx, sq.Insert(`coin.transactions`).
 		SetMap(map[string]any{
+			transactionDDL.ColumnID:                 req.ID,
 			transactionDDL.ColumnType:               req.Type,
 			transactionDDL.ColumnDate:               req.DateTransaction,
 			transactionDDL.ColumnAccountFromID:      req.AccountFromID,
@@ -32,4 +36,8 @@ func (r *TransactionRepository) CreateTransaction(ctx context.Context, req model
 			transactionDDL.ColumnAccountGroupID:     req.AccountGroupID,
 		}),
 	)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return id, nil
 }

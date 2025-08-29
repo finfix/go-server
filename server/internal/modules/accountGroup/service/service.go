@@ -25,7 +25,7 @@ type Transactor interface {
 var _ AccountGroupRepository = new(accountGroupRepository.AccountGroupRepository)
 
 type AccountGroupRepository interface {
-	CreateAccountGroup(context.Context, accountGroupRepoModel.CreateAccountGroupReq) (uuid.UUID, uint32, error)
+	CreateAccountGroup(context.Context, accountGroupRepoModel.CreateAccountGroupReq) (uint32, error)
 	GetAccountGroups(context.Context, accountGroupModel.GetAccountGroupsReq) ([]accountGroupModel.AccountGroup, error)
 	UpdateAccountGroup(context.Context, accountGroupModel.UpdateAccountGroupReq) error
 	DeleteAccountGroup(ctx context.Context, id uuid.UUID) error
