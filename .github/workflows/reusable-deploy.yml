@@ -59,6 +59,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ inputs.image_name }}:latest
             ${{ env.REGISTRY }}/${{ inputs.image_name }}:build-${{ github.run_id }}
           build-args: |
+            CI_JOB_TOKEN=${{ secrets.PAT_TOKEN }}
             VERSION=${{ env.VERSION }}
             BUILD=${{ github.run_id }}
             BUILD_DATE=${{ env.BUILD_DATE }}
