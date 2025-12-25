@@ -37,14 +37,15 @@ func (p ProtoSignInReq) ConvertToModel() (res SignInReq, err error) {
 		}
 	}
 
-	nameOS, err := osType.ProtoOSType{OSType: p.Device.NameOS}.ConvertToModel()
-	if err != nil {
-		return res, err
-	}
-
 	// Convert device information
 	var device userModel.DeviceInformation
 	if p.Device != nil {
+
+		nameOS, err := osType.ProtoOSType{OSType: p.Device.NameOS}.ConvertToModel()
+		if err != nil {
+			return res, err
+		}
+
 		device = userModel.DeviceInformation{
 			NameOS:     nameOS,
 			VersionOS:  p.Device.VersionOS,

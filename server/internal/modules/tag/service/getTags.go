@@ -14,7 +14,7 @@ func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tag
 	defer span.End()
 
 	// Проверяем доступ пользователя к группам счетов
-	if filters.AccountGroupIDs != nil {
+	if len(filters.AccountGroupIDs) != 0 {
 		if err = s.accountGroupService.CheckAccess(ctx, filters.Necessary.UserID, filters.AccountGroupIDs); err != nil {
 			return nil, err
 		}

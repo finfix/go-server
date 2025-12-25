@@ -20,9 +20,11 @@
       <env name="OTLP_INSECURE" value="true" />
       <env name="OTLP_IS_ENABLED" value="false" />
       <env name="PGSQL_DATABASE" value="coin_prod" />
-      <env name="PGSQL_HOST" value="localhost:6131" />
+      <env name="PGSQL_HOST" value="localhost:6134" />
       <env name="PGSQL_PASSWORD" value="password" />
       <env name="PGSQL_USER" value="postgres" />
+      <env name="PORT_GRPC" value="0.0.0.0:8090" />
+      <env name="PORT_HTTP" value="localhost:8080" />
       <env name="SERVER_DB_PASSWORD" value="password" />
       <env name="SERVICE_NAME" value="server" />
       <env name="SHA_SALT" value="salt" />
