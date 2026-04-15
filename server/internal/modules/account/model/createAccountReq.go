@@ -165,6 +165,11 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		parentAccountID = &_parentAccountID
 	}
 
+	var remainder decimal.Decimal
+	if p.Remainder != nil {
+		remainder = decimal.NewFromFloat(*p.Remainder)
+	}
+
 	return CreateAccountReq{
 		ID:                 id,
 		Name:               p.Name,
@@ -175,7 +180,7 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		AccountingInHeader: p.AccountingInHeader,
 		AccountingInCharts: p.AccountingInCharts,
 		DatetimeCreate:     datetimeCreate,
-		Remainder:          decimal.NewFromFloat(*p.Remainder),
+		Remainder:          remainder,
 		Budget:             budget,
 		IsParent:           p.IsParent,
 		ParentAccountID:    parentAccountID,

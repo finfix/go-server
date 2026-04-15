@@ -2,10 +2,10 @@ package scheduler
 
 import (
 	"context"
+	"server/internal/utils/errors"
 	"time"
 
 	"pkg/log"
-	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 
 	"server/internal/modules/settings/model"

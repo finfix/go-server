@@ -1,2 +1,3 @@
 CREATE DATABASE coin_local;
 CREATE DATABASE coin_prod;
+CREATE ROLE coin;

@@ -51,7 +51,7 @@ func (p ProtoGetTransactionsReq) ConvertToModel() (GetTransactionsReq, error) {
 
 	// Parse optional AccountID
 	var accountID *uuid.UUID
-	if p.AccountID != nil {
+	if len(p.AccountID) != 0 {
 		parsedAccountID, err := uuid.FromBytes(p.AccountID)
 		if err != nil {
 			return res, errors.BadRequest.Wrap(err)

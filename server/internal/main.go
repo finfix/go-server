@@ -271,13 +271,13 @@ func run() error {
 	r.Handle("/metrics", promhttp.Handler())
 
 	// Создаем слушателя порта для gRPC-сервера
-	grpcLn, err := net.Listen("tcp", conf.Port.GRPC)
+	grpcLn, err := net.Listen("tcp", conf.Listen.GRPC)
 	if err != nil {
 		return errors.InternalServer.Wrap(err)
 	}
 	defer grpcLn.Close()
 
-	server, err := httpServer.GetDefaultServer(conf.Port.HTTP, r)
+	server, err := httpServer.GetDefaultServer(conf.Listen.HTTP, r)
 	if err != nil {
 		return err
 	}
@@ -288,14 +288,14 @@ func run() error {
 	// Запускаем HTTP-сервер
 	eg.Go(func() error {
 
-		log.Info(fmt.Sprintf("Server is listening: %s", conf.Port.HTTP))
+		log.Info(fmt.Sprintf("Server is listening: %s", conf.Listen.HTTP))
 
 		return server.Serve()
 	})
 
 	// Создаем горутину на запуск gRPC-сервера
 	eg.Go(func() error {
-		log.Info(fmt.Sprintf("gRPC server is listening: %v", conf.Port.GRPC))
+		log.Info(fmt.Sprintf("gRPC server is listening: %v", conf.Listen.GRPC))
 		if err := grpcServer.Serve(grpcLn); err != nil {
 			if errors.Is(err, grpc.ErrServerStopped) {
 				return nil

@@ -12,9 +12,9 @@ import (
 type Config struct {
 
 	// Адрес для http-сервера
-	Port struct {
-		HTTP string `env:"PORT_HTTP"`
-		GRPC string `env:"PORT_GRPC"`
+	Listen struct {
+		HTTP string `env:"LISTEN_HTTP"`
+		GRPC string `env:"LISTEN_GRPC"`
 	}
 
 	// Данные базы данных

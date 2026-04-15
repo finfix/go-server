@@ -4,7 +4,7 @@ name: coin
 services:
   postgres:
     image: postgres:latest
-    restart: always
+    restart: on-failure
     environment:
       POSTGRES_MAX_CONNECTIONS: 1000
       POSTGRES_PASSWORD: password

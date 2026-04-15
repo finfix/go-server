@@ -1,0 +1,18 @@
+POST api.bonavii.com/auth/signIn
+DeviceID: IDE
+
+{
+    "application": {
+        "build": "build",
+        "bundleID": "bundleID",
+        "version": "version"
+    },
+    "device": {
+        "deviceName": "name",
+        "modelName": "modelName",
+        "nameOS": "iOS",
+        "versionOS": "version"
+    },
+    "email": "bonavii@icloud.com",
+    "password": "zidhab-nazmes-7vovQe"
+}

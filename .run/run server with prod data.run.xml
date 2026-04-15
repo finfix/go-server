@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run server with prod data" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="Server" />
+    <module name="server" />
     <working_directory value="$PROJECT_DIR$" />
     <envs>
       <env name="API_KEY_CURRENCY_PROVIDER" value="" />
@@ -20,9 +20,10 @@
       <env name="OTLP_INSECURE" value="true" />
       <env name="OTLP_IS_ENABLED" value="false" />
       <env name="PGSQL_DATABASE" value="coin_prod" />
-      <env name="PGSQL_HOST" value="localhost:6131" />
+      <env name="PGSQL_HOST" value="localhost:6134" />
       <env name="PGSQL_PASSWORD" value="password" />
       <env name="PGSQL_USER" value="postgres" />
+      <env name="LISTEN_GRPC" value="0.0.0.0:8090" />
       <env name="SERVER_DB_PASSWORD" value="password" />
       <env name="SERVICE_NAME" value="server" />
       <env name="SHA_SALT" value="salt" />

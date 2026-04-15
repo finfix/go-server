@@ -6,7 +6,7 @@ import (
 )
 
 type Currency struct {
-	Slug   string          `json:"isoCode" db:"Slug"`  // Сигнатура валюты
+	Slug   string          `json:"isoCode" db:"slug"`  // Сигнатура валюты
 	Name   string          `json:"name" db:"name"`     // Название валюты
 	Symbol string          `json:"symbol" db:"symbol"` // Символ валюты
 	Rate   decimal.Decimal `json:"rate" db:"rate"`     // Курс валюты
