@@ -25,10 +25,7 @@ func (r *AccountPermissionsRepository) GetAccountPermissions(ctx context.Context
 	defer span.End()
 
 	// Проверяем наличие данных в кэше
-	var ok bool
-	if permissionSet, ok = r.cache.Get(struct{}{}); ok {
-		return permissionSet, nil
-	}
+	permissionSet = r.cache.Get(struct{}{})
 
 	log.WithContextParams(ctx).Info("Обновляем кэш с пермишенами на действия со счетами")
 

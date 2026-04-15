@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"time"
-
 	"go.opentelemetry.io/otel"
 
 	"pkg/cache"
@@ -21,6 +19,6 @@ type AccountPermissionsRepository struct {
 func NewAccountPermissionsRepository(db *sql.DB) *AccountPermissionsRepository {
 	return &AccountPermissionsRepository{
 		db:    db,
-		cache: cache.NewItemCache[struct{}, model.PermissionSet](time.Minute),
+		cache: cache.NewItemCache[struct{}, model.PermissionSet](),
 	}
 }

@@ -20,10 +20,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uu
 	defer span.End()
 
 	// Проверяем наличие данных в кэше
-	var ok bool
-	if accessedAccountGroupIDs, ok = r.accessedAccountGroupIDsCache.Get(userID); ok {
-		return accessedAccountGroupIDs, nil
-	}
+	accessedAccountGroupIDs = r.accessedAccountGroupIDsCache.Get(userID)
 
 	log.WithContextParams(ctx).Info("Обновляем кэш с доступами пользователей к группам счетов")
 

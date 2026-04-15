@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run server with local data" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="Server" />
+    <module name="server" />
     <working_directory value="$PROJECT_DIR$" />
     <parameters value="-log-format=text -env-mode=local" />
     <envs>

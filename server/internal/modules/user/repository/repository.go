@@ -1,10 +1,9 @@
 package repository
 
 import (
-	"time"
+	"go.opentelemetry.io/otel"
 
 	"github.com/google/uuid"
-	"go.opentelemetry.io/otel"
 
 	"pkg/cache"
 	"pkg/sql"
@@ -20,6 +19,6 @@ type UserRepository struct {
 func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{
 		db:                           db,
-		accessedAccountGroupIDsCache: cache.NewItemCache[uuid.UUID, []uuid.UUID](time.Minute),
+		accessedAccountGroupIDsCache: cache.NewItemCache[uuid.UUID, []uuid.UUID](),
 	}
 }
