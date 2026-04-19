@@ -1,9 +1,0 @@
-GET {{host}}/account
-    ?accountGroupIDs=
-    &accountingInCharts=
-    &accountingInHeader=
-    &dateFrom=
-    &dateTo=
-    &type=
-    &visible=
-Authorization: {{authToken}}

@@ -4,13 +4,15 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/google/uuid"
+
 	"pkg/reflectUtils"
 	"server/internal/utils/contextKeys"
 	"server/internal/utils/errors"
 )
 
 type NecessaryUserInformation struct {
-	UserID   uint32 `json:"-" schema:"-" validate:"required" minimum:"1"` // Идентификатор пользователя
+	UserID   uuid.UUID `json:"-" schema:"-" validate:"required" minimum:"1"` // Идентификатор пользователя
 	DeviceID string `json:"-" schema:"-" validate:"required"`             // Идентификатор устройства
 }
 

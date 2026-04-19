@@ -12,7 +12,10 @@ import (
 type Config struct {
 
 	// Адрес для http-сервера
-	HTTP string `env:"LISTEN_HTTP"`
+	Listen struct {
+		HTTP string `env:"LISTEN_HTTP"`
+		GRPC string `env:"LISTEN_GRPC"`
+	}
 
 	// Данные базы данных
 	Pgsql pgsql.PgsqlConfigEnv

@@ -6,7 +6,7 @@ on:
       image_name:
         required: true
         type: string
-      ansible_playbook_filename:
+      make_command:
         required: true
         type: string
       devops_repository:
@@ -59,6 +59,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ inputs.image_name }}:latest
             ${{ env.REGISTRY }}/${{ inputs.image_name }}:build-${{ github.run_id }}
           build-args: |
+            CI_JOB_TOKEN=${{ secrets.PAT_TOKEN }}
             VERSION=${{ env.VERSION }}
             BUILD=${{ github.run_id }}
             BUILD_DATE=${{ env.BUILD_DATE }}
@@ -67,10 +68,10 @@ jobs:
   ansible-deploy:
     needs: docker-build-and-push
     runs-on: ubuntu-latest
-    container: 
+    container:
       image: willhallonline/ansible:latest
     steps:
-        # Переключаемся в devops репозиторий
+      # Переключаемся в devops репозиторий
       - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.devops_repository }}
@@ -80,15 +81,20 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa_github
-          chmod 600 ~/.ssh/id_rsa_github
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519_devops_coin
+          chmod 600 ~/.ssh/id_ed25519_devops_coin
 
-        # Создаем файл с паролем для Ansible Vault
+      - name: Install Make
+        run: |
+          apk update && apk add make
+
+      # Создаем файл с паролем для Ansible Vault
       - name: Make file with vault password
         run: |
-          echo "${{ secrets.VAULT_PASSWORD }}" > .vault_password
+          VAULT_PASSWORD=${{ secrets.VAULT_PASSWORD }} make add-ansible-vault-password
+
 
         # Устанавливаем переменные окружения
       - name: Run Ansible playbook
         run: |
-          ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts.ini playbooks/${{ inputs.ansible_playbook_filename }} --vault-password-file .vault_password
+          ANSIBLE_HOST_KEY_CHECKING=False make ${{ inputs.make_command }}

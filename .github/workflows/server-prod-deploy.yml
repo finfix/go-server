@@ -12,6 +12,6 @@ jobs:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       image_name: ${{ github.repository }}
-      ansible_playbook_filename: deploy-go-server.yml
+      make_command: deploy-go-server
       devops_repository: finfix/devops
     secrets: inherit

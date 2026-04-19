@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run server with prod data" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="Server" />
+    <module name="server" />
     <working_directory value="$PROJECT_DIR$" />
     <envs>
       <env name="API_KEY_CURRENCY_PROVIDER" value="" />
@@ -8,6 +8,7 @@
       <env name="AUTH_REFRESH_TOKEN_TTL" value="720h" />
       <env name="AUTH_TOKEN_SIGNING_KEY" value="signingKey" />
       <env name="ENVIRONMENT" value="local" />
+      <env name="LISTEN_GRPC" value="0.0.0.0:8090" />
       <env name="LISTEN_HTTP" value="0.0.0.0:8080" />
       <env name="LOG_FORMAT" value="text" />
       <env name="LOG_LEVEL" value="debug" />

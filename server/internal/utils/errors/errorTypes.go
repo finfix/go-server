@@ -41,8 +41,8 @@ var NotFound = errors.ErrorType{
 	HumanText: "Данные не найдены",
 }
 
-var Teapot = errors.ErrorType{
+var ContextCancelled = errors.ErrorType{
 	HTTPCode:  http.StatusTeapot,
 	LogAs:     errors.LogAsWarning,
-	HumanText: "Разработчик забыл написать текст ошибки",
+	HumanText: "Вышел таймаут запроса",
 }
