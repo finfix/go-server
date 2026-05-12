@@ -25,7 +25,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 
 		if err := s.settingsService.UpdateCurrencies(ctx, model.UpdateCurrenciesReq{
 			Necessary: necessary.NecessaryUserInformation{
-				UserID:   uuid.New(),
+				UserID:   uuid.Nil,
 				DeviceID: "system",
 			},
 		}); err != nil {

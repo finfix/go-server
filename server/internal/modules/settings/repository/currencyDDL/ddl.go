@@ -9,7 +9,7 @@ const (
 )
 
 const (
-	ColumnSlug   = "signatura"
+	ColumnSlug   = "slug"
 	ColumnName   = "name"
 	ColumnRate   = "rate"
 	ColumnSymbol = "symbol"

@@ -54,11 +54,17 @@ func NewUserService(
 	generalRepository GeneralRepository,
 	pushNotificator PushNotificatorService,
 	generalSalt []byte,
-) *UserService {
-	return &UserService{
+) (*UserService, error) {
+	s := &UserService{
 		userRepository:    userRepository,
 		generalRepository: generalRepository,
 		pushNotificator:   pushNotificator,
 		generalSalt:       generalSalt,
 	}
+
+	if err := s.initializeRootAdmin(context.Background()); err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }

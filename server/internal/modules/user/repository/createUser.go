@@ -24,7 +24,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user userModel.CreateRe
 			userDDL.ColumnTimeCreate:      user.TimeCreate,
 			userDDL.ColumnDefaultCurrency: user.DefaultCurrency,
 			userDDL.ColumnPasswordSalt:    user.PasswordSalt,
-			userDDL.ColumnIsAdmin:         false,
+			userDDL.ColumnIsAdmin:         user.IsAdmin,
 		}),
 	)
 }

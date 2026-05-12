@@ -19,6 +19,7 @@ type CreateReq struct {
 	PasswordSalt    []byte
 	TimeCreate      time.Time
 	DefaultCurrency string
+	IsAdmin         bool
 }
 
 type GetUserReq struct {

@@ -179,12 +179,15 @@ func run() error {
 
 	accountPermissionsService := accountPermisssionsService.NewAccountPermissionsService(accountPermissionsRepository)
 
-	userService := userService.NewUserService(
+	userService, err := userService.NewUserService(
 		userRepository,
 		transactor,
 		pushNotificatorService,
 		[]byte(conf.Auth.GeneralSalt),
 	)
+	if err != nil {
+		return err
+	}
 
 	accountGroupService := accountGroupService.NewAccountGroupService(
 		accountGroupRepository,
