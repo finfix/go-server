@@ -26,15 +26,6 @@ type SettingsEndpoint struct {
 	settingsService SettingsService
 }
 
-func (e *SettingsEndpoint) UpdateCurrencies(ctx context.Context, request *proto.UpdateCurrenciesRequest) (*proto.UpdateCurrenciesResponse, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (e *SettingsEndpoint) SendNotification(ctx context.Context, request *proto.SendNotificationRequest) (*proto.SendNotificationResponse, error) {
-	// TODO implement me
-	panic("implement me")
-}
 
 func NewSettingsEndpoint(settingsService SettingsService) *SettingsEndpoint {
 	return &SettingsEndpoint{
