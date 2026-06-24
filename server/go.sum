@@ -132,8 +132,8 @@ github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5Kwzbycv
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
-github.com/finfix/go-server-grpc v1.0.2 h1:RU+xz09MjnB/192G10eeSRf9CwhY0IfouiALM2WIIdA=
-github.com/finfix/go-server-grpc v1.0.2/go.mod h1:a1/BXRpZz2RrROilF4JnhtbcLKqQApPUTSd+LDpagXM=
+github.com/finfix/go-server-grpc v1.0.7 h1:Ddh20b0PN28pspIt3DpJeCcI90CpwCHojpuznuAoC3Q=
+github.com/finfix/go-server-grpc v1.0.7/go.mod h1:a1/BXRpZz2RrROilF4JnhtbcLKqQApPUTSd+LDpagXM=
 github.com/frankban/quicktest v1.14.3/go.mod h1:mgiwOwqx65TmIk1wJ6Q7wvnVMocbUorkibMOrVTHZps=
 github.com/fsnotify/fsnotify v1.5.4/go.mod h1:OVB6XrOHzAwXMpEM7uPOzcehqUV2UqJxmVXmkdnm1bU=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=

@@ -10,9 +10,10 @@ replace pkg => ../pkg
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/finfix/go-server-grpc v1.0.2
+	github.com/finfix/go-server-grpc v1.0.7
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.7.1
 	github.com/pressly/goose/v3 v3.22.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/robfig/cron/v3 v3.0.1
@@ -44,7 +45,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
