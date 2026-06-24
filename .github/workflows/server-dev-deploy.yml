@@ -11,6 +11,6 @@ jobs:
     uses: finfix/devops/.github/workflows/reusable-deploy.yml@main
     with:
       image_name: ${{ github.repository }}-dev
-      make_command: deploy-go-server-dev
+      make_command: deploy-coin-server-dev
       devops_repository: finfix/devops
     secrets: inherit
