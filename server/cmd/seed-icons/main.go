@@ -68,14 +68,7 @@ func main() {
 		}
 		name := strings.TrimSuffix(e.Name(), ext)
 
-		// UPSERT по name: если иконка с таким именем уже есть — обновляем img,
-		// иначе вставляем новую с автогенерированным uuid.
-		_, err = db.ExecContext(ctx, `
-			INSERT INTO coin.icons (id, name, img)
-			VALUES (gen_random_uuid(), $1, $2)
-			ON CONFLICT (name) DO UPDATE SET img = EXCLUDED.img
-		`, name, data)
-		if err != nil {
+		if err := upsertIcon(ctx, db, name, data); err != nil {
 			log.Fatalf("upsert %s: %v", name, err)
 		}
 		fmt.Printf("loaded %s (%d bytes)\n", name, len(data))
@@ -83,4 +76,31 @@ func main() {
 	}
 
 	fmt.Printf("done, %d icons loaded\n", loaded)
+}
+
+func upsertIcon(ctx context.Context, db *sql.DB, name string, data []byte) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	res, err := tx.ExecContext(ctx,
+		`UPDATE coin.icons SET img = $2 WHERE name = $1`, name, data)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		_, err = tx.ExecContext(ctx,
+			`INSERT INTO coin.icons (id, name, img) VALUES (gen_random_uuid(), $1, $2)`,
+			name, data)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
