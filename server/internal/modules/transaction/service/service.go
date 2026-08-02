@@ -9,8 +9,6 @@ import (
 	accountRepository "server/internal/modules/account/repository"
 	accountRepoModel "server/internal/modules/account/repository/model"
 	accountService "server/internal/modules/account/service"
-	"server/internal/modules/accountPermissions/model"
-	"server/internal/modules/accountPermissions/service"
 	tagModel "server/internal/modules/tag/model"
 	tagRepository "server/internal/modules/tag/repository"
 	tagService "server/internal/modules/tag/service"
@@ -30,7 +28,6 @@ type TransactionService struct {
 	accountRepository     AccountRepository
 	accountService        AccountService
 	generalRepository     Transactor
-	permissionsService    AccountPermissionsService
 	tagRepository         TagRepository
 	userService           UserService
 	tagService            TagService
@@ -51,12 +48,6 @@ type TransactionRepository interface {
 	GetTransactions(context.Context, transactionModel.GetTransactionsReq) (res []transactionModel.Transaction, err error)
 
 	CheckAccess(ctx context.Context, accountGroupIDs, transactionIDs []uuid.UUID) error
-}
-
-var _ AccountPermissionsService = new(service.AccountPermissionsService)
-
-type AccountPermissionsService interface {
-	GetAccountsPermissions(context.Context, ...accountModel.Account) ([]model.AccountPermissions, error)
 }
 
 var _ AccountRepository = new(accountRepository.AccountRepository)
@@ -95,7 +86,6 @@ func NewTransactionService(
 	transactionRepository TransactionRepository,
 	accountRepository AccountRepository,
 	transactor Transactor,
-	accountPermissions AccountPermissionsService,
 	tagRepository TagRepository,
 	userService UserService,
 	accountService AccountService,
@@ -105,7 +95,6 @@ func NewTransactionService(
 		transactionRepository: transactionRepository,
 		accountRepository:     accountRepository,
 		generalRepository:     transactor,
-		permissionsService:    accountPermissions,
 		tagRepository:         tagRepository,
 		userService:           userService,
 		accountService:        accountService,

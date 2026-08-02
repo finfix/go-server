@@ -54,7 +54,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 	}
 
 	// Получаем разрешения счетов
-	permissionsArr, err := s.permissionsService.GetAccountsPermissions(ctx, accountsMap[transaction.AccountFromID], accountsMap[transaction.AccountToID])
+	permissionsArr, err := accountModel.GetAccountsPermissions(accountsMap[transaction.AccountFromID], accountsMap[transaction.AccountToID])
 	if err != nil {
 		return transactionModel.CreateTransactionRes{}, err
 	}

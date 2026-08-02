@@ -6,10 +6,9 @@ import (
 	"server/internal/utils/errors"
 
 	accountModel "server/internal/modules/account/model"
-	accountPermissionsModel "server/internal/modules/accountPermissions/model"
 )
 
-func CheckAccountPermissionsForUpdate(ctx context.Context, req accountModel.UpdateAccountReq, permissions accountPermissionsModel.AccountPermissions) error {
+func CheckAccountPermissionsForUpdate(ctx context.Context, req accountModel.UpdateAccountReq, permissions accountModel.AccountPermissions) error {
 
 	if (req.Budget.DaysOffset != nil || req.Budget.Amount != nil || req.Budget.FixedSum != nil || req.Budget.GradualFilling != nil) && !permissions.UpdateBudget {
 		return errors.Forbidden.New("Нельзя менять бюджет").WithContextParams(ctx)

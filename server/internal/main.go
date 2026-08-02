@@ -39,8 +39,6 @@ import (
 	accountGroupEndpointGRPC "server/internal/modules/accountGroup/endpoint/grpc"
 	accountGroupRepository "server/internal/modules/accountGroup/repository"
 	accountGroupService "server/internal/modules/accountGroup/service"
-	accountPermisssionsRepository "server/internal/modules/accountPermissions/repository"
-	accountPermisssionsService "server/internal/modules/accountPermissions/service"
 	authEndpointGRPC "server/internal/modules/auth/endpoint/grpc"
 	authService "server/internal/modules/auth/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
@@ -152,7 +150,6 @@ func run() error {
 	transactionRepository := transactionRepository.NewTransactionRepository(pgsql)
 	settingsRepository := settingsRepository.NewSettingsRepository(pgsql)
 	userRepository := userRepository.NewUserRepository(pgsql)
-	accountPermissionsRepository := accountPermisssionsRepository.NewAccountPermissionsRepository(pgsql)
 
 	// Регистрируем сервисы
 	log.Info("Инициализируем Telegram-бота")
@@ -173,8 +170,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
-	accountPermissionsService := accountPermisssionsService.NewAccountPermissionsService(accountPermissionsRepository)
 
 	userService, err := userService.NewUserService(
 		userRepository,
@@ -197,7 +192,6 @@ func run() error {
 		transactor,
 		transactionRepository,
 		userRepository,
-		accountPermissionsService,
 		accountGroupService,
 		userService,
 	)
@@ -213,7 +207,6 @@ func run() error {
 		transactionRepository,
 		accountRepository,
 		transactor,
-		accountPermissionsService,
 		tagRepository,
 		userService,
 		accountService,

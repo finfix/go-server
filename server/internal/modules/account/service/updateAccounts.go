@@ -32,7 +32,7 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	}
 
 	// Проверяем, что входные данные не противоречат разрешениям
-	permissions, err := slices.FirstWithError(s.accountPermissionsService.GetAccountsPermissions(ctx, account))
+	permissions, err := model.GetAccountPermissions(account)
 	if err != nil {
 		return err
 	}
