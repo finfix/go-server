@@ -327,7 +327,7 @@ func run() error {
 
 func initSingletons(conf config.Config) error {
 
-	stackTrace.Init(conf.ServiceName, true, 1)
+	stackTrace.Init("", true, 1)
 
 	// Конфигурируем decimal, чтобы в JSON не было кавычек
 	decimal.MarshalJSONWithoutQuotes = true
