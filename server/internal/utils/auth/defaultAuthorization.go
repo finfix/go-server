@@ -21,7 +21,7 @@ func DefaultAuthorization(ctx context.Context, r *http.Request) (context.Context
 	defer span.End()
 
 	// Пытаемся распарсить токен
-	claims, jwtErr := jwtManager.ParseToken[Claims](r.Header.Get(authorizationHeader), jwtManager.AccessToken)
+	claims, jwtErr := jwtManager.ParseToken[Claims](ctx, r.Header.Get(authorizationHeader), jwtManager.AccessToken)
 	if jwtErr != nil && !pkgErrors.Is(jwtErr, jwtManager.ErrTokenExpired) {
 		return ctx, errors.Forbidden.Wrap(jwtErr)
 	}

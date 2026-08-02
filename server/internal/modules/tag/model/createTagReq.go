@@ -1,11 +1,13 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 
-	"pkg/datetime"
-	"server/internal/utils/necessary"
 	"server/internal/utils/errors"
+	"server/internal/utils/necessary"
+
 	"github.com/finfix/go-server-grpc/proto"
 
 	repoModel "server/internal/modules/tag/repository/model"
@@ -13,10 +15,10 @@ import (
 
 type CreateTagReq struct {
 	Necessary      necessary.NecessaryUserInformation
-	ID             uuid.UUID     `json:"id" validate:"required"`             // Идентификатор тега
-	AccountGroupID uuid.UUID     `json:"accountGroupID" validate:"required"` // Идентификатор группы счетов
-	Name           string        `json:"name" validate:"required"`           // Название подкатегории
-	DatetimeCreate datetime.Time `json:"datetimeCreate" validate:"required"` // Дата создания подкатегории
+	ID             uuid.UUID `json:"id" validate:"required"`             // Идентификатор тега
+	AccountGroupID uuid.UUID `json:"accountGroupID" validate:"required"` // Идентификатор группы счетов
+	Name           string    `json:"name" validate:"required"`           // Название подкатегории
+	DatetimeCreate time.Time `json:"datetimeCreate" validate:"required"` // Дата создания подкатегории
 }
 
 func (s CreateTagReq) ConvertToRepoReq() repoModel.CreateTagReq {
@@ -25,7 +27,7 @@ func (s CreateTagReq) ConvertToRepoReq() repoModel.CreateTagReq {
 		Name:            s.Name,
 		AccountGroupID:  s.AccountGroupID,
 		CreatedByUserID: s.Necessary.UserID,
-		DatetimeCreate:  s.DatetimeCreate.Time,
+		DatetimeCreate:  s.DatetimeCreate,
 	}
 }
 
@@ -58,12 +60,11 @@ func (p ProtoCreateTagReq) ConvertToModel() (CreateTagReq, error) {
 	if p.DatetimeCreate == nil {
 		return res, errors.BadRequest.New("DatetimeCreate is required")
 	}
-	datetimeCreate := datetime.Time{Time: p.DatetimeCreate.AsTime()}
 
 	return CreateTagReq{
 		ID:             id,
 		AccountGroupID: accountGroupID,
 		Name:           p.Name,
-		DatetimeCreate: datetimeCreate,
+		DatetimeCreate: p.DatetimeCreate.AsTime(),
 	}, nil
 }

@@ -10,6 +10,7 @@
       <env name="ENVIRONMENT" value="local" />
       <env name="LISTEN_GRPC" value="0.0.0.0:8090" />
       <env name="LISTEN_HTTP" value="0.0.0.0:8080" />
+      <env name="LISTEN_SERVICE_HTTP" value="0.0.0.0:8081" />
       <env name="LOG_FORMAT" value="text" />
       <env name="LOG_LEVEL" value="debug" />
       <env name="LOG_PKG_WARN_ENABLED" value="false" />

@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"time"
 
 	"pkg/pointer"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"pkg/datetime"
 	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 )
@@ -22,7 +22,7 @@ type UpdateTransactionReq struct {
 	Note               *string          `json:"note"`                                                         // Заметка для транзакции
 	AccountFromID      *uuid.UUID       `json:"accountFromID" minimum:"1"`                                    // Идентификатор счета списания
 	AccountToID        *uuid.UUID       `json:"accountToID" minimum:"1"`                                      // Идентификатор счета пополнения
-	DateTransaction    *datetime.Date   `json:"dateTransaction" format:"date" swaggertype:"primitive,string"` // Дата транзакции
+	DateTransaction    *time.Time       `json:"dateTransaction" format:"date" swaggertype:"primitive,string"` // Дата транзакции
 	IsExecuted         *bool            `json:"isExecuted"`                                                   // Исполнена операция или нет (если нет, сделки как бы не существует)
 	TagIDs             *[]uuid.UUID     `json:"tagIDs"`                                                       // Идентификаторы тегов
 	AccountingInCharts *bool            `json:"accountingInCharts"`                                           // Учитывается ли транзакция в графиках или нет
@@ -89,9 +89,9 @@ func (p ProtoUpdateTransactionReq) ConvertToModel() (UpdateTransactionReq, error
 	}
 
 	// Convert optional date transaction
-	var dateTransaction *datetime.Date
+	var dateTransaction *time.Time
 	if p.DateTransaction != nil {
-		dateTransaction = &datetime.Date{Time: p.DateTransaction.AsTime()}
+		dateTransaction = pointer.Pointer(p.DateTransaction.AsTime())
 	}
 
 	// Convert optional tag IDs

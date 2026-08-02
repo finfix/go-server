@@ -60,7 +60,7 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 		}
 
 		// Создаем пару токенов
-		accessData.Tokens, err = utils.CreatePairTokens(accessData.ID, loginData.DeviceID)
+		accessData.Tokens, err = utils.CreatePairTokens(ctx, accessData.ID, loginData.DeviceID)
 		if err != nil {
 			return err
 		}

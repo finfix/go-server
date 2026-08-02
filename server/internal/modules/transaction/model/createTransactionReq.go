@@ -3,12 +3,12 @@ package model
 import (
 	"context"
 	"server/internal/enum/transactionType"
+	"time"
 
+	"github.com/finfix/go-server-grpc/proto"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/finfix/go-server-grpc/proto"
 
-	"pkg/datetime"
 	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 
@@ -16,8 +16,8 @@ import (
 )
 
 type CreateTransactionReq struct {
-	Necessary          necessary.NecessaryUserInformation
-	ID uuid.UUID `json:"id" validate:"required"` // Идентификатор транзакции
+	Necessary necessary.NecessaryUserInformation
+	ID        uuid.UUID `json:"id" validate:"required"` // Идентификатор транзакции
 
 	Type               transactionType.TransactionType `json:"type" validate:"required"`                                                         // Тип транзакции
 	AmountFrom         decimal.Decimal                 `json:"amountFrom" validate:"required" minimum:"1"`                                       // Сумма списания с первого счета
@@ -25,10 +25,10 @@ type CreateTransactionReq struct {
 	Note               string                          `json:"note"`                                                                             // Заметка для транзакции
 	AccountFromID      uuid.UUID                       `json:"accountFromID" validate:"required" minimum:"1"`                                    // Идентификатор счета списания
 	AccountToID        uuid.UUID                       `json:"accountToID" validate:"required" minimum:"1"`                                      // Идентификатор счета пополнения
-	DateTransaction    datetime.Date                   `json:"dateTransaction" validate:"required" format:"date" swaggertype:"primitive,string"` // Дата транзакции
+	DateTransaction    time.Time                       `json:"dateTransaction" validate:"required" format:"date" swaggertype:"primitive,string"` // Дата транзакции
 	IsExecuted         *bool                           `json:"isExecuted" validate:"required"`                                                   // Исполнена операция или нет (если нет, сделки как бы не существует)
 	TagIDs             []uuid.UUID                     `json:"tagIDs"`                                                                           // Идентификаторы тегов
-	DatetimeCreate     datetime.Time                   `json:"datetimeCreate" validate:"required"`                                               // Дата создания транзакции
+	DatetimeCreate     time.Time                       `json:"datetimeCreate" validate:"required"`                                               // Дата создания транзакции
 	AccountingInCharts *bool                           `json:"accountingInCharts" validate:"required"`                                           // Учитывается ли транзакция в графиках или нет
 	AccountGroupID     uuid.UUID                       `json:"accountGroupID" validate:"required" minimum:"1"`                                   // Идентификатор группы счетов
 }
@@ -57,7 +57,7 @@ func (s *CreateTransactionReq) ConvertToRepoReq() model.CreateTransactionReq {
 		DateTransaction:    s.DateTransaction,
 		IsExecuted:         *s.IsExecuted,
 		CreatedByUserID:    s.Necessary.UserID,
-		DatetimeCreate:     s.DatetimeCreate.Time,
+		DatetimeCreate:     s.DatetimeCreate,
 		AccountingInCharts: *s.AccountingInCharts,
 		AccountGroupID:     s.AccountGroupID,
 	}
@@ -110,13 +110,12 @@ func (p ProtoCreateTransactionReq) ConvertToModel() (CreateTransactionReq, error
 	if p.DatetimeCreate == nil {
 		return res, errors.BadRequest.New("DatetimeCreate is required")
 	}
-	datetimeCreate := datetime.Time{Time: p.DatetimeCreate.AsTime()}
+	datetimeCreate := p.DatetimeCreate.AsTime()
 
 	// Convert date transaction
 	if p.DateTransaction == nil {
 		return res, errors.BadRequest.New("DateTransaction is required")
 	}
-	dateTransaction := datetime.Date{Time: p.DateTransaction.AsTime()}
 
 	// Convert tag IDs
 	var tagIDs []uuid.UUID
@@ -136,7 +135,7 @@ func (p ProtoCreateTransactionReq) ConvertToModel() (CreateTransactionReq, error
 		Note:               p.Note,
 		AccountFromID:      accountFromID,
 		AccountToID:        accountToID,
-		DateTransaction:    dateTransaction,
+		DateTransaction:    p.DateTransaction.AsTime(),
 		IsExecuted:         &p.IsExecuted,
 		TagIDs:             tagIDs,
 		DatetimeCreate:     datetimeCreate,

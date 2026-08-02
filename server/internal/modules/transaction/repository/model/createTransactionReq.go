@@ -6,8 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-
-	"pkg/datetime"
 )
 
 type CreateTransactionReq struct {
@@ -18,7 +16,7 @@ type CreateTransactionReq struct {
 	Note               string
 	AccountFromID      uuid.UUID
 	AccountToID        uuid.UUID
-	DateTransaction    datetime.Date
+	DateTransaction    time.Time
 	IsExecuted         bool
 	CreatedByUserID    uuid.UUID
 	DatetimeCreate     time.Time

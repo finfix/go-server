@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"pkg/jwtManager"
 	"server/internal/utils/auth"
 	"server/internal/utils/errors"
+
+	"github.com/google/uuid"
 
 	"server/internal/modules/auth/model"
 	"server/internal/modules/auth/service/utils"
@@ -39,7 +40,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 	}
 
 	// Парсим токен
-	claims, err := jwtManager.ParseToken[auth.Claims](device.RefreshToken, jwtManager.RefreshToken)
+	claims, err := jwtManager.ParseToken[auth.Claims](ctx, device.RefreshToken, jwtManager.RefreshToken)
 	if err != nil {
 		return newTokens, err
 	}
@@ -55,7 +56,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 	}
 
 	// Создаем новую пару токенов
-	newTokens.Tokens, err = utils.CreatePairTokens(req.Necessary.UserID, req.Necessary.DeviceID)
+	newTokens.Tokens, err = utils.CreatePairTokens(ctx, req.Necessary.UserID, req.Necessary.DeviceID)
 	if err != nil {
 		return newTokens, err
 	}

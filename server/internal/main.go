@@ -6,7 +6,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"pkg/gracefulShutdown"
+	fiber2 "pkg/http/fiber"
 	"pkg/log/model"
+	"pkg/middleware"
+	"pkg/stackTrace"
 	"server/internal/metrics"
 	"syscall"
 	"time"
@@ -15,21 +19,19 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/finfix/go-server-grpc/proto"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/pressly/goose/v3"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shopspring/decimal"
 
 	"pkg/database/pgsql"
 	grpcServer "pkg/grpc/server"
-	"pkg/http/router"
-	httpServer "pkg/http/server"
 	"server/internal/utils/grpc/interceptor"
 
 	"pkg/jwtManager"
 	"pkg/log"
 	"pkg/migrator"
 	"pkg/panicRecover"
-	"pkg/trace"
 	"server/internal/config"
 	accountEndpointGRPC "server/internal/modules/account/endpoint/grpc"
 	accountRepository "server/internal/modules/account/repository"
@@ -112,11 +114,6 @@ func run() error {
 	// Инициализируем все синглтоны
 	log.Info("Инициализируем синглтоны")
 	if err = initSingletons(conf); err != nil {
-		return err
-	}
-
-	log.Info("Инициализируем трейсер")
-	if err = trace.StartTracing(conf.Tracer, conf.ServiceName); err != nil {
 		return err
 	}
 
@@ -270,9 +267,6 @@ func run() error {
 	proto.RegisterSettingsEndpointServer(grpcServer, settingsEndpointGRPC.NewSettingsEndpoint(settingsService))
 	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
 
-	r := router.NewRouter()
-	r.Handle("/metrics", promhttp.Handler())
-
 	// Создаем слушателя порта для gRPC-сервера
 	grpcLn, err := net.Listen("tcp", conf.Listen.GRPC)
 	if err != nil {
@@ -280,20 +274,43 @@ func run() error {
 	}
 	defer grpcLn.Close()
 
-	server, err := httpServer.GetDefaultServer(conf.Listen.HTTP, r)
+	// Настраиваем и получаем HTTP-сервер
+	httpServer, err := fiber2.GetDefaultServer(conf.ServiceName, nil)
 	if err != nil {
 		return err
 	}
 
+	// Настраиваем и получаем служебный HTTP-сервер
+	serviceHTTPServer, err := fiber2.GetDefaultServer(conf.ServiceName, nil)
+	if err != nil {
+		return err
+	}
+
+	// Настраиваем служебный HTTP-сервер для pprof
+	serviceHTTPServer.Use(pprof.New())
+
+	// Инициализируем эндпоинты
+	httpServer.Get("/version", middleware.NewVersionHandler(version, build, buildDate, hostname)) // GET /version
+
 	// Создаем wait группу
 	eg, ctx := errgroup.WithContext(ctx)
 
-	// Запускаем HTTP-сервер
+	// Создаем горутину на запуск HTTP-сервера
 	eg.Go(func() error {
+		log.Info(fmt.Sprintf("HTTP server is listening :%v", conf.Listen.HTTP))
+		if err := httpServer.Listen(conf.Listen.HTTP); err != nil {
+			return errors.InternalServer.Wrap(err)
+		}
+		return nil
+	})
 
-		log.Info(fmt.Sprintf("Server is listening: %s", conf.Listen.HTTP))
-
-		return server.Serve()
+	// Создаем горутину на запуск служебного HTTP-сервера
+	eg.Go(func() error {
+		log.Info(fmt.Sprintf("service HTTP server is listening :%v", conf.Listen.ServiceHTTP))
+		if err := serviceHTTPServer.Listen(conf.Listen.ServiceHTTP); err != nil {
+			return errors.InternalServer.Wrap(err)
+		}
+		return nil
 	})
 
 	// Создаем горутину на запуск gRPC-сервера
@@ -308,17 +325,8 @@ func run() error {
 		return nil
 	})
 
-	// Запускаем горутину, ожидающую завершение контекста
-	eg.Go(func() error {
-
-		// Если контекст завершился, значит процесс убили
-		<-ctx.Done()
-
-		// Плавно завершаем работу сервера
-		server.Shutdown(ctx)
-
-		return nil
-	})
+	// Добавляем в группу горутину для graceful shutdown
+	gracefulShutdown.AddGracefulShutdownErrGroup(eg, ctx, []*fiber.App{httpServer, serviceHTTPServer}, []*grpc.Server{grpcServer})
 
 	// Ждем завершения контекста или ошибок в горутинах
 	return eg.Wait()
@@ -326,7 +334,7 @@ func run() error {
 
 func initSingletons(conf config.Config) error {
 
-	// stackTrace.Init(conf.ServiceName, conf.StackTraceEnabled)
+	stackTrace.Init(conf.ServiceName, conf.StackTraceEnabled, 1)
 
 	// Конфигурируем decimal, чтобы в JSON не было кавычек
 	decimal.MarshalJSONWithoutQuotes = true
@@ -341,10 +349,6 @@ func initSingletons(conf config.Config) error {
 		return errors.InternalServer.Wrap(err)
 	}
 	jwtManager.Init([]byte(conf.Auth.SigningKey), accessTokenTTL, refreshTokenTTL)
-
-	// if err = middleware.(conf.ServiceName); err != nil {
-	//	return err
-	// }
 
 	return metrics.Init(conf.ServiceName)
 }

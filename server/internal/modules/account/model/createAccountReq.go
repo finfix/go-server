@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"pkg/datetime"
 	"server/internal/utils/necessary"
 
 	repoModel "server/internal/modules/account/repository/model"
@@ -53,7 +52,7 @@ func (s CreateAccountReq) ConvertToAccount() Account {
 		Rank:               s.Rank,
 		IsParent:           s.IsParent,
 		CreatedByUserID:    s.Necessary.UserID,
-		DatetimeCreate:     datetime.Time{Time: time.Now()},
+		DatetimeCreate:     s.DatetimeCreate,
 		AccountingInCharts: s.AccountingInCharts,
 		AccountBudget: AccountBudget{
 			Amount:         s.Budget.Amount,
