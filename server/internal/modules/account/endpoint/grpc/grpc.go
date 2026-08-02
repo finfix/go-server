@@ -14,7 +14,7 @@ var _ AccountService = new(accountService.AccountService)
 type AccountService interface {
 	CreateAccount(context.Context, model.CreateAccountReq) (model.CreateAccountRes, error)
 	GetAccounts(context.Context, model.GetAccountsReq) ([]model.Account, error)
-	UpdateAccount(context.Context, model.UpdateAccountReq) (model.UpdateAccountRes, error)
+	UpdateAccount(context.Context, model.UpdateAccountReq) error
 	DeleteAccount(context.Context, model.DeleteAccountReq) error
 }
 

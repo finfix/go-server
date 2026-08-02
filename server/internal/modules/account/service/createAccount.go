@@ -3,10 +3,7 @@ package service
 import (
 	"context"
 
-	"pkg/slices"
-
 	"server/internal/modules/account/model"
-	accountRepoModel "server/internal/modules/account/repository/model"
 
 	"github.com/google/uuid"
 )
@@ -42,29 +39,6 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 			return err
 		}
 		res.SerialNumber = serialNumber
-
-		// Если счет создался с остатком
-		if !accountToCreate.Remainder.IsZero() {
-
-			// Получаем счет
-			account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx,
-				accountRepoModel.GetAccountsReq{ //nolint:exhaustruct
-					IDs: []uuid.UUID{accountToCreate.ID},
-				},
-			))
-			if err != nil {
-				return err
-			}
-
-			// Меняем остаток счета созданием транзакции
-			updateRes, err := s.ChangeAccountRemainder(ctxTx, account, accountToCreate.Remainder, accountToCreate.Necessary.UserID)
-			if err != nil {
-				return err
-			}
-			res.BalancingTransactionID = updateRes.BalancingTransactionID
-			res.BalancingAccountID = updateRes.BalancingAccountID
-			res.BalancingAccountSerialNumber = updateRes.BalancingAccountSerialNumber
-		}
 
 		return nil
 	})

@@ -28,7 +28,6 @@ type CreateAccountReq struct {
 	AccountingInHeader bool                    `json:"accountingInHeader"`                                                                // Подсчет суммы счета в статистике
 	AccountingInCharts bool                    `json:"accountingInCharts"`                                                                // Учитывать ли счет в графиках
 	DatetimeCreate     time.Time               `json:"datetimeCreate" validate:"required"`                                                // Дата создания счета
-	Remainder          decimal.Decimal         `json:"remainder"`                                                                         // Остаток средств на счету
 	Budget             *CreateAccountBudgetReq `json:"budget"`                                                                            // Бюджет
 	IsParent           bool                    `json:"isParent"`                                                                          // Является ли счет родительским
 	ParentAccountID    *uuid.UUID              `json:"parentAccountID"`                                                                   // Идентификатор родительского счета
@@ -42,7 +41,6 @@ func (s CreateAccountReq) Validate(ctx context.Context) error {
 func (s CreateAccountReq) ConvertToAccount() Account {
 	return Account{
 		ID:                 s.ID,
-		Remainder:          s.Remainder,
 		Name:               s.Name,
 		IconID:             s.IconID,
 		Type:               s.Type,
@@ -165,11 +163,6 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		parentAccountID = &_parentAccountID
 	}
 
-	var remainder decimal.Decimal
-	if p.Remainder != nil {
-		remainder = decimal.NewFromFloat(*p.Remainder)
-	}
-
 	return CreateAccountReq{
 		ID:                 id,
 		Name:               p.Name,
@@ -180,7 +173,6 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		AccountingInHeader: p.AccountingInHeader,
 		AccountingInCharts: p.AccountingInCharts,
 		DatetimeCreate:     datetimeCreate,
-		Remainder:          remainder,
 		Budget:             budget,
 		IsParent:           p.IsParent,
 		ParentAccountID:    parentAccountID,

@@ -6,7 +6,6 @@ import (
 )
 
 type UpdateAccountReq struct {
-	Remainder          *decimal.Decimal
 	Name               *string
 	IconID             *uuid.UUID
 	Visible            *bool

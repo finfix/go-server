@@ -65,10 +65,7 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uu
 
 		// Проверяем, переданы ли поля для обновления
 		if len(updates) == 0 {
-			if fields.Remainder == nil {
-				return errors.BadRequest.New("No fields to update").WithContextParams(ctx)
-			}
-			return nil
+			return errors.BadRequest.New("No fields to update").WithContextParams(ctx)
 		}
 
 		// Обновляем счет

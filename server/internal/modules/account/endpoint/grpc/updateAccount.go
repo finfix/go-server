@@ -31,8 +31,7 @@ func (e *AccountEndpoint) UpdateAccount(ctx context.Context, r *proto.UpdateAcco
 	}
 
 	// Call service method
-	_, err = e.accountService.UpdateAccount(ctx, req)
-	if err != nil {
+	if err = e.accountService.UpdateAccount(ctx, req); err != nil {
 		return res, err
 	}
 

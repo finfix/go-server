@@ -19,9 +19,5 @@ func CheckAccountPermissionsForUpdate(ctx context.Context, req accountModel.Upda
 		return errors.Forbidden.New("Нельзя менять валюту").WithContextParams(ctx)
 	}
 
-	if req.Remainder != nil && !permissions.UpdateRemainder {
-		return errors.Forbidden.New("Нельзя менять остаток").WithContextParams(ctx)
-	}
-
 	return nil
 }
