@@ -54,8 +54,6 @@ type Config struct {
 	Environment string `env:"ENVIRONMENT"`
 
 	Logger log.LoggerSettingsEnv
-
-	StackTraceEnabled bool `env:"STACK_TRACE_ENABLED"`
 }
 
 func Load() Config {
