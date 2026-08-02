@@ -3,16 +3,14 @@ package model
 import (
 	userModel "server/internal/modules/user/model"
 	"server/internal/utils/errors"
-	"server/internal/utils/necessary"
 
 	"github.com/finfix/go-server-grpc/proto"
 )
 
 type RefreshTokensReq struct {
-	Token       string                             `json:"token" validate:"required"` // Токен восстановления доступа
-	Application userModel.ApplicationInformation   `json:"application"`               // Информация о приложении
-	Device      userModel.DeviceInformation        `json:"device"`                    // Информация о девайсе
-	Necessary   necessary.NecessaryUserInformation `json:"-"`
+	Token       string                            `json:"token" validate:"required"` // Токен восстановления доступа
+	Application userModel.ApplicationInformation  `json:"application"`               // Информация о приложении
+	Device      userModel.DeviceInformation       `json:"device"`                    // Информация о девайсе
 }
 
 func (req *RefreshTokensReq) ConvertToProto() (res proto.RefreshTokensRequest, err error) {
