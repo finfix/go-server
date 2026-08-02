@@ -23,7 +23,7 @@ type Account struct {
 	AccountGroupID     uuid.UUID               `json:"accountGroupID" db:"account_group_id"`                         // Идентификатор группы счета
 	AccountingInHeader bool                    `json:"accountingInHeader" db:"accounting_in_header"`                 // Будет ли счет учитываться в шапке
 	ParentAccountID    *uuid.UUID              `json:"parentAccountID" db:"parent_account_id" validate:"required"`   // Идентификатор родительского аккаунта
-	SerialNumber       uint32                  `json:"serialNumber" db:"serial_number"`                              // Порядковый номер счета
+	Rank               string                  `json:"rank" db:"rank"`                                               // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
 	IsParent           bool                    `json:"isParent" db:"is_parent"`                                      // Является ли счет родительским
 	CreatedByUserID    uuid.UUID               `json:"createdByUserID" db:"created_by_user_id"`                      // Идентификатор пользователя, создавшего счет
 	DatetimeCreate     datetime.Time           `json:"datetimeCreate" db:"datetime_create"`                          // Дата и время создания счета
@@ -69,7 +69,7 @@ func (a Account) ConvertToProto() (*proto.Account, error) {
 		ParentAccountID:    parentAccountID,
 		IsParent:           a.IsParent,
 		IconID:             a.IconID[:],
-		SerialNumber:       a.SerialNumber,
+		Rank:               a.Rank,
 		CreatedByUserID:    a.CreatedByUserID[:],
 		DatetimeCreate:     timestamppb.New(a.DatetimeCreate.Time),
 		Budget:             protoBudget,

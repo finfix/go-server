@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"pkg/ddlHelper"
 	"server/internal/modules/account/repository/accountDDL"
 	accountRepoModel "server/internal/modules/account/repository/model"
 
@@ -11,33 +10,12 @@ import (
 )
 
 // CreateAccount создает новый счет
-func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) (serialNumber uint32, err error) {
+func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRepoModel.CreateAccountReq) error {
 	ctx, span := tracer.Start(ctx, "createAccount")
 	defer span.End()
 
-	// Получаем максимальный серийный номер в группе счетов
-	row, err := r.db.QueryRow(ctx, sq.
-		Select(ddlHelper.Coalesce(
-			ddlHelper.Max(accountDDL.ColumnSerialNumber),
-			"1",
-		)).
-		From(accountDDL.Table).
-		Where(sq.Eq{accountDDL.ColumnAccountGroupID: account.AccountGroupID}),
-	)
-	if err != nil {
-		return serialNumber, err
-	}
-
-	// Сканируем результат
-	if err = row.Scan(&serialNumber); err != nil {
-		return serialNumber, err
-	}
-
-	// Увеличиваем серийный номер для нового элемента
-	serialNumber++
-
 	// Создаем счет
-	return serialNumber, r.db.Exec(ctx, sq.
+	return r.db.Exec(ctx, sq.
 		Insert(accountDDL.Table).
 		SetMap(map[string]any{
 			accountDDL.ColumnID:                   account.ID,
@@ -57,6 +35,6 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account accountRe
 			accountDDL.ColumnParentAccountID:      account.ParentAccountID,
 			accountDDL.ColumnCreatedByUserID:      account.UserID,
 			accountDDL.ColumnDatetimeCreate:       account.DatetimeCreate,
-			accountDDL.ColumnSerialNumber:         serialNumber,
+			accountDDL.ColumnRank:                 account.Rank,
 		}))
 }

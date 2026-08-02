@@ -21,7 +21,7 @@ type UpdateAccountReq struct {
 	AccountingInHeader *bool                  `json:"accountingInHeader"`                 // Будет ли счет учитываться в статистике
 	AccountingInCharts *bool                  `json:"accountingInCharts"`                 // Будет ли счет учитываться в графиках
 	Currency           *string                `json:"currencyCode"`                       // Валюта счета
-	SerialNumber       *uint32                `json:"serialNumber"`                       // Порядковый номер счета
+	Rank               *string                `json:"rank"`                               // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
 	ParentAccountID    *uuid.UUID             `json:"parentAccountID"`                    // Идентификатор родительского счета
 	Budget             UpdateAccountBudgetReq `json:"budget"`                             // Месячный бюджет
 }
@@ -36,7 +36,7 @@ func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
 		Currency:           s.Currency,
 		ParentAccountID:    s.ParentAccountID,
 		Budget:             s.Budget.ConvertToRepoReq(),
-		SerialNumber:       s.SerialNumber,
+		Rank:               s.Rank,
 	}
 }
 
@@ -139,11 +139,6 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		return res, err
 	}
 
-	var serialNumber *uint32
-	if p.SerialNumber != nil {
-		serialNumber = p.SerialNumber
-	}
-
 	return UpdateAccountReq{
 
 		ID:                 id,
@@ -153,7 +148,7 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		Currency:           p.Currency,
 		IconID:             iconID,
 		ParentAccountID:    parentAccountID,
-		SerialNumber:       serialNumber,
+		Rank:               p.Rank,
 		Visible:            p.Visible,
 		Budget:             budget,
 	}, nil

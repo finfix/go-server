@@ -19,6 +19,7 @@ type CreateAccountReq struct {
 	AccountGroupID     uuid.UUID
 	AccountingInHeader bool
 	AccountingInCharts bool
+	Rank               string
 	IsParent           bool
 	ParentAccountID    *uuid.UUID
 	UserID             uuid.UUID

@@ -24,6 +24,7 @@ type CreateAccountReq struct {
 	IconID             uuid.UUID               `json:"iconID" validate:"required" minimum:"1"`                                            // Идентификатор иконки
 	Type               accountType.AccountType `json:"type" validate:"required" enums:"regular,expense,credit,debt,earnings,investments"` // Тип счета
 	Currency           string                  `json:"currency" validate:"required"`                                                      // Валюта счета
+	Rank               string                  `json:"rank" validate:"required"`                                                          // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
 	AccountGroupID     uuid.UUID               `json:"accountGroupID" validate:"required" minimum:"1"`                                    // Группа счета
 	AccountingInHeader bool                    `json:"accountingInHeader"`                                                                // Подсчет суммы счета в статистике
 	AccountingInCharts bool                    `json:"accountingInCharts"`                                                                // Учитывать ли счет в графиках
@@ -49,7 +50,7 @@ func (s CreateAccountReq) ConvertToAccount() Account {
 		AccountGroupID:     s.AccountGroupID,
 		AccountingInHeader: s.AccountingInHeader,
 		ParentAccountID:    s.ParentAccountID,
-		SerialNumber:       0,
+		Rank:               s.Rank,
 		IsParent:           s.IsParent,
 		CreatedByUserID:    s.Necessary.UserID,
 		DatetimeCreate:     datetime.Time{Time: time.Now()},
@@ -75,6 +76,7 @@ func (s CreateAccountReq) ConvertToRepoReq() repoModel.CreateAccountReq {
 		AccountingInHeader: s.AccountingInHeader,
 		AccountingInCharts: s.AccountingInCharts,
 		Budget:             s.Budget.ConvertToRepoReq(),
+		Rank:               s.Rank,
 		IsParent:           s.IsParent,
 		Visible:            true,
 		ParentAccountID:    s.ParentAccountID,
@@ -174,6 +176,7 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		AccountingInCharts: p.AccountingInCharts,
 		DatetimeCreate:     datetimeCreate,
 		Budget:             budget,
+		Rank:               p.Rank,
 		IsParent:           p.IsParent,
 		ParentAccountID:    parentAccountID,
 	}, nil

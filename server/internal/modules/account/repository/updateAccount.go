@@ -52,8 +52,8 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uu
 		if fields.Currency != nil {
 			updates[accountDDL.ColumnCurrency] = *fields.Currency
 		}
-		if fields.SerialNumber != nil {
-			updates[accountDDL.ColumnSerialNumber] = *fields.SerialNumber
+		if fields.Rank != nil {
+			updates[accountDDL.ColumnRank] = *fields.Rank
 		}
 		if fields.ParentAccountID != nil {
 			if *fields.ParentAccountID == uuid.Nil {

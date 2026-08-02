@@ -97,24 +97,6 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	)
 
 	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
-		return s.updateAccounts(ctxTx, account, repoUpdateReqs)
+		return s.accountRepository.UpdateAccount(ctxTx, repoUpdateReqs)
 	})
-}
-
-func (s *AccountService) updateAccounts(ctx context.Context, account model.Account, updateReqs map[uuid.UUID]accountRepoModel.UpdateAccountReq) error {
-
-	// Если передан порядковый номер, то меняем порядковые номера остальных счетов
-	if updateReqs[account.ID].SerialNumber != nil {
-		if err := s.accountRepository.ChangeSerialNumbers(
-			ctx,
-			account.AccountGroupID,
-			*updateReqs[account.ID].SerialNumber,
-			account.SerialNumber,
-		); err != nil {
-			return err
-		}
-	}
-
-	// Редактируем счет
-	return s.accountRepository.UpdateAccount(ctx, updateReqs)
 }

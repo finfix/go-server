@@ -13,7 +13,7 @@ type UpdateAccountReq struct {
 	AccountingInCharts *bool
 	Currency           *string
 	ParentAccountID    *uuid.UUID
-	SerialNumber       *uint32
+	Rank               *string
 	Budget             UpdateAccountBudgetReq
 }
 

@@ -30,19 +30,8 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 		}
 	}
 
-	// Создаем SQL-транзакцию
-	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
-
-		// Создаем счет
-		serialNumber, err := s.accountRepository.CreateAccount(ctx, accountToCreate.ConvertToRepoReq())
-		if err != nil {
-			return err
-		}
-		res.SerialNumber = serialNumber
-
-		return nil
-	})
-	if err != nil {
+	// Создаем счет
+	if err = s.accountRepository.CreateAccount(ctx, accountToCreate.ConvertToRepoReq()); err != nil {
 		return res, err
 	}
 
