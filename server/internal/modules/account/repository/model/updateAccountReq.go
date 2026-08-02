@@ -6,7 +6,6 @@ import (
 )
 
 type UpdateAccountReq struct {
-	Remainder          *decimal.Decimal
 	Name               *string
 	IconID             *uuid.UUID
 	Visible            *bool
@@ -14,7 +13,7 @@ type UpdateAccountReq struct {
 	AccountingInCharts *bool
 	Currency           *string
 	ParentAccountID    *uuid.UUID
-	SerialNumber       *uint32
+	Rank               *string
 	Budget             UpdateAccountBudgetReq
 }
 

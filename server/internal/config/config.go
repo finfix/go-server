@@ -3,7 +3,6 @@ package config
 import (
 	"pkg/env"
 	"pkg/log"
-	"pkg/trace"
 
 	"pkg/database/pgsql"
 )
@@ -13,14 +12,13 @@ type Config struct {
 
 	// Адрес для http-сервера
 	Listen struct {
-		HTTP string `env:"LISTEN_HTTP"`
-		GRPC string `env:"LISTEN_GRPC"`
+		HTTP        string `env:"LISTEN_HTTP"`
+		ServiceHTTP string `env:"LISTEN_SERVICE_HTTP"`
+		GRPC        string `env:"LISTEN_GRPC"`
 	}
 
 	// Данные базы данных
 	Pgsql pgsql.PgsqlConfigEnv
-
-	Tracer trace.TracerConfig
 
 	// Информация для JWT-токенов
 	Auth struct {
@@ -56,8 +54,6 @@ type Config struct {
 	Environment string `env:"ENVIRONMENT"`
 
 	Logger log.LoggerSettingsEnv
-
-	StackTraceEnabled bool `env:"STACK_TRACE_ENABLED"`
 }
 
 func Load() Config {

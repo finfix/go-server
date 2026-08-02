@@ -38,7 +38,7 @@ func (s *AuthService) SignIn(ctx context.Context, loginData model.SignInReq) (ac
 	span1.End()
 
 	// Создаем пару токенов
-	accessData.Tokens, err = utils.CreatePairTokens(user.ID, loginData.DeviceID)
+	accessData.Tokens, err = utils.CreatePairTokens(ctx, user.ID, loginData.DeviceID)
 	if err != nil {
 		return accessData, err
 	}

@@ -12,8 +12,6 @@ import (
 	accountRepository "server/internal/modules/account/repository"
 	accountRepoModel "server/internal/modules/account/repository/model"
 	accountGroupService "server/internal/modules/accountGroup/service"
-	accountPermissionsModel "server/internal/modules/accountPermissions/model"
-	accountPermisssionsService "server/internal/modules/accountPermissions/service"
 	transactionRepository "server/internal/modules/transaction/repository"
 	transactionRepoModel "server/internal/modules/transaction/repository/model"
 	"server/internal/modules/transactor"
@@ -32,12 +30,11 @@ type Transactor interface {
 var _ AccountRepository = new(accountRepository.AccountRepository)
 
 type AccountRepository interface {
-	CreateAccount(context.Context, accountRepoModel.CreateAccountReq) (uint32, error)
+	CreateAccount(context.Context, accountRepoModel.CreateAccountReq) error
 	GetAccounts(context.Context, accountRepoModel.GetAccountsReq) ([]accountModel.Account, error)
 	UpdateAccount(context.Context, map[uuid.UUID]accountRepoModel.UpdateAccountReq) error
 	DeleteAccount(ctx context.Context, id uuid.UUID) error
 
-	ChangeSerialNumbers(ctx context.Context, accountGroupID uuid.UUID, oldValue, newValue uint32) error
 	GetSumAllTransactionsToAccount(context.Context, accountRepoModel.CalculateRemaindersAccountsReq) (map[uuid.UUID]decimal.Decimal, error)
 
 	CheckAccess(context.Context, []uuid.UUID, []uuid.UUID) error
@@ -55,12 +52,6 @@ type UserRepository interface {
 	GetUsers(context.Context, userModel.GetUsersReq) ([]userModel.User, error)
 }
 
-var _ AccountPermissionsService = new(accountPermisssionsService.AccountPermissionsService)
-
-type AccountPermissionsService interface {
-	GetAccountsPermissions(context.Context, ...accountModel.Account) ([]accountPermissionsModel.AccountPermissions, error)
-}
-
 var _ AccountGroupService = new(accountGroupService.AccountGroupService)
 
 type AccountGroupService interface {
@@ -74,13 +65,12 @@ type UserService interface {
 }
 
 type AccountService struct {
-	accountRepository         AccountRepository
-	transactor                Transactor
-	transactionRepository     TransactionRepository
-	userRepository            UserRepository
-	accountPermissionsService AccountPermissionsService
-	accountGroupService       AccountGroupService
-	userService               UserService
+	accountRepository     AccountRepository
+	transactor            Transactor
+	transactionRepository TransactionRepository
+	userRepository        UserRepository
+	accountGroupService   AccountGroupService
+	userService           UserService
 }
 
 func NewAccountService(
@@ -88,17 +78,15 @@ func NewAccountService(
 	transactor Transactor,
 	transactionRepository TransactionRepository,
 	userRepository UserRepository,
-	accountPermissionsService AccountPermissionsService,
 	accountGroupsService AccountGroupService,
 	userService UserService,
 ) *AccountService {
 	return &AccountService{
-		accountRepository:         accountRepository,
-		transactor:                transactor,
-		transactionRepository:     transactionRepository,
-		userRepository:            userRepository,
-		accountPermissionsService: accountPermissionsService,
-		accountGroupService:       accountGroupsService,
-		userService:               userService,
+		accountRepository:     accountRepository,
+		transactor:            transactor,
+		transactionRepository: transactionRepository,
+		userRepository:        userRepository,
+		accountGroupService:   accountGroupsService,
+		userService:           userService,
 	}
 }

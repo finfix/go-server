@@ -2,15 +2,16 @@ package model
 
 import (
 	"context"
+	"pkg/pointer"
 	"server/internal/enum/accountType"
 	"server/internal/utils/errors"
+	"time"
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/google/uuid"
 
-	"pkg/datetime"
-	"server/internal/utils/necessary"
 	repoModel "server/internal/modules/account/repository/model"
+	"server/internal/utils/necessary"
 )
 
 type GetAccountsReq struct {
@@ -19,8 +20,8 @@ type GetAccountsReq struct {
 	AccountingInHeader *bool                    `json:"accountingInHeader" schema:"accountingInHeader"`                              // Учитывать ли счет в шапке
 	AccountingInCharts *bool                    `json:"accountingInCharts" schema:"accountingInCharts"`                              // Учитывать ли счет в графиках
 	AccountGroupIDs    []uuid.UUID              `json:"accountGroupIDs" schema:"accountGroupIDs" minimum:"1"`                        // Идентификаторы групп счетов
-	DateFrom           *datetime.Date           `json:"dateFrom" schema:"dateFrom" format:"date" swaggertype:"primitive,string"`     // Дата начала выборки (Обязательна при type = expense or earnings и отсутствующем периоде)
-	DateTo             *datetime.Date           `json:"dateTo" schema:"dateTo" format:"date" swaggertype:"primitive,string"`         // Дата конца выборки (Обязательна при type = expense or earnings и отсутствующем периоде)
+	DateFrom           *time.Time               `json:"dateFrom" schema:"dateFrom" format:"date" swaggertype:"primitive,string"`     // Дата начала выборки (Обязательна при type = expense or earnings и отсутствующем периоде)
+	DateTo             *time.Time               `json:"dateTo" schema:"dateTo" format:"date" swaggertype:"primitive,string"`         // Дата конца выборки (Обязательна при type = expense or earnings и отсутствующем периоде)
 	Visible            *bool                    `json:"visible" schema:"visible"`                                                    // Видимость счета
 	Currency           *string                  `json:"-" schema:"-"`                                                                // Валюта счета
 	IsParent           *bool                    `json:"-" schema:"-"`                                                                // Является ли счет родительским
@@ -83,14 +84,14 @@ func (p ProtoGetAccountsReq) ConvertToModel() (GetAccountsReq, error) {
 		_accountType = &__accountType
 	}
 
-	var dateFrom *datetime.Date
+	var dateFrom *time.Time
 	if p.DateFrom != nil {
-		dateFrom = &datetime.Date{Time: p.DateFrom.AsTime()}
+		dateFrom = pointer.Pointer(p.DateFrom.AsTime())
 	}
 
-	var dateTo *datetime.Date
+	var dateTo *time.Time
 	if p.DateTo != nil {
-		dateTo = &datetime.Date{Time: p.DateTo.AsTime()}
+		dateTo = pointer.Pointer(p.DateTo.AsTime())
 	}
 
 	return GetAccountsReq{

@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"pkg/datetime"
 	"server/internal/utils/necessary"
 
 	repoModel "server/internal/modules/account/repository/model"
@@ -24,11 +23,11 @@ type CreateAccountReq struct {
 	IconID             uuid.UUID               `json:"iconID" validate:"required" minimum:"1"`                                            // Идентификатор иконки
 	Type               accountType.AccountType `json:"type" validate:"required" enums:"regular,expense,credit,debt,earnings,investments"` // Тип счета
 	Currency           string                  `json:"currency" validate:"required"`                                                      // Валюта счета
+	Rank               string                  `json:"rank" validate:"required"`                                                          // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
 	AccountGroupID     uuid.UUID               `json:"accountGroupID" validate:"required" minimum:"1"`                                    // Группа счета
 	AccountingInHeader bool                    `json:"accountingInHeader"`                                                                // Подсчет суммы счета в статистике
 	AccountingInCharts bool                    `json:"accountingInCharts"`                                                                // Учитывать ли счет в графиках
 	DatetimeCreate     time.Time               `json:"datetimeCreate" validate:"required"`                                                // Дата создания счета
-	Remainder          decimal.Decimal         `json:"remainder"`                                                                         // Остаток средств на счету
 	Budget             *CreateAccountBudgetReq `json:"budget"`                                                                            // Бюджет
 	IsParent           bool                    `json:"isParent"`                                                                          // Является ли счет родительским
 	ParentAccountID    *uuid.UUID              `json:"parentAccountID"`                                                                   // Идентификатор родительского счета
@@ -42,7 +41,6 @@ func (s CreateAccountReq) Validate(ctx context.Context) error {
 func (s CreateAccountReq) ConvertToAccount() Account {
 	return Account{
 		ID:                 s.ID,
-		Remainder:          s.Remainder,
 		Name:               s.Name,
 		IconID:             s.IconID,
 		Type:               s.Type,
@@ -51,10 +49,10 @@ func (s CreateAccountReq) ConvertToAccount() Account {
 		AccountGroupID:     s.AccountGroupID,
 		AccountingInHeader: s.AccountingInHeader,
 		ParentAccountID:    s.ParentAccountID,
-		SerialNumber:       0,
+		Rank:               s.Rank,
 		IsParent:           s.IsParent,
 		CreatedByUserID:    s.Necessary.UserID,
-		DatetimeCreate:     datetime.Time{Time: time.Now()},
+		DatetimeCreate:     s.DatetimeCreate,
 		AccountingInCharts: s.AccountingInCharts,
 		AccountBudget: AccountBudget{
 			Amount:         s.Budget.Amount,
@@ -77,6 +75,7 @@ func (s CreateAccountReq) ConvertToRepoReq() repoModel.CreateAccountReq {
 		AccountingInHeader: s.AccountingInHeader,
 		AccountingInCharts: s.AccountingInCharts,
 		Budget:             s.Budget.ConvertToRepoReq(),
+		Rank:               s.Rank,
 		IsParent:           s.IsParent,
 		Visible:            true,
 		ParentAccountID:    s.ParentAccountID,
@@ -165,11 +164,6 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		parentAccountID = &_parentAccountID
 	}
 
-	var remainder decimal.Decimal
-	if p.Remainder != nil {
-		remainder = decimal.NewFromFloat(*p.Remainder)
-	}
-
 	return CreateAccountReq{
 		ID:                 id,
 		Name:               p.Name,
@@ -180,8 +174,8 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		AccountingInHeader: p.AccountingInHeader,
 		AccountingInCharts: p.AccountingInCharts,
 		DatetimeCreate:     datetimeCreate,
-		Remainder:          remainder,
 		Budget:             budget,
+		Rank:               p.Rank,
 		IsParent:           p.IsParent,
 		ParentAccountID:    parentAccountID,
 	}, nil

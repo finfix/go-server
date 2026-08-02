@@ -1,9 +1,9 @@
 package model
 
 import (
-	"pkg/datetime"
 	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
+	"time"
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/google/uuid"
@@ -15,9 +15,9 @@ type CreateAccountGroupReq struct {
 	Necessary necessary.NecessaryUserInformation
 	ID        uuid.UUID `json:"id" validate:"required"` // Идентификатор группы счетов
 
-	Name           string        `json:"name" db:"name" validate:"required"`                      // Название группы счетов
-	Currency       string        `json:"currency" db:"currency_signatura" validate:"required"`    // Валюта группы счетов
-	DatetimeCreate datetime.Time `json:"datetimeCreate" db:"datetime_create" validate:"required"` // Дата и время создания группы счетов
+	Name           string    `json:"name" db:"name" validate:"required"`                      // Название группы счетов
+	Currency       string    `json:"currency" db:"currency_signatura" validate:"required"`    // Валюта группы счетов
+	DatetimeCreate time.Time `json:"datetimeCreate" db:"datetime_create" validate:"required"` // Дата и время создания группы счетов
 }
 
 func (s CreateAccountGroupReq) ConvertToRepoReq() repoModel.CreateAccountGroupReq {
@@ -27,7 +27,7 @@ func (s CreateAccountGroupReq) ConvertToRepoReq() repoModel.CreateAccountGroupRe
 		Name:           s.Name,
 		Currency:       s.Currency,
 		Visible:        true,
-		DatetimeCreate: s.DatetimeCreate.Time,
+		DatetimeCreate: s.DatetimeCreate,
 	}
 }
 
@@ -54,12 +54,11 @@ func (p ProtoCreateAccountGroupReq) ConvertToModel() (CreateAccountGroupReq, err
 	if p.DatetimeCreate == nil {
 		return res, errors.BadRequest.New("DatetimeCreate is required")
 	}
-	datetimeCreate := datetime.Time{Time: p.DatetimeCreate.AsTime()}
 
 	return CreateAccountGroupReq{
 		ID:             id,
 		Name:           p.Name,
 		Currency:       p.Currency,
-		DatetimeCreate: datetimeCreate,
+		DatetimeCreate: p.DatetimeCreate.AsTime(),
 	}, nil
 }

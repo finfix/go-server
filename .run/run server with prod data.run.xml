@@ -10,6 +10,7 @@
       <env name="ENVIRONMENT" value="local" />
       <env name="LISTEN_GRPC" value="0.0.0.0:8090" />
       <env name="LISTEN_HTTP" value="0.0.0.0:8080" />
+      <env name="LISTEN_SERVICE_HTTP" value="0.0.0.0:8081" />
       <env name="LOG_FORMAT" value="text" />
       <env name="LOG_LEVEL" value="debug" />
       <env name="LOG_PKG_WARN_ENABLED" value="false" />
@@ -21,7 +22,7 @@
       <env name="OTLP_INSECURE" value="true" />
       <env name="OTLP_IS_ENABLED" value="false" />
       <env name="PGSQL_DATABASE" value="coin_prod" />
-      <env name="PGSQL_HOST" value="localhost:6132" />
+      <env name="PGSQL_HOST" value="localhost:6131" />
       <env name="PGSQL_PASSWORD" value="password" />
       <env name="PGSQL_USER" value="postgres" />
       <env name="SERVER_DB_PASSWORD" value="password" />

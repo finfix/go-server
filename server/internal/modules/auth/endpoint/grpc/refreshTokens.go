@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"server/internal/utils/necessary"
 
 	"pkg/validator"
 	"server/internal/modules/auth/model"
@@ -20,17 +19,14 @@ func (e *AuthEndpoint) RefreshTokens(ctx context.Context, r *proto.RefreshTokens
 		return res, err
 	}
 
-	// Parse necessary information from context
-	if err := necessary.ParseNecessary(ctx, &req); err != nil {
-		return res, err
-	}
-
 	// Validate request
 	if err := validator.Validate(req); err != nil {
 		return res, err
 	}
 
-	// Call service method
+	// Call service method. RefreshTokens не проходит через auth-интерцептор (access-токен
+	// на этот момент может быть просрочен), поэтому идентификацию пользователя сервис
+	// делает самостоятельно — по самому refresh-токену из запроса
 	refreshRes, err := e.authService.RefreshTokens(ctx, req)
 	if err != nil {
 		return res, err

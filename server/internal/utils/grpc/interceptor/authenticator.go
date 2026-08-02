@@ -70,7 +70,7 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 	}
 
 	// Парсим токен
-	claims, err := jwtManager.ParseToken[auth.Claims](authFields.AccessToken, jwtManager.AccessToken)
+	claims, err := jwtManager.ParseToken[auth.Claims](ctx, authFields.AccessToken, jwtManager.AccessToken)
 	if err != nil {
 		return ctx, errors.Unauthorized.Wrap(err)
 	}

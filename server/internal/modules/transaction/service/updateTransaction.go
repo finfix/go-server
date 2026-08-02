@@ -61,6 +61,17 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		}
 		accountsMap := slices.ToMap(_accounts, func(account accountModel.Account) uuid.UUID { return account.ID })
 
+		// Проверяем, что счета не являются родительскими: баланс родительского счета - это сумма
+		// балансов дочерних счетов, а не собственные транзакции, поэтому менять его напрямую нельзя
+		if accountsMap[transaction.AccountFromID].IsParent || accountsMap[transaction.AccountToID].IsParent {
+			return errors.BadRequest.New("Нельзя создать транзакцию для родительского счета").
+				WithContextParams(ctx).
+				WithParams(
+					"AccountFromID", transaction.AccountFromID,
+					"AccountToID", transaction.AccountToID,
+				)
+		}
+
 		// Проверяем соответствие типов счета и типа транзакции
 		if err = utils.TransactionAndAccountTypesValidation(ctx,
 			accountsMap[transaction.AccountFromID],

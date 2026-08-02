@@ -2,12 +2,13 @@ package model
 
 import (
 	"context"
+	"pkg/pointer"
 	"server/internal/enum/transactionType"
+	"time"
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/google/uuid"
 
-	"pkg/datetime"
 	"server/internal/utils/errors"
 	"server/internal/utils/necessary"
 )
@@ -17,8 +18,8 @@ type GetTransactionsReq struct {
 	IDs             []uuid.UUID                      `json:"-"`                                                                       // Идентификаторы транзакций
 	AccountID       *uuid.UUID                       `json:"accountID" schema:"accountID" minimum:"1"`                                // Транзакции какого счета нас интересуют
 	Type            *transactionType.TransactionType `json:"type" schema:"type" enums:"consumption,income,transfer"`                  // Тип транзакции
-	DateFrom        *datetime.Date                   `json:"dateFrom" schema:"dateFrom" format:"date" swaggertype:"primitive,string"` // Дата, от которой начинать учитывать транзакции
-	DateTo          *datetime.Date                   `json:"dateTo" schema:"dateTo" format:"date" swaggertype:"primitive,string"`     // Дата, до которой учитывать транзакции
+	DateFrom        *time.Time                       `json:"dateFrom" schema:"dateFrom" format:"date" swaggertype:"primitive,string"` // Дата, от которой начинать учитывать транзакции
+	DateTo          *time.Time                       `json:"dateTo" schema:"dateTo" format:"date" swaggertype:"primitive,string"`     // Дата, до которой учитывать транзакции
 	Offset          *uint32                          `json:"offset" schema:"offset" minimum:"0"`                                      // Смещение относительно начала списка для пагинации
 	Limit           *uint32                          `json:"limit" schema:"limit" minimum:"1"`                                        // Количество транзакций в списке для пагинации
 	AccountGroupIDs []uuid.UUID                      // Идентификаторы групп счетов
@@ -29,7 +30,7 @@ func (s GetTransactionsReq) Validate(ctx context.Context) error {
 		return err
 	}
 	if s.DateFrom != nil && s.DateTo != nil {
-		if s.DateFrom.After(s.DateTo.Time) || s.DateFrom.Equal(s.DateTo.Time) {
+		if s.DateFrom.After(*s.DateTo) || s.DateFrom.Equal(*s.DateTo) {
 			return errors.BadRequest.New("date_from must be less than date_to").WithContextParams(ctx)
 		}
 	}
@@ -80,14 +81,14 @@ func (p ProtoGetTransactionsReq) ConvertToModel() (GetTransactionsReq, error) {
 	}
 
 	// Convert optional dates
-	var dateFrom *datetime.Date
+	var dateFrom *time.Time
 	if p.DateFrom != nil {
-		dateFrom = &datetime.Date{Time: p.DateFrom.AsTime()}
+		dateFrom = pointer.Pointer(p.DateFrom.AsTime())
 	}
 
-	var dateTo *datetime.Date
+	var dateTo *time.Time
 	if p.DateTo != nil {
-		dateTo = &datetime.Date{Time: p.DateTo.AsTime()}
+		dateTo = pointer.Pointer(p.DateTo.AsTime())
 	}
 
 	return GetTransactionsReq{

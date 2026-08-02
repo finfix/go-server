@@ -15,21 +15,19 @@ import (
 type UpdateAccountReq struct {
 	Necessary          necessary.NecessaryUserInformation
 	ID                 uuid.UUID              `json:"id" validate:"required" minimum:"1"` // Идентификатор счета
-	Remainder          *decimal.Decimal       `json:"remainder"`                          // Остаток средств на счету
 	Name               *string                `json:"name"`                               // Название счета
 	IconID             *uuid.UUID             `json:"iconID" minimum:"1"`                 // Идентификатор иконки
 	Visible            *bool                  `json:"visible"`                            // Видимость счета
 	AccountingInHeader *bool                  `json:"accountingInHeader"`                 // Будет ли счет учитываться в статистике
 	AccountingInCharts *bool                  `json:"accountingInCharts"`                 // Будет ли счет учитываться в графиках
 	Currency           *string                `json:"currencyCode"`                       // Валюта счета
-	SerialNumber       *uint32                `json:"serialNumber"`                       // Порядковый номер счета
+	Rank               *string                `json:"rank"`                               // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
 	ParentAccountID    *uuid.UUID             `json:"parentAccountID"`                    // Идентификатор родительского счета
 	Budget             UpdateAccountBudgetReq `json:"budget"`                             // Месячный бюджет
 }
 
 func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
 	return repoModel.UpdateAccountReq{
-		Remainder:          s.Remainder,
 		Name:               s.Name,
 		IconID:             s.IconID,
 		Visible:            s.Visible,
@@ -38,7 +36,7 @@ func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
 		Currency:           s.Currency,
 		ParentAccountID:    s.ParentAccountID,
 		Budget:             s.Budget.ConvertToRepoReq(),
-		SerialNumber:       s.SerialNumber,
+		Rank:               s.Rank,
 	}
 }
 
@@ -141,16 +139,6 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		return res, err
 	}
 
-	var remainder *decimal.Decimal
-	if p.Remainder != nil {
-		remainder = pointer.Pointer(decimal.NewFromFloat(*p.Remainder))
-	}
-
-	var serialNumber *uint32
-	if p.SerialNumber != nil {
-		serialNumber = p.SerialNumber
-	}
-
 	return UpdateAccountReq{
 
 		ID:                 id,
@@ -160,8 +148,7 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		Currency:           p.Currency,
 		IconID:             iconID,
 		ParentAccountID:    parentAccountID,
-		Remainder:          remainder,
-		SerialNumber:       serialNumber,
+		Rank:               p.Rank,
 		Visible:            p.Visible,
 		Budget:             budget,
 	}, nil

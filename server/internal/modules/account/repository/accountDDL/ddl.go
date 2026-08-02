@@ -19,7 +19,7 @@ const (
 	ColumnAccountGroupID       = "account_group_id"
 	ColumnAccountingInHeader   = "accounting_in_header"
 	ColumnParentAccountID      = "parent_account_id"
-	ColumnSerialNumber         = "serial_number"
+	ColumnRank                 = "rank"
 	ColumnBudgetGradualFilling = "budget_gradual_filling"
 	ColumnIsParent             = "is_parent"
 	ColumnBudgetFixedSum       = "budget_fixed_sum"
