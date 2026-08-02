@@ -41,6 +41,11 @@ var typeToPermissions = map[accountType.AccountType]AccountPermissions{
 		UpdateParentAccountID: true,
 		CreateTransaction:     true,
 	},
+	// Балансировочный счет: используется только для создания балансировочных
+	// транзакций (Balancing -> [Regular, Debt]), напрямую не редактируется
+	accountType.Balancing: {
+		CreateTransaction: true,
+	},
 }
 
 // isParentToPermissions - разрешения на действия со счетом в зависимости от того,
