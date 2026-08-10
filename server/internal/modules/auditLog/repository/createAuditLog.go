@@ -24,6 +24,7 @@ func (r *AuditLogRepository) CreateAuditLog(ctx context.Context, req model.Creat
 			auditLogDDL.ColumnSnapshotAfter:  req.SnapshotAfter,
 			auditLogDDL.ColumnUserID:         req.UserID,
 			auditLogDDL.ColumnDeviceID:       req.DeviceID,
+			auditLogDDL.ColumnAccountGroupID: req.AccountGroupID,
 		}),
 	)
 }

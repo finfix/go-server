@@ -40,13 +40,14 @@ func (s *TransactionService) DeleteTransaction(ctx context.Context, id model.Del
 
 		// Фиксируем удаление транзакции в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Transaction,
-			Method:   auditLogMethod.Delete,
-			EntityID: id.ID.String(),
-			Before:   transactionBefore,
-			After:    nil,
-			UserID:   id.Necessary.UserID,
-			DeviceID: id.Necessary.DeviceID,
+			Entity:         auditLogEntity.Transaction,
+			Method:         auditLogMethod.Delete,
+			EntityID:       id.ID.String(),
+			Before:         transactionBefore,
+			After:          nil,
+			UserID:         id.Necessary.UserID,
+			DeviceID:       id.Necessary.DeviceID,
+			AccountGroupID: &transactionBefore.AccountGroupID,
 		})
 	})
 }

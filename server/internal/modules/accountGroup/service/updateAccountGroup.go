@@ -48,13 +48,14 @@ func (s *AccountGroupService) UpdateAccountGroup(ctx context.Context, updateReq 
 
 		// Фиксируем изменение группы счетов в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.AccountGroup,
-			Method:   auditLogMethod.Update,
-			EntityID: updateReq.ID.String(),
-			Before:   accountGroupBefore,
-			After:    accountGroupAfter,
-			UserID:   updateReq.Necessary.UserID,
-			DeviceID: updateReq.Necessary.DeviceID,
+			Entity:         auditLogEntity.AccountGroup,
+			Method:         auditLogMethod.Update,
+			EntityID:       updateReq.ID.String(),
+			Before:         accountGroupBefore,
+			After:          accountGroupAfter,
+			UserID:         updateReq.Necessary.UserID,
+			DeviceID:       updateReq.Necessary.DeviceID,
+			AccountGroupID: &updateReq.ID,
 		})
 	})
 }

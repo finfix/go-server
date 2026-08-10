@@ -45,13 +45,14 @@ func (s *AccountGroupService) DeleteAccountGroup(ctx context.Context, id model.D
 
 		// Фиксируем удаление группы счетов в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.AccountGroup,
-			Method:   auditLogMethod.Delete,
-			EntityID: id.ID.String(),
-			Before:   accountGroupBefore,
-			After:    nil,
-			UserID:   id.Necessary.UserID,
-			DeviceID: id.Necessary.DeviceID,
+			Entity:         auditLogEntity.AccountGroup,
+			Method:         auditLogMethod.Delete,
+			EntityID:       id.ID.String(),
+			Before:         accountGroupBefore,
+			After:          nil,
+			UserID:         id.Necessary.UserID,
+			DeviceID:       id.Necessary.DeviceID,
+			AccountGroupID: &id.ID,
 		})
 	})
 }

@@ -112,13 +112,14 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 
 		// Фиксируем изменение транзакции в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Transaction,
-			Method:   auditLogMethod.Update,
-			EntityID: fields.ID.String(),
-			Before:   transactionBefore,
-			After:    transactionAfter,
-			UserID:   fields.Necessary.UserID,
-			DeviceID: fields.Necessary.DeviceID,
+			Entity:         auditLogEntity.Transaction,
+			Method:         auditLogMethod.Update,
+			EntityID:       fields.ID.String(),
+			Before:         transactionBefore,
+			After:          transactionAfter,
+			UserID:         fields.Necessary.UserID,
+			DeviceID:       fields.Necessary.DeviceID,
+			AccountGroupID: &transactionAfter.AccountGroupID,
 		})
 	})
 }

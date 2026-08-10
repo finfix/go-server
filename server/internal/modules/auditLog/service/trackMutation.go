@@ -45,6 +45,7 @@ func (s *AuditLogService) TrackMutation(ctx context.Context, req model.TrackMuta
 		SnapshotAfter:  snapshotAfter,
 		UserID:         req.UserID,
 		DeviceID:       req.DeviceID,
+		AccountGroupID: req.AccountGroupID,
 	})
 }
 

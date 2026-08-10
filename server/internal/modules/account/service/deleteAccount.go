@@ -39,13 +39,14 @@ func (s *AccountService) DeleteAccount(ctx context.Context, req model.DeleteAcco
 
 		// Фиксируем удаление счета в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Account,
-			Method:   auditLogMethod.Delete,
-			EntityID: req.ID.String(),
-			Before:   accountBefore,
-			After:    nil,
-			UserID:   req.Necessary.UserID,
-			DeviceID: req.Necessary.DeviceID,
+			Entity:         auditLogEntity.Account,
+			Method:         auditLogMethod.Delete,
+			EntityID:       req.ID.String(),
+			Before:         accountBefore,
+			After:          nil,
+			UserID:         req.Necessary.UserID,
+			DeviceID:       req.Necessary.DeviceID,
+			AccountGroupID: &accountBefore.AccountGroupID,
 		})
 	})
 }

@@ -117,13 +117,14 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 
 		// Фиксируем изменение счета в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Account,
-			Method:   auditLogMethod.Update,
-			EntityID: updateReq.ID.String(),
-			Before:   accountBefore,
-			After:    accountAfter,
-			UserID:   updateReq.Necessary.UserID,
-			DeviceID: updateReq.Necessary.DeviceID,
+			Entity:         auditLogEntity.Account,
+			Method:         auditLogMethod.Update,
+			EntityID:       updateReq.ID.String(),
+			Before:         accountBefore,
+			After:          accountAfter,
+			UserID:         updateReq.Necessary.UserID,
+			DeviceID:       updateReq.Necessary.DeviceID,
+			AccountGroupID: &accountAfter.AccountGroupID,
 		})
 	})
 }

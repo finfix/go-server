@@ -15,5 +15,6 @@ const (
 	ColumnSnapshotAfter  = "snapshot_after"
 	ColumnUserID         = "user_id"
 	ColumnDeviceID       = "device_id"
+	ColumnAccountGroupID = "account_group_id"
 	ColumnDatetimeCreate = "datetime_create"
 )

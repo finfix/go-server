@@ -51,13 +51,14 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 
 		// Фиксируем создание счета в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Account,
-			Method:   auditLogMethod.Create,
-			EntityID: accountToCreate.ID.String(),
-			Before:   nil,
-			After:    accountAfter,
-			UserID:   accountToCreate.Necessary.UserID,
-			DeviceID: accountToCreate.Necessary.DeviceID,
+			Entity:         auditLogEntity.Account,
+			Method:         auditLogMethod.Create,
+			EntityID:       accountToCreate.ID.String(),
+			Before:         nil,
+			After:          accountAfter,
+			UserID:         accountToCreate.Necessary.UserID,
+			DeviceID:       accountToCreate.Necessary.DeviceID,
+			AccountGroupID: &accountAfter.AccountGroupID,
 		})
 	})
 	if err != nil {

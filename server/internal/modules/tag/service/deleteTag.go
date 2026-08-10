@@ -40,13 +40,14 @@ func (s *TagService) DeleteTag(ctx context.Context, req model.DeleteTagReq) erro
 
 		// Фиксируем удаление подкатегории в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Tag,
-			Method:   auditLogMethod.Delete,
-			EntityID: req.ID.String(),
-			Before:   tagBefore,
-			After:    nil,
-			UserID:   req.Necessary.UserID,
-			DeviceID: req.Necessary.DeviceID,
+			Entity:         auditLogEntity.Tag,
+			Method:         auditLogMethod.Delete,
+			EntityID:       req.ID.String(),
+			Before:         tagBefore,
+			After:          nil,
+			UserID:         req.Necessary.UserID,
+			DeviceID:       req.Necessary.DeviceID,
+			AccountGroupID: &tagBefore.AccountGroupID,
 		})
 	})
 }

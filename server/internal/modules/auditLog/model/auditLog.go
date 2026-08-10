@@ -19,5 +19,6 @@ type AuditLog struct {
 	SnapshotAfter  []byte                        // Слепок сущности после изменения в формате JSON
 	UserID         uuid.UUID                     // Идентификатор пользователя, совершившего действие
 	DeviceID       string                        // Идентификатор устройства, с которого совершено действие
+	AccountGroupID *uuid.UUID                    // Идентификатор группы счетов, в которой изменена сущность (nil для глобальных сущностей)
 	DatetimeCreate time.Time                     // Дата и время изменения
 }

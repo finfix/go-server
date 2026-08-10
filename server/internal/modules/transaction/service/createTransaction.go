@@ -109,13 +109,14 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 
 		// Фиксируем создание транзакции в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Transaction,
-			Method:   auditLogMethod.Create,
-			EntityID: id.String(),
-			Before:   nil,
-			After:    transactionAfter,
-			UserID:   transaction.Necessary.UserID,
-			DeviceID: transaction.Necessary.DeviceID,
+			Entity:         auditLogEntity.Transaction,
+			Method:         auditLogMethod.Create,
+			EntityID:       id.String(),
+			Before:         nil,
+			After:          transactionAfter,
+			UserID:         transaction.Necessary.UserID,
+			DeviceID:       transaction.Necessary.DeviceID,
+			AccountGroupID: &transactionAfter.AccountGroupID,
 		})
 	})
 	if err != nil {

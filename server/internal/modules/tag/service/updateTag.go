@@ -48,13 +48,14 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 
 		// Фиксируем изменение подкатегории в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Tag,
-			Method:   auditLogMethod.Update,
-			EntityID: fields.ID.String(),
-			Before:   tagBefore,
-			After:    tagAfter,
-			UserID:   fields.Necessary.UserID,
-			DeviceID: fields.Necessary.DeviceID,
+			Entity:         auditLogEntity.Tag,
+			Method:         auditLogMethod.Update,
+			EntityID:       fields.ID.String(),
+			Before:         tagBefore,
+			After:          tagAfter,
+			UserID:         fields.Necessary.UserID,
+			DeviceID:       fields.Necessary.DeviceID,
+			AccountGroupID: &tagAfter.AccountGroupID,
 		})
 	})
 }

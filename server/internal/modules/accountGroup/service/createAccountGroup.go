@@ -42,13 +42,14 @@ func (s *AccountGroupService) CreateAccountGroup(ctx context.Context, accountGro
 
 		// Фиксируем создание группы счетов в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.AccountGroup,
-			Method:   auditLogMethod.Create,
-			EntityID: accountGroup.ID.String(),
-			Before:   nil,
-			After:    accountGroupAfter,
-			UserID:   accountGroup.Necessary.UserID,
-			DeviceID: accountGroup.Necessary.DeviceID,
+			Entity:         auditLogEntity.AccountGroup,
+			Method:         auditLogMethod.Create,
+			EntityID:       accountGroup.ID.String(),
+			Before:         nil,
+			After:          accountGroupAfter,
+			UserID:         accountGroup.Necessary.UserID,
+			DeviceID:       accountGroup.Necessary.DeviceID,
+			AccountGroupID: &accountGroup.ID,
 		})
 	})
 }

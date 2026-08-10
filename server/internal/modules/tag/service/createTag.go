@@ -40,13 +40,14 @@ func (s *TagService) CreateTag(ctx context.Context, tag model.CreateTagReq) (mod
 
 		// Фиксируем создание подкатегории в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
-			Entity:   auditLogEntity.Tag,
-			Method:   auditLogMethod.Create,
-			EntityID: tag.ID.String(),
-			Before:   nil,
-			After:    tagAfter,
-			UserID:   tag.Necessary.UserID,
-			DeviceID: tag.Necessary.DeviceID,
+			Entity:         auditLogEntity.Tag,
+			Method:         auditLogMethod.Create,
+			EntityID:       tag.ID.String(),
+			Before:         nil,
+			After:          tagAfter,
+			UserID:         tag.Necessary.UserID,
+			DeviceID:       tag.Necessary.DeviceID,
+			AccountGroupID: &tagAfter.AccountGroupID,
 		})
 	})
 	if err != nil {
