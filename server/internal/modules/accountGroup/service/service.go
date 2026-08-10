@@ -11,7 +11,7 @@ import (
 	auditLogModel "server/internal/modules/auditLog/model"
 	auditLogService "server/internal/modules/auditLog/service"
 	"server/internal/modules/transactor"
-	userService "server/internal/modules/user/service"
+	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 
 	"github.com/google/uuid"
 )
@@ -36,9 +36,9 @@ type AccountGroupRepository interface {
 	UnlinkUserFromAccountGroup(ctx context.Context, userID, accountGroupID uuid.UUID) error
 }
 
-var _ UserService = new(userService.UserService)
+var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGroupService)
 
-type UserService interface {
+type UserToAccountGroupService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
@@ -50,22 +50,22 @@ type AuditLogService interface {
 }
 
 type AccountGroupService struct {
-	userService            UserService
-	accountGroupRepository AccountGroupRepository
-	transactor             Transactor
-	auditLogService        AuditLogService
+	userToAccountGroupService UserToAccountGroupService
+	accountGroupRepository    AccountGroupRepository
+	transactor                Transactor
+	auditLogService           AuditLogService
 }
 
 func NewAccountGroupService(
 	accountGroup AccountGroupRepository,
 	transactor Transactor,
-	userService UserService,
+	userToAccountGroupService UserToAccountGroupService,
 	auditLogService AuditLogService,
 ) *AccountGroupService {
 	return &AccountGroupService{
-		accountGroupRepository: accountGroup,
-		transactor:             transactor,
-		userService:            userService,
-		auditLogService:        auditLogService,
+		accountGroupRepository:    accountGroup,
+		transactor:                transactor,
+		userToAccountGroupService: userToAccountGroupService,
+		auditLogService:           auditLogService,
 	}
 }

@@ -14,38 +14,38 @@ import (
 	tagRepository "server/internal/modules/tag/repository"
 	tagRepoModel "server/internal/modules/tag/repository/model"
 	"server/internal/modules/transactor"
-	userService "server/internal/modules/user/service"
+	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 )
 
 var tracer = otel.Tracer("/server/internal/modules/tag/service")
 
 type TagService struct {
-	tagRepository       TagRepository
-	generalRepository   Transactor
-	userService         UserService
-	accountGroupService AccountGroupService
-	auditLogService     AuditLogService
+	tagRepository             TagRepository
+	generalRepository         Transactor
+	userToAccountGroupService UserToAccountGroupService
+	accountGroupService       AccountGroupService
+	auditLogService           AuditLogService
 }
 
 func NewTagService(
 	tagRepository TagRepository,
 	generalRepository Transactor,
-	userService UserService,
+	userToAccountGroupService UserToAccountGroupService,
 	accountGroupService AccountGroupService,
 	auditLogService AuditLogService,
 ) *TagService {
 	return &TagService{
-		tagRepository:       tagRepository,
-		generalRepository:   generalRepository,
-		userService:         userService,
-		accountGroupService: accountGroupService,
-		auditLogService:     auditLogService,
+		tagRepository:             tagRepository,
+		generalRepository:         generalRepository,
+		userToAccountGroupService: userToAccountGroupService,
+		accountGroupService:       accountGroupService,
+		auditLogService:           auditLogService,
 	}
 }
 
-var _ UserService = new(userService.UserService)
+var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGroupService)
 
-type UserService interface {
+type UserToAccountGroupService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 

@@ -5,15 +5,20 @@ import (
 
 	"go.opentelemetry.io/otel"
 
+	"github.com/google/uuid"
+
+	"server/internal/modules/auditLog/model"
 	"server/internal/modules/auditLog/repository"
 	repoModel "server/internal/modules/auditLog/repository/model"
+	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 )
 
 var tracer = otel.Tracer("/server/internal/modules/auditLog/service")
 
 // AuditLogService - сервис аудит-лога изменяющих действий пользователей
 type AuditLogService struct {
-	auditLogRepository AuditLogRepository
+	auditLogRepository        AuditLogRepository
+	userToAccountGroupService UserToAccountGroupService
 }
 
 var _ AuditLogRepository = new(repository.AuditLogRepository)
@@ -21,13 +26,23 @@ var _ AuditLogRepository = new(repository.AuditLogRepository)
 // AuditLogRepository - интерфейс репозитория аудит-лога
 type AuditLogRepository interface {
 	CreateAuditLog(context.Context, repoModel.CreateAuditLogReq) error
+	GetAuditLogs(context.Context, repoModel.GetAuditLogsReq) ([]model.AuditLog, error)
+}
+
+var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGroupService)
+
+// UserToAccountGroupService - интерфейс сервиса связей пользователей с группами счетов
+type UserToAccountGroupService interface {
+	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // NewAuditLogService создает новый сервис аудит-лога
 func NewAuditLogService(
 	auditLogRepository AuditLogRepository,
+	userToAccountGroupService UserToAccountGroupService,
 ) *AuditLogService {
 	return &AuditLogService{
-		auditLogRepository: auditLogRepository,
+		auditLogRepository:        auditLogRepository,
+		userToAccountGroupService: userToAccountGroupService,
 	}
 }

@@ -5,8 +5,6 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	"github.com/google/uuid"
-
 	auditLogModel "server/internal/modules/auditLog/model"
 	auditLogService "server/internal/modules/auditLog/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
@@ -32,12 +30,8 @@ type UserRepository interface {
 	GetUsers(context.Context, userModel.GetUsersReq) ([]userModel.User, error)
 	UpdateUser(context.Context, userRepoModel.UpdateUserReq) error
 
-	LinkUserToAccountGroup(context.Context, uuid.UUID, uuid.UUID) error
-
 	GetDevices(context.Context, userRepoModel.GetDevicesReq) ([]userModel.Device, error)
 	UpdateDevice(context.Context, userRepoModel.UpdateDeviceReq) error
-
-	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type PushNotificatorService interface {

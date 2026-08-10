@@ -22,7 +22,7 @@ func (s *AccountService) GetAccounts(ctx context.Context, filters model.GetAccou
 	} else {
 
 		// Получаем доступные для пользователя группы счетов и добавляем их в фильтры
-		filters.AccountGroupIDs, err = s.userService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)
+		filters.AccountGroupIDs, err = s.userToAccountGroupService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)
 		if err != nil {
 			return nil, err
 		}

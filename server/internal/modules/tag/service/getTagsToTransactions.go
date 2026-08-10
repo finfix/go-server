@@ -11,7 +11,7 @@ func (s *TagService) GetTagsToTransactions(ctx context.Context, req model.GetTag
 	defer span.End()
 
 	// Получаем доступные группы счетов
-	req.AccountGroupIDs, err = s.userService.GetAccessedAccountGroups(ctx, req.Necessary.UserID)
+	req.AccountGroupIDs, err = s.userToAccountGroupService.GetAccessedAccountGroups(ctx, req.Necessary.UserID)
 	if err != nil {
 		return nil, err
 	}

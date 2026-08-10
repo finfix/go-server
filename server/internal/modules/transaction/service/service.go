@@ -18,7 +18,7 @@ import (
 	transactionRepository "server/internal/modules/transaction/repository"
 	transactionRepoModel "server/internal/modules/transaction/repository/model"
 	"server/internal/modules/transactor"
-	userService "server/internal/modules/user/service"
+	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 
 	"github.com/google/uuid"
 )
@@ -26,14 +26,14 @@ import (
 var tracer = otel.Tracer("/server/internal/modules/transaction/service")
 
 type TransactionService struct {
-	transactionRepository TransactionRepository
-	accountRepository     AccountRepository
-	accountService        AccountService
-	generalRepository     Transactor
-	tagRepository         TagRepository
-	userService           UserService
-	tagService            TagService
-	auditLogService       AuditLogService
+	transactionRepository     TransactionRepository
+	accountRepository         AccountRepository
+	accountService            AccountService
+	generalRepository         Transactor
+	tagRepository             TagRepository
+	userToAccountGroupService UserToAccountGroupService
+	tagService                TagService
+	auditLogService           AuditLogService
 }
 
 var _ Transactor = new(transactor.Transactor)
@@ -67,9 +67,9 @@ type TagRepository interface {
 	UnlinkTagsFromTransaction(context.Context, []uuid.UUID, uuid.UUID) error
 }
 
-var _ UserService = new(userService.UserService)
+var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGroupService)
 
-type UserService interface {
+type UserToAccountGroupService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
@@ -97,19 +97,19 @@ func NewTransactionService(
 	accountRepository AccountRepository,
 	transactor Transactor,
 	tagRepository TagRepository,
-	userService UserService,
+	userToAccountGroupService UserToAccountGroupService,
 	accountService AccountService,
 	tagService TagService,
 	auditLogService AuditLogService,
 ) *TransactionService {
 	return &TransactionService{
-		transactionRepository: transactionRepository,
-		accountRepository:     accountRepository,
-		generalRepository:     transactor,
-		tagRepository:         tagRepository,
-		userService:           userService,
-		accountService:        accountService,
-		tagService:            tagService,
-		auditLogService:       auditLogService,
+		transactionRepository:     transactionRepository,
+		accountRepository:         accountRepository,
+		generalRepository:         transactor,
+		tagRepository:             tagRepository,
+		userToAccountGroupService: userToAccountGroupService,
+		accountService:            accountService,
+		tagService:                tagService,
+		auditLogService:           auditLogService,
 	}
 }

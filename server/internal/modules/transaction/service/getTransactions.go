@@ -13,7 +13,7 @@ func (s *TransactionService) GetTransactions(ctx context.Context, filters model.
 	defer span.End()
 
 	// Проверяем доступ пользователя к группам счетов
-	filters.AccountGroupIDs, err = s.userService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)
+	filters.AccountGroupIDs, err = s.userToAccountGroupService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)
 	if err != nil {
 		return nil, err
 	}

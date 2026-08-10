@@ -11,7 +11,7 @@ func (s *TransactionService) CheckAccess(ctx context.Context, userID uuid.UUID, 
 	defer span.End()
 
 	// Проверяем доступ пользователя к группам счетов
-	accessedAccountGroups, err := s.userService.GetAccessedAccountGroups(ctx, userID)
+	accessedAccountGroups, err := s.userToAccountGroupService.GetAccessedAccountGroups(ctx, userID)
 	if err != nil {
 		return err
 	}

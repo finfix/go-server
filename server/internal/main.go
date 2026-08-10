@@ -39,6 +39,7 @@ import (
 	accountGroupEndpointGRPC "server/internal/modules/accountGroup/endpoint/grpc"
 	accountGroupRepository "server/internal/modules/accountGroup/repository"
 	accountGroupService "server/internal/modules/accountGroup/service"
+	auditLogEndpointGRPC "server/internal/modules/auditLog/endpoint/grpc"
 	auditLogRepository "server/internal/modules/auditLog/repository"
 	auditLogService "server/internal/modules/auditLog/service"
 	authEndpointGRPC "server/internal/modules/auth/endpoint/grpc"
@@ -60,6 +61,8 @@ import (
 	userEndpointGRPC "server/internal/modules/user/endpoint/grpc"
 	userRepository "server/internal/modules/user/repository"
 	userService "server/internal/modules/user/service"
+	userToAccountGroupRepository "server/internal/modules/userToAccountGroup/repository"
+	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 	"server/internal/utils/errors"
 	pgsqlMigrations "server/migrations/pgsql"
 )
@@ -153,6 +156,7 @@ func run() error {
 	settingsRepository := settingsRepository.NewSettingsRepository(pgsql)
 	userRepository := userRepository.NewUserRepository(pgsql)
 	auditLogRepository := auditLogRepository.NewAuditLogRepository(pgsql)
+	userToAccountGroupRepository := userToAccountGroupRepository.NewUserToAccountGroupRepository(pgsql)
 
 	// Регистрируем сервисы
 	log.Info("Инициализируем Telegram-бота")
@@ -174,8 +178,13 @@ func run() error {
 		return err
 	}
 
+	userToAccountGroupService := userToAccountGroupService.NewUserToAccountGroupService(
+		userToAccountGroupRepository,
+	)
+
 	auditLogService := auditLogService.NewAuditLogService(
 		auditLogRepository,
+		userToAccountGroupService,
 	)
 
 	userService, err := userService.NewUserService(
@@ -192,7 +201,7 @@ func run() error {
 	accountGroupService := accountGroupService.NewAccountGroupService(
 		accountGroupRepository,
 		transactor,
-		userService,
+		userToAccountGroupService,
 		auditLogService,
 	)
 
@@ -202,14 +211,14 @@ func run() error {
 		transactionRepository,
 		userRepository,
 		accountGroupService,
-		userService,
+		userToAccountGroupService,
 		auditLogService,
 	)
 
 	tagService := tagService.NewTagService(
 		tagRepository,
 		transactor,
-		userService,
+		userToAccountGroupService,
 		accountGroupService,
 		auditLogService,
 	)
@@ -219,7 +228,7 @@ func run() error {
 		accountRepository,
 		transactor,
 		tagRepository,
-		userService,
+		userToAccountGroupService,
 		accountService,
 		tagService,
 		auditLogService,
@@ -274,6 +283,7 @@ func run() error {
 	proto.RegisterUserEndpointServer(grpcServer, userEndpointGRPC.NewUserEndpoint(userService))
 	proto.RegisterSettingsEndpointServer(grpcServer, settingsEndpointGRPC.NewSettingsEndpoint(settingsService))
 	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
+	proto.RegisterAuditLogEndpointServer(grpcServer, auditLogEndpointGRPC.NewAuditLogEndpoint(auditLogService))
 
 	// Создаем слушателя порта для gRPC-сервера
 	grpcLn, err := net.Listen("tcp", conf.Listen.GRPC)

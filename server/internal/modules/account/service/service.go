@@ -19,6 +19,7 @@ import (
 	"server/internal/modules/transactor"
 	userModel "server/internal/modules/user/model"
 	userRepository "server/internal/modules/user/repository"
+	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 )
 
 var tracer = otel.Tracer("/server/internal/modules/account/service")
@@ -60,9 +61,9 @@ type AccountGroupService interface {
 	CheckAccess(context.Context, uuid.UUID, []uuid.UUID) error
 }
 
-var _ UserService = new(userRepository.UserRepository)
+var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGroupService)
 
-type UserService interface {
+type UserToAccountGroupService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
@@ -74,13 +75,13 @@ type AuditLogService interface {
 }
 
 type AccountService struct {
-	accountRepository     AccountRepository
-	transactor            Transactor
-	transactionRepository TransactionRepository
-	userRepository        UserRepository
-	accountGroupService   AccountGroupService
-	userService           UserService
-	auditLogService       AuditLogService
+	accountRepository         AccountRepository
+	transactor                Transactor
+	transactionRepository     TransactionRepository
+	userRepository            UserRepository
+	accountGroupService       AccountGroupService
+	userToAccountGroupService UserToAccountGroupService
+	auditLogService           AuditLogService
 }
 
 func NewAccountService(
@@ -89,16 +90,16 @@ func NewAccountService(
 	transactionRepository TransactionRepository,
 	userRepository UserRepository,
 	accountGroupsService AccountGroupService,
-	userService UserService,
+	userToAccountGroupService UserToAccountGroupService,
 	auditLogService AuditLogService,
 ) *AccountService {
 	return &AccountService{
-		accountRepository:     accountRepository,
-		transactor:            transactor,
-		transactionRepository: transactionRepository,
-		userRepository:        userRepository,
-		accountGroupService:   accountGroupsService,
-		userService:           userService,
-		auditLogService:       auditLogService,
+		accountRepository:         accountRepository,
+		transactor:                transactor,
+		transactionRepository:     transactionRepository,
+		userRepository:            userRepository,
+		accountGroupService:       accountGroupsService,
+		userToAccountGroupService: userToAccountGroupService,
+		auditLogService:           auditLogService,
 	}
 }

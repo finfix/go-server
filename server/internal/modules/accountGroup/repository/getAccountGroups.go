@@ -8,7 +8,7 @@ import (
 
 	"pkg/ddlHelper"
 	"server/internal/modules/accountGroup/repository/accountGroupDDL"
-	"server/internal/modules/user/repository/userToAccountGroupDDL"
+	"server/internal/modules/userToAccountGroup/repository/userToAccountGroupDDL"
 
 	"server/internal/modules/accountGroup/model"
 )

@@ -19,7 +19,7 @@ func (s *TagService) GetTags(ctx context.Context, filters model.GetTagsReq) (tag
 			return nil, err
 		}
 	} else {
-		filters.AccountGroupIDs, err = s.userService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)
+		filters.AccountGroupIDs, err = s.userToAccountGroupService.GetAccessedAccountGroups(ctx, filters.Necessary.UserID)
 		if err != nil {
 			return nil, err
 		}

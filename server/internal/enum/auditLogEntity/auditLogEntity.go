@@ -3,7 +3,11 @@ package auditLogEntity
 import (
 	"context"
 
+	"pkg/maps"
+
 	"server/internal/utils/errors"
+
+	"github.com/finfix/go-server-grpc/proto"
 )
 
 // AuditLogEntity - тип сущности, изменение которой зафиксировано в аудит-логе
@@ -29,4 +33,48 @@ func (e AuditLogEntity) Validate(ctx context.Context) error {
 			WithParams("entity", e)
 	}
 	return nil
+}
+
+// mappingProtoToModel содержит соответствие между значениями proto.AuditLogEntity и AuditLogEntity
+var mappingProtoToModel = map[proto.AuditLogEntity]AuditLogEntity{
+	proto.AuditLogEntity_Transaction:  Transaction,
+	proto.AuditLogEntity_Account:      Account,
+	proto.AuditLogEntity_AccountGroup: AccountGroup,
+	proto.AuditLogEntity_Tag:          Tag,
+	proto.AuditLogEntity_User:         User,
+	proto.AuditLogEntity_Currency:     Currency,
+}
+
+// ConvertToProto преобразует AuditLogEntity в proto.AuditLogEntity
+func (e AuditLogEntity) ConvertToProto() (auditLogEntity proto.AuditLogEntity, err error) {
+
+	// Разворачиваем мапу
+	mappingModelToProto, err := maps.Revert(mappingProtoToModel)
+	if err != nil {
+		return 0, err
+	}
+
+	// Получаем значение
+	protoAuditLogEntity, ok := mappingModelToProto[e]
+	if !ok {
+		return protoAuditLogEntity, errors.BadRequest.New("AuditLogEntity undefined")
+	}
+
+	return protoAuditLogEntity, nil
+}
+
+type ProtoAuditLogEntity struct {
+	proto.AuditLogEntity
+}
+
+// ConvertToModel преобразует ProtoAuditLogEntity в AuditLogEntity
+func (p ProtoAuditLogEntity) ConvertToModel() (auditLogEntity AuditLogEntity, err error) {
+
+	// Проверяем наличие значения
+	auditLogEntity, ok := mappingProtoToModel[p.AuditLogEntity]
+	if !ok {
+		return auditLogEntity, errors.BadRequest.New("AuditLogEntity undefined")
+	}
+
+	return auditLogEntity, nil
 }

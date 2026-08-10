@@ -9,13 +9,13 @@ import (
 	"pkg/ddlHelper"
 	"pkg/log"
 	"server/internal/modules/accountGroup/repository/accountGroupDDL"
-	"server/internal/modules/user/model"
 	"server/internal/modules/user/repository/userDDL"
-	"server/internal/modules/user/repository/userToAccountGroupDDL"
+	"server/internal/modules/userToAccountGroup/model"
+	"server/internal/modules/userToAccountGroup/repository/userToAccountGroupDDL"
 )
 
 // GetAccessedAccountGroups возвращает доступы пользователей к группам счетов
-func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accessedAccountGroupIDs []uuid.UUID, err error) {
+func (r *UserToAccountGroupRepository) GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accessedAccountGroupIDs []uuid.UUID, err error) {
 	ctx, span := tracer.Start(ctx, "GetAccessedAccountGroups")
 	defer span.End()
 
@@ -39,7 +39,6 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uu
 			),
 		).
 		From(accountGroupDDL.TableNameWithAlias).
-		Where(sq.Eq{accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted): false}).
 		Join(ddlHelper.BuildJoin(
 			userToAccountGroupDDL.TableWithAlias,
 			userToAccountGroupDDL.WithPrefix(userToAccountGroupDDL.ColumnAccountGroupID),
