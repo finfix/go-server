@@ -24,7 +24,7 @@ func (s *AccountGroupService) DeleteAccountGroup(ctx context.Context, id model.D
 	}
 
 	// Получаем группу счетов для слепка "до" в аудит-логе
-	accountGroup, err := slices.FirstWithError(s.accountGroupRepository.GetAccountGroups(ctx, model.GetAccountGroupsReq{ //nolint:exhaustruct
+	accountGroupBefore, err := slices.FirstWithError(s.accountGroupRepository.GetAccountGroups(ctx, model.GetAccountGroupsReq{ //nolint:exhaustruct
 		AccountGroupIDs: []uuid.UUID{id.ID},
 	}))
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *AccountGroupService) DeleteAccountGroup(ctx context.Context, id model.D
 			Entity:   auditLogEntity.AccountGroup,
 			Method:   auditLogMethod.Delete,
 			EntityID: id.ID.String(),
-			Before:   accountGroup,
+			Before:   accountGroupBefore,
 			After:    nil,
 			UserID:   id.Necessary.UserID,
 			DeviceID: id.Necessary.DeviceID,

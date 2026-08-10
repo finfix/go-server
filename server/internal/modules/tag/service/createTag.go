@@ -5,6 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"pkg/slices"
+
 	"server/internal/enum/auditLogEntity"
 	"server/internal/enum/auditLogMethod"
 	auditLogModel "server/internal/modules/auditLog/model"
@@ -24,8 +26,15 @@ func (s *TagService) CreateTag(ctx context.Context, tag model.CreateTagReq) (mod
 	err := s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем подкатегорию
-		repoReq := tag.ConvertToRepoReq()
-		if err := s.tagRepository.CreateTag(ctxTx, repoReq); err != nil {
+		if err := s.tagRepository.CreateTag(ctxTx, tag.ConvertToRepoReq()); err != nil {
+			return err
+		}
+
+		// Получаем созданную подкатегорию из БД для слепка "после" в аудит-логе
+		tagAfter, err := slices.FirstWithError(s.tagRepository.GetTags(ctxTx, model.GetTagsReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{tag.ID},
+		}))
+		if err != nil {
 			return err
 		}
 
@@ -35,7 +44,7 @@ func (s *TagService) CreateTag(ctx context.Context, tag model.CreateTagReq) (mod
 			Method:   auditLogMethod.Create,
 			EntityID: tag.ID.String(),
 			Before:   nil,
-			After:    repoReq,
+			After:    tagAfter,
 			UserID:   tag.Necessary.UserID,
 			DeviceID: tag.Necessary.DeviceID,
 		})

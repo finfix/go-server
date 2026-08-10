@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"pkg/passwordManager"
+	"pkg/slices"
 	"server/internal/utils/errors"
 
 	"server/internal/enum/auditLogEntity"
@@ -89,19 +90,21 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 			return err
 		}
 
-		// Фиксируем изменение пользователя в аудит-логе (без хэша и соли пароля)
+		// Получаем актуального пользователя из БД для слепка "после" в аудит-логе (хэш и соль пароля исключены тегом json:"-")
+		userAfter, err := slices.FirstWithError(s.userRepository.GetUsers(ctx, model.GetUsersReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{req.Necessary.UserID},
+		}))
+		if err != nil {
+			return err
+		}
+
+		// Фиксируем изменение пользователя в аудит-логе
 		return s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.User,
 			Method:   auditLogMethod.Update,
 			EntityID: req.Necessary.UserID.String(),
 			Before:   userBefore,
-			After: struct {
-				Name              *string
-				Email             *string
-				DefaultCurrency   *string
-				NotificationToken *string
-				PasswordChanged   bool
-			}{repoReq.Name, repoReq.Email, repoReq.DefaultCurrency, req.NotificationToken, req.Password != nil},
+			After:    userAfter,
 			UserID:   req.Necessary.UserID,
 			DeviceID: req.Necessary.DeviceID,
 		})

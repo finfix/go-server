@@ -87,8 +87,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 	err = s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем транзакцию
-		repoReq := transaction.ConvertToRepoReq()
-		id, err := s.transactionRepository.CreateTransaction(ctxTx, repoReq)
+		id, err := s.transactionRepository.CreateTransaction(ctxTx, transaction.ConvertToRepoReq())
 		if err != nil {
 			return err
 		}
@@ -100,13 +99,21 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 			}
 		}
 
+		// Получаем созданную транзакцию из БД для слепка "после" в аудит-логе
+		transactionAfter, err := slices.FirstWithError(s.transactionRepository.GetTransactions(ctxTx, transactionModel.GetTransactionsReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{id},
+		}))
+		if err != nil {
+			return err
+		}
+
 		// Фиксируем создание транзакции в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.Transaction,
 			Method:   auditLogMethod.Create,
 			EntityID: id.String(),
 			Before:   nil,
-			After:    repoReq,
+			After:    transactionAfter,
 			UserID:   transaction.Necessary.UserID,
 			DeviceID: transaction.Necessary.DeviceID,
 		})

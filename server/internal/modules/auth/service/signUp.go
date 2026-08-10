@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"pkg/passwordManager"
+	"pkg/slices"
 	"server/internal/utils/errors"
 
 	"server/internal/enum/auditLogEntity"
@@ -63,18 +64,21 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 			return err
 		}
 
-		// Фиксируем регистрацию пользователя в аудит-логе (без хэша и соли пароля)
+		// Получаем созданного пользователя из БД для слепка "после" в аудит-логе (хэш и соль пароля исключены тегом json:"-")
+		userAfter, err := slices.FirstWithError(s.userRepository.GetUsers(ctx, userModel.GetUsersReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{accessData.ID},
+		}))
+		if err != nil {
+			return err
+		}
+
+		// Фиксируем регистрацию пользователя в аудит-логе
 		if err = s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.User,
 			Method:   auditLogMethod.Create,
 			EntityID: accessData.ID.String(),
 			Before:   nil,
-			After: struct {
-				ID              uuid.UUID
-				Name            string
-				Email           string
-				DefaultCurrency string
-			}{accessData.ID, loginData.Name, loginData.Email, "RUB"},
+			After:    userAfter,
 			UserID:   accessData.ID,
 			DeviceID: loginData.DeviceID,
 		}); err != nil {

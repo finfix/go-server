@@ -5,6 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"pkg/slices"
+
 	"server/internal/enum/auditLogEntity"
 	"server/internal/enum/auditLogMethod"
 	auditLogModel "server/internal/modules/auditLog/model"
@@ -25,20 +27,22 @@ func (s *UserService) CreateUser(ctx context.Context, user model.CreateReq) (id 
 			return err
 		}
 
-		// Фиксируем создание пользователя в аудит-логе (без хэша и соли пароля)
+		// Получаем созданного пользователя из БД для слепка "после" в аудит-логе (хэш и соль пароля исключены тегом json:"-")
+		userAfter, err := slices.FirstWithError(s.userRepository.GetUsers(ctxTx, model.GetUsersReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{user.ID},
+		}))
+		if err != nil {
+			return err
+		}
+
+		// Фиксируем создание пользователя в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.User,
 			Method:   auditLogMethod.Create,
 			EntityID: user.ID.String(),
 			Before:   nil,
-			After: struct {
-				ID              uuid.UUID
-				Name            string
-				Email           string
-				DefaultCurrency string
-				IsAdmin         bool
-			}{user.ID, user.Name, user.Email, user.DefaultCurrency, user.IsAdmin},
-			UserID: user.ID,
+			After:    userAfter,
+			UserID:   user.ID,
 		})
 	})
 	if err != nil {

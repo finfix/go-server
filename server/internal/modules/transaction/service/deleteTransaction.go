@@ -24,7 +24,7 @@ func (s *TransactionService) DeleteTransaction(ctx context.Context, id model.Del
 	}
 
 	// Получаем транзакцию для слепка "до" в аудит-логе
-	transaction, err := slices.FirstWithError(s.transactionRepository.GetTransactions(ctx, model.GetTransactionsReq{ //nolint:exhaustruct
+	transactionBefore, err := slices.FirstWithError(s.transactionRepository.GetTransactions(ctx, model.GetTransactionsReq{ //nolint:exhaustruct
 		IDs: []uuid.UUID{id.ID},
 	}))
 	if err != nil {
@@ -43,7 +43,7 @@ func (s *TransactionService) DeleteTransaction(ctx context.Context, id model.Del
 			Entity:   auditLogEntity.Transaction,
 			Method:   auditLogMethod.Delete,
 			EntityID: id.ID.String(),
-			Before:   transaction,
+			Before:   transactionBefore,
 			After:    nil,
 			UserID:   id.Necessary.UserID,
 			DeviceID: id.Necessary.DeviceID,

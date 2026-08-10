@@ -24,7 +24,7 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 	}
 
 	// Получаем подкатегорию для слепка "до" в аудит-логе
-	tag, err := slices.FirstWithError(s.tagRepository.GetTags(ctx, model.GetTagsReq{ //nolint:exhaustruct
+	tagBefore, err := slices.FirstWithError(s.tagRepository.GetTags(ctx, model.GetTagsReq{ //nolint:exhaustruct
 		IDs: []uuid.UUID{fields.ID},
 	}))
 	if err != nil {
@@ -38,13 +38,21 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 			return err
 		}
 
+		// Получаем актуальную подкатегорию из БД для слепка "после" в аудит-логе
+		tagAfter, err := slices.FirstWithError(s.tagRepository.GetTags(ctxTx, model.GetTagsReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{fields.ID},
+		}))
+		if err != nil {
+			return err
+		}
+
 		// Фиксируем изменение подкатегории в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.Tag,
 			Method:   auditLogMethod.Update,
 			EntityID: fields.ID.String(),
-			Before:   tag,
-			After:    fields,
+			Before:   tagBefore,
+			After:    tagAfter,
 			UserID:   fields.Necessary.UserID,
 			DeviceID: fields.Necessary.DeviceID,
 		})

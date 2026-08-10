@@ -41,6 +41,9 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 	}
 	transaction := transactions[0]
 
+	// Сохраняем слепок "до" отдельно, так как ниже transaction мутируется для валидации
+	transactionBefore := transaction
+
 	// Если в запросе есть изменение счетов, то проверяем доступ пользователя к ним
 	if fields.AccountFromID != nil || fields.AccountToID != nil {
 		if fields.AccountFromID != nil {
@@ -99,13 +102,21 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 			return err
 		}
 
+		// Получаем актуальную транзакцию из БД для слепка "после" в аудит-логе
+		transactionAfter, err := slices.FirstWithError(s.transactionRepository.GetTransactions(ctxTx, transactionModel.GetTransactionsReq{ //nolint:exhaustruct
+			IDs: []uuid.UUID{fields.ID},
+		}))
+		if err != nil {
+			return err
+		}
+
 		// Фиксируем изменение транзакции в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.Transaction,
 			Method:   auditLogMethod.Update,
 			EntityID: fields.ID.String(),
-			Before:   transaction,
-			After:    fields,
+			Before:   transactionBefore,
+			After:    transactionAfter,
 			UserID:   fields.Necessary.UserID,
 			DeviceID: fields.Necessary.DeviceID,
 		})

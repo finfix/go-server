@@ -24,7 +24,7 @@ func (s *AccountGroupService) UpdateAccountGroup(ctx context.Context, updateReq 
 	}
 
 	// Получаем группу счетов для слепка "до" в аудит-логе
-	accountGroup, err := slices.FirstWithError(s.accountGroupRepository.GetAccountGroups(ctx, model.GetAccountGroupsReq{ //nolint:exhaustruct
+	accountGroupBefore, err := slices.FirstWithError(s.accountGroupRepository.GetAccountGroups(ctx, model.GetAccountGroupsReq{ //nolint:exhaustruct
 		AccountGroupIDs: []uuid.UUID{updateReq.ID},
 	}))
 	if err != nil {
@@ -38,13 +38,21 @@ func (s *AccountGroupService) UpdateAccountGroup(ctx context.Context, updateReq 
 			return err
 		}
 
+		// Получаем актуальную группу счетов из БД для слепка "после" в аудит-логе
+		accountGroupAfter, err := slices.FirstWithError(s.accountGroupRepository.GetAccountGroups(ctxTx, model.GetAccountGroupsReq{ //nolint:exhaustruct
+			AccountGroupIDs: []uuid.UUID{updateReq.ID},
+		}))
+		if err != nil {
+			return err
+		}
+
 		// Фиксируем изменение группы счетов в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.AccountGroup,
 			Method:   auditLogMethod.Update,
 			EntityID: updateReq.ID.String(),
-			Before:   accountGroup,
-			After:    updateReq,
+			Before:   accountGroupBefore,
+			After:    accountGroupAfter,
 			UserID:   updateReq.Necessary.UserID,
 			DeviceID: updateReq.Necessary.DeviceID,
 		})

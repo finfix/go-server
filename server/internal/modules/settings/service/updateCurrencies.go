@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/shopspring/decimal"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
@@ -64,8 +63,15 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 			return err
 		}
 
+		// Получаем актуальные курсы валют из БД для слепков "после" в аудит-логе
+		currenciesAfter, err := s.settingsRepository.GetCurrencies(ctxTx)
+		if err != nil {
+			return err
+		}
+		currenciesAfterMap := slices.ToMap(currenciesAfter, func(c settingsModel.Currency) string { return c.Slug })
+
 		// Фиксируем изменение каждого курса валюты в аудит-логе
-		for slug, rate := range rates {
+		for slug := range rates {
 			method := auditLogMethod.Update
 			var before any
 			if currencyBefore, ok := currenciesBeforeMap[slug]; ok {
@@ -79,7 +85,7 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 				Method:   method,
 				EntityID: slug,
 				Before:   before,
-				After:    struct{ Rate decimal.Decimal }{rate},
+				After:    currenciesAfterMap[slug],
 				UserID:   req.Necessary.UserID,
 				DeviceID: req.Necessary.DeviceID,
 			}); err != nil {

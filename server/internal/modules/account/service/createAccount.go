@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 
+	"pkg/slices"
+
 	"server/internal/enum/auditLogEntity"
 	"server/internal/enum/auditLogMethod"
 	"server/internal/modules/account/model"
+	accountRepoModel "server/internal/modules/account/repository/model"
 	auditLogModel "server/internal/modules/auditLog/model"
 
 	"github.com/google/uuid"
@@ -36,8 +39,13 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем счет
-		repoReq := accountToCreate.ConvertToRepoReq()
-		if err := s.accountRepository.CreateAccount(ctxTx, repoReq); err != nil {
+		if err := s.accountRepository.CreateAccount(ctxTx, accountToCreate.ConvertToRepoReq()); err != nil {
+			return err
+		}
+
+		// Получаем созданный счет из БД для слепка "после" в аудит-логе
+		accountAfter, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctxTx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{accountToCreate.ID}})) //nolint:exhaustruct
+		if err != nil {
 			return err
 		}
 
@@ -47,7 +55,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 			Method:   auditLogMethod.Create,
 			EntityID: accountToCreate.ID.String(),
 			Before:   nil,
-			After:    repoReq,
+			After:    accountAfter,
 			UserID:   accountToCreate.Necessary.UserID,
 			DeviceID: accountToCreate.Necessary.DeviceID,
 		})

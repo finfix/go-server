@@ -24,7 +24,7 @@ func (s *TagService) DeleteTag(ctx context.Context, req model.DeleteTagReq) erro
 	}
 
 	// Получаем подкатегорию для слепка "до" в аудит-логе
-	tag, err := slices.FirstWithError(s.tagRepository.GetTags(ctx, model.GetTagsReq{ //nolint:exhaustruct
+	tagBefore, err := slices.FirstWithError(s.tagRepository.GetTags(ctx, model.GetTagsReq{ //nolint:exhaustruct
 		IDs: []uuid.UUID{req.ID},
 	}))
 	if err != nil {
@@ -43,7 +43,7 @@ func (s *TagService) DeleteTag(ctx context.Context, req model.DeleteTagReq) erro
 			Entity:   auditLogEntity.Tag,
 			Method:   auditLogMethod.Delete,
 			EntityID: req.ID.String(),
-			Before:   tag,
+			Before:   tagBefore,
 			After:    nil,
 			UserID:   req.Necessary.UserID,
 			DeviceID: req.Necessary.DeviceID,

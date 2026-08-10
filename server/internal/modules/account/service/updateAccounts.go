@@ -34,6 +34,9 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 		return err
 	}
 
+	// Сохраняем слепок "до" отдельно, так как ниже account мутируется для валидации
+	accountBefore := account
+
 	// Проверяем, что входные данные не противоречат разрешениям
 	permissions, err := model.GetAccountPermissions(account)
 	if err != nil {
@@ -106,13 +109,19 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 			return err
 		}
 
+		// Получаем актуальный счет из БД для слепка "после" в аудит-логе
+		accountAfter, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctxTx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{updateReq.ID}})) //nolint:exhaustruct
+		if err != nil {
+			return err
+		}
+
 		// Фиксируем изменение счета в аудит-логе
 		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.Account,
 			Method:   auditLogMethod.Update,
 			EntityID: updateReq.ID.String(),
-			Before:   account,
-			After:    repoUpdateReqs[updateReq.ID],
+			Before:   accountBefore,
+			After:    accountAfter,
 			UserID:   updateReq.Necessary.UserID,
 			DeviceID: updateReq.Necessary.DeviceID,
 		})

@@ -25,7 +25,7 @@ func (s *AccountService) DeleteAccount(ctx context.Context, req model.DeleteAcco
 	}
 
 	// Получаем счет для слепка "до" в аудит-логе
-	account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{req.ID}})) //nolint:exhaustruct
+	accountBefore, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{req.ID}})) //nolint:exhaustruct
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (s *AccountService) DeleteAccount(ctx context.Context, req model.DeleteAcco
 			Entity:   auditLogEntity.Account,
 			Method:   auditLogMethod.Delete,
 			EntityID: req.ID.String(),
-			Before:   account,
+			Before:   accountBefore,
 			After:    nil,
 			UserID:   req.Necessary.UserID,
 			DeviceID: req.Necessary.DeviceID,
