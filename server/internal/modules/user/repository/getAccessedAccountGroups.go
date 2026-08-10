@@ -39,6 +39,7 @@ func (r *UserRepository) GetAccessedAccountGroups(ctx context.Context, userID uu
 			),
 		).
 		From(accountGroupDDL.TableNameWithAlias).
+		Where(sq.Eq{accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted): false}).
 		Join(ddlHelper.BuildJoin(
 			userToAccountGroupDDL.TableWithAlias,
 			userToAccountGroupDDL.WithPrefix(userToAccountGroupDDL.ColumnAccountGroupID),

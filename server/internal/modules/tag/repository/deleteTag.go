@@ -15,10 +15,11 @@ func (r *TagRepository) DeleteTag(ctx context.Context, id, userID uuid.UUID) err
 	ctx, span := tracer.Start(ctx, "DeleteTag")
 	defer span.End()
 
-	// Удаляем подкатегорию
+	// Помечаем подкатегорию как удаленную
 	rows, err := r.db.ExecWithRowsAffected(ctx, sq.
-		Delete(tagDDL.Table).
-		Where(sq.Eq{tagDDL.ColumnID: id}),
+		Update(tagDDL.Table).
+		Set(tagDDL.ColumnIsDeleted, true).
+		Where(sq.Eq{tagDDL.ColumnID: id, tagDDL.ColumnIsDeleted: false}),
 	)
 	if err != nil {
 		return err

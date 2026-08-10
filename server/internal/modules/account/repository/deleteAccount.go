@@ -14,9 +14,10 @@ func (r *AccountRepository) DeleteAccount(ctx context.Context, id uuid.UUID) err
 	ctx, span := tracer.Start(ctx, "deleteAccount")
 	defer span.End()
 
-	// Исполняем запрос на удаление счета
+	// Помечаем счет как удаленный
 	return r.db.Exec(ctx, sq.
-		Delete(accountDDL.Table).
+		Update(accountDDL.Table).
+		Set(accountDDL.ColumnIsDeleted, true).
 		Where(sq.Eq{accountDDL.ColumnID: id}),
 	)
 }

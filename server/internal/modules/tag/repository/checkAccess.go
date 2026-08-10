@@ -22,6 +22,7 @@ func (r *TagRepository) CheckAccess(ctx context.Context, accountGroupIDs, tagIDs
 		Where(sq.Eq{
 			tagDDL.ColumnAccountGroupID: accountGroupIDs,
 			tagDDL.ColumnID:             tagIDs,
+			tagDDL.ColumnIsDeleted:      false,
 		}),
 	)
 	if err != nil {

@@ -15,10 +15,11 @@ func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id, userI
 	ctx, span := tracer.Start(ctx, "DeleteTransaction")
 	defer span.End()
 
-	// Удаляем транзакцию
+	// Помечаем транзакцию как удаленную
 	rows, err := r.db.ExecWithRowsAffected(ctx, sq.
-		Delete(transactionDDL.Table).
-		Where(sq.Eq{transactionDDL.ColumnID: id}),
+		Update(transactionDDL.Table).
+		Set(transactionDDL.ColumnIsDeleted, true).
+		Where(sq.Eq{transactionDDL.ColumnID: id, transactionDDL.ColumnIsDeleted: false}),
 	)
 	if err != nil {
 		return err

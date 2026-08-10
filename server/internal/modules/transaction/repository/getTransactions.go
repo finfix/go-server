@@ -7,6 +7,7 @@ import (
 
 	"pkg/ddlHelper"
 	"server/internal/modules/account/repository/accountDDL"
+	"server/internal/modules/accountGroup/repository/accountGroupDDL"
 	"server/internal/modules/transaction/model"
 	"server/internal/modules/transaction/repository/transactionDDL"
 )
@@ -20,25 +21,36 @@ func (r *TransactionRepository) GetTransactions(ctx context.Context, req model.G
 
 	q := sq.
 		Select(transactionDDL.WithPrefix(ddlHelper.SelectAll)).
-		From(transactionDDL.TableWithAlias)
+		From(transactionDDL.TableWithAlias).
+		// Присоединяем оба счета транзакции и группу счетов, чтобы исключить удаленные
+		Join(ddlHelper.BuildJoin(
+			ddlHelper.WithCustomAlias(accountDDL.Table, accountsFromPrefix),
+			ddlHelper.WithCustomPrefix(accountDDL.ColumnID, accountsFromPrefix),
+			transactionDDL.WithPrefix(transactionDDL.ColumnAccountFromID),
+		)).
+		Join(ddlHelper.BuildJoin(
+			ddlHelper.WithCustomAlias(accountDDL.Table, accountsToPrefix),
+			ddlHelper.WithCustomPrefix(accountDDL.ColumnID, accountsToPrefix),
+			transactionDDL.WithPrefix(transactionDDL.ColumnAccountToID),
+		)).
+		Join(ddlHelper.BuildJoin(
+			accountGroupDDL.TableNameWithAlias,
+			accountGroupDDL.WithPrefix(accountGroupDDL.ColumnID),
+			transactionDDL.WithPrefix(transactionDDL.ColumnAccountGroupID),
+		)).
+		Where(sq.Eq{
+			transactionDDL.WithPrefix(transactionDDL.ColumnIsDeleted):                  false,
+			ddlHelper.WithCustomPrefix(accountDDL.ColumnIsDeleted, accountsFromPrefix): false,
+			ddlHelper.WithCustomPrefix(accountDDL.ColumnIsDeleted, accountsToPrefix):   false,
+			accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted):                false,
+		})
 
 	// Добавляем фильтры
 	if len(req.AccountGroupIDs) != 0 {
-		q = q.
-			Join(ddlHelper.BuildJoin(
-				ddlHelper.WithCustomAlias(accountDDL.Table, accountsFromPrefix),
-				ddlHelper.WithCustomPrefix(accountDDL.ColumnID, accountsFromPrefix),
-				transactionDDL.WithPrefix(transactionDDL.ColumnAccountFromID),
-			)).
-			Join(ddlHelper.BuildJoin(
-				ddlHelper.WithCustomAlias(accountDDL.Table, accountsToPrefix),
-				ddlHelper.WithCustomPrefix(accountDDL.ColumnID, accountsToPrefix),
-				transactionDDL.WithPrefix(transactionDDL.ColumnAccountToID),
-			)).
-			Where(sq.Eq{
-				ddlHelper.WithCustomPrefix(accountDDL.ColumnAccountGroupID, accountsFromPrefix): req.AccountGroupIDs,
-				ddlHelper.WithCustomPrefix(accountDDL.ColumnAccountGroupID, accountsToPrefix):   req.AccountGroupIDs,
-			})
+		q = q.Where(sq.Eq{
+			ddlHelper.WithCustomPrefix(accountDDL.ColumnAccountGroupID, accountsFromPrefix): req.AccountGroupIDs,
+			ddlHelper.WithCustomPrefix(accountDDL.ColumnAccountGroupID, accountsToPrefix):   req.AccountGroupIDs,
+		})
 	}
 	if len(req.IDs) != 0 {
 		q = q.Where(sq.Eq{transactionDDL.ColumnID: req.IDs})

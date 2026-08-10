@@ -14,9 +14,10 @@ func (r *AccountGroupRepository) DeleteAccountGroup(ctx context.Context, id uuid
 	ctx, span := tracer.Start(ctx, "DeleteAccountGroup")
 	defer span.End()
 
-	// Исполняем запрос на удаление группы счетов
+	// Помечаем группу счетов как удаленную
 	return r.db.Exec(ctx, sq.
-		Delete(accountGroupDDL.TableName).
+		Update(accountGroupDDL.TableName).
+		Set(accountGroupDDL.ColumnIsDeleted, true).
 		Where(sq.Eq{accountGroupDDL.ColumnID: id}),
 	)
 }

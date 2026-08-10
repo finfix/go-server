@@ -22,6 +22,7 @@ func (r *TransactionRepository) CheckAccess(ctx context.Context, accountGroupIDs
 		Where(sq.Eq{
 			transactionDDL.ColumnAccountGroupID: accountGroupIDs,
 			transactionDDL.ColumnID:             transactionIDs,
+			transactionDDL.ColumnIsDeleted:      false,
 		}))
 	if err != nil {
 		return err

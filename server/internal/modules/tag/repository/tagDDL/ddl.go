@@ -14,6 +14,7 @@ const (
 	ColumnAccountGroupID  = "account_group_id"
 	ColumnCreatedByUserID = "created_by_user_id"
 	ColumnDatetimeCreate  = "datetime_create"
+	ColumnIsDeleted       = "is_deleted"
 )
 
 func WithPrefix(column string) string {

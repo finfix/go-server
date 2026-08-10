@@ -20,7 +20,8 @@ func (r *AccountGroupRepository) GetAccountGroups(ctx context.Context, req model
 	// Формируем первичный запрос
 	q := sq.
 		Select(accountGroupDDL.WithPrefix(ddlHelper.SelectAll)).
-		From(accountGroupDDL.TableNameWithAlias)
+		From(accountGroupDDL.TableNameWithAlias).
+		Where(sq.Eq{accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted): false})
 
 	// Фильтр по группам счетов
 	if len(req.AccountGroupIDs) != 0 {

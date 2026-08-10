@@ -18,36 +18,39 @@ func (r *TagRepository) GetTagsToTransactions(ctx context.Context, req model.Get
 	ctx, span := tracer.Start(ctx, "GetTagsToTransactions")
 	defer span.End()
 
-	// Формируем первичный запрос
+	// Формируем первичный запрос, исключая связи с удаленными подкатегориями, транзакциями и группами счетов
 	q := sq.
-		Select("*").
-		From("coin.tags_to_transaction ttt")
+		Select(tagToTransactionDDL.WithPrefix(ddlHelper.SelectAll)).
+		From(tagToTransactionDDL.TableWithAlias).
+		Join(ddlHelper.BuildJoin(
+			tagDDL.TableWithAlias,
+			tagDDL.WithPrefix(tagDDL.ColumnID),
+			tagToTransactionDDL.WithPrefix(tagToTransactionDDL.ColumnTagID),
+		)).
+		Join(ddlHelper.BuildJoin(
+			transactionDDL.TableWithAlias,
+			transactionDDL.WithPrefix(transactionDDL.ColumnID),
+			tagToTransactionDDL.WithPrefix(tagToTransactionDDL.ColumnTransactionID),
+		)).
+		Join(ddlHelper.BuildJoin(
+			accountGroupDDL.TableNameWithAlias,
+			accountGroupDDL.WithPrefix(accountGroupDDL.ColumnID),
+			tagDDL.WithPrefix(tagDDL.ColumnAccountGroupID),
+		)).
+		Where(sq.Eq{
+			tagDDL.WithPrefix(tagDDL.ColumnIsDeleted):                   false,
+			transactionDDL.WithPrefix(transactionDDL.ColumnIsDeleted):   false,
+			accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted): false,
+		})
 
 	// Фильтрация по переданным группам счетов
 	if len(req.AccountGroupIDs) != 0 {
-		q = q.
-			Join(ddlHelper.BuildJoin(
-				tagDDL.TableWithAlias,
-				tagDDL.WithPrefix(tagDDL.ColumnID),
-				tagToTransactionDDL.WithPrefix(tagToTransactionDDL.ColumnTagID),
-			)).
-			Join(ddlHelper.BuildJoin(
-				accountGroupDDL.TableNameWithAlias,
-				accountGroupDDL.WithPrefix(accountGroupDDL.ColumnID),
-				tagDDL.WithPrefix(tagDDL.ColumnAccountGroupID),
-			)).
-			Where(sq.Eq{tagDDL.WithPrefix(tagDDL.ColumnAccountGroupID): req.AccountGroupIDs})
+		q = q.Where(sq.Eq{tagDDL.WithPrefix(tagDDL.ColumnAccountGroupID): req.AccountGroupIDs})
 	}
 
 	// Фильтрация по переданным транзакциям
 	if len(req.TransactionIDs) != 0 {
-		q = q.
-			Join(ddlHelper.BuildJoin(
-				transactionDDL.TableWithAlias,
-				transactionDDL.WithPrefix(transactionDDL.ColumnID),
-				tagToTransactionDDL.WithPrefix(tagToTransactionDDL.ColumnTransactionID),
-			)).
-			Where(sq.Eq{tagToTransactionDDL.WithPrefix(tagToTransactionDDL.ColumnTransactionID): req.TransactionIDs})
+		q = q.Where(sq.Eq{tagToTransactionDDL.WithPrefix(tagToTransactionDDL.ColumnTransactionID): req.TransactionIDs})
 	}
 
 	// Выполняем запрос

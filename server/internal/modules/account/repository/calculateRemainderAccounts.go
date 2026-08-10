@@ -60,6 +60,11 @@ func buildRequestForGettingSumTransactions(req accountRepoModel.CalculateRemaind
 			accountDDL.WithPrefix(accountDDL.ColumnID),
 			transactionDDL.WithPrefix(selectField),
 		)).
+		// Исключаем удаленные транзакции и удаленные счета из подсчета остатков
+		Where(sq.Eq{
+			transactionDDL.WithPrefix(transactionDDL.ColumnIsDeleted): false,
+			accountDDL.WithPrefix(accountDDL.ColumnIsDeleted):         false,
+		}).
 		GroupBy(transactionDDL.WithPrefix(selectField))
 
 	// Дополняем запрос фильтрами в зависимости от параметров

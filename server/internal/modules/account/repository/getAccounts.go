@@ -9,6 +9,7 @@ import (
 	"server/internal/modules/account/model"
 	"server/internal/modules/account/repository/accountDDL"
 	accountRepoModel "server/internal/modules/account/repository/model"
+	"server/internal/modules/accountGroup/repository/accountGroupDDL"
 	"server/internal/utils/errors"
 )
 
@@ -20,31 +21,31 @@ func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoMode
 	filters := make(sq.Eq)
 
 	if len(req.AccountGroupIDs) != 0 {
-		filters[accountDDL.ColumnAccountGroupID] = req.AccountGroupIDs
+		filters[accountDDL.WithPrefix(accountDDL.ColumnAccountGroupID)] = req.AccountGroupIDs
 	}
 	if len(req.IDs) != 0 {
-		filters[accountDDL.ColumnID] = req.IDs
+		filters[accountDDL.WithPrefix(accountDDL.ColumnID)] = req.IDs
 	}
 	if len(req.Types) != 0 {
-		filters[accountDDL.ColumnType] = req.Types
+		filters[accountDDL.WithPrefix(accountDDL.ColumnType)] = req.Types
 	}
 	if len(req.Currencies) != 0 {
-		filters[accountDDL.ColumnCurrency] = req.Currencies
+		filters[accountDDL.WithPrefix(accountDDL.ColumnCurrency)] = req.Currencies
 	}
 	if len(req.ParentAccountIDs) != 0 {
-		filters[accountDDL.ColumnParentAccountID] = req.ParentAccountIDs
+		filters[accountDDL.WithPrefix(accountDDL.ColumnParentAccountID)] = req.ParentAccountIDs
 	}
 	if req.IsParent != nil {
-		filters[accountDDL.ColumnIsParent] = req.IsParent
+		filters[accountDDL.WithPrefix(accountDDL.ColumnIsParent)] = req.IsParent
 	}
 	if req.AccountingInHeader != nil {
-		filters[accountDDL.ColumnAccountingInHeader] = req.AccountingInHeader
+		filters[accountDDL.WithPrefix(accountDDL.ColumnAccountingInHeader)] = req.AccountingInHeader
 	}
 	if req.AccountingInCharts != nil {
-		filters[accountDDL.ColumnAccountingInCharts] = req.AccountingInCharts
+		filters[accountDDL.WithPrefix(accountDDL.ColumnAccountingInCharts)] = req.AccountingInCharts
 	}
 	if req.Visible != nil {
-		filters[accountDDL.ColumnVisible] = req.Visible
+		filters[accountDDL.WithPrefix(accountDDL.ColumnVisible)] = req.Visible
 	}
 
 	// Проверяем, что хоть один фильтр был передан
@@ -52,10 +53,19 @@ func (r *AccountRepository) GetAccounts(ctx context.Context, req accountRepoMode
 		return accounts, errors.BadRequest.New("No filters").WithContextParams(ctx)
 	}
 
+	// Исключаем удаленные счета и счета из удаленных групп счетов
+	filters[accountDDL.WithPrefix(accountDDL.ColumnIsDeleted)] = false
+	filters[accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted)] = false
+
 	// Выполняем запрос
 	if err = r.db.Select(ctx, &accounts, sq.
-		Select(ddlHelper.SelectAll).
-		From(accountDDL.Table).
+		Select(accountDDL.WithPrefix(ddlHelper.SelectAll)).
+		From(accountDDL.TableWithAlias).
+		Join(ddlHelper.BuildJoin(
+			accountGroupDDL.TableNameWithAlias,
+			accountGroupDDL.WithPrefix(accountGroupDDL.ColumnID),
+			accountDDL.WithPrefix(accountDDL.ColumnAccountGroupID),
+		)).
 		Where(filters),
 	); err != nil {
 		return accounts, err

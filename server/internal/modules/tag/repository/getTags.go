@@ -6,6 +6,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"pkg/ddlHelper"
+	"server/internal/modules/accountGroup/repository/accountGroupDDL"
 	"server/internal/modules/tag/repository/tagDDL"
 	"server/internal/utils/errors"
 
@@ -20,10 +21,10 @@ func (r *TagRepository) GetTags(ctx context.Context, req model.GetTagsReq) (tags
 	filtersEq := make(sq.Eq)
 
 	if len(req.AccountGroupIDs) > 0 {
-		filtersEq[tagDDL.ColumnAccountGroupID] = req.AccountGroupIDs
+		filtersEq[tagDDL.WithPrefix(tagDDL.ColumnAccountGroupID)] = req.AccountGroupIDs
 	}
 	if len(req.IDs) > 0 {
-		filtersEq[tagDDL.ColumnID] = req.IDs
+		filtersEq[tagDDL.WithPrefix(tagDDL.ColumnID)] = req.IDs
 	}
 
 	// Проверяем, что есть фильтры
@@ -31,10 +32,19 @@ func (r *TagRepository) GetTags(ctx context.Context, req model.GetTagsReq) (tags
 		return nil, errors.BadRequest.New("No filters specified").WithContextParams(ctx)
 	}
 
+	// Исключаем удаленные подкатегории и подкатегории из удаленных групп счетов
+	filtersEq[tagDDL.WithPrefix(tagDDL.ColumnIsDeleted)] = false
+	filtersEq[accountGroupDDL.WithPrefix(accountGroupDDL.ColumnIsDeleted)] = false
+
 	// Получаем подкатегории
 	return tags, r.db.Select(ctx, &tags, sq.
-		Select(ddlHelper.SelectAll).
-		From(tagDDL.Table).
+		Select(tagDDL.WithPrefix(ddlHelper.SelectAll)).
+		From(tagDDL.TableWithAlias).
+		Join(ddlHelper.BuildJoin(
+			accountGroupDDL.TableNameWithAlias,
+			accountGroupDDL.WithPrefix(accountGroupDDL.ColumnID),
+			tagDDL.WithPrefix(tagDDL.ColumnAccountGroupID),
+		)).
 		Where(filtersEq),
 	)
 }
