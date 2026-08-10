@@ -3,7 +3,10 @@ package service
 import (
 	"context"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
 	"server/internal/modules/accountGroup/model"
+	auditLogModel "server/internal/modules/auditLog/model"
 )
 
 // CreateAccountGroup создает новую группу счетов
@@ -15,16 +18,26 @@ func (s *AccountGroupService) CreateAccountGroup(ctx context.Context, accountGro
 	return res, s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем счет
-		serialNumber, err := s.accountGroupRepository.CreateAccountGroup(ctx, accountGroup.ConvertToRepoReq())
+		repoReq := accountGroup.ConvertToRepoReq()
+		serialNumber, err := s.accountGroupRepository.CreateAccountGroup(ctxTx, repoReq)
 		if err != nil {
 			return err
 		}
 		res.SerialNumber = serialNumber
 
-		if err = s.accountGroupRepository.LinkUserToAccountGroup(ctx, accountGroup.Necessary.UserID, accountGroup.ID); err != nil {
+		if err = s.accountGroupRepository.LinkUserToAccountGroup(ctxTx, accountGroup.Necessary.UserID, accountGroup.ID); err != nil {
 			return err
 		}
 
-		return nil
+		// Фиксируем создание группы счетов в аудит-логе
+		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.AccountGroup,
+			Method:   auditLogMethod.Create,
+			EntityID: accountGroup.ID.String(),
+			Before:   nil,
+			After:    repoReq,
+			UserID:   accountGroup.Necessary.UserID,
+			DeviceID: accountGroup.Necessary.DeviceID,
+		})
 	})
 }

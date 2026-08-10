@@ -3,14 +3,15 @@ package model
 import (
 	"github.com/google/uuid"
 
-	"server/internal/utils/necessary"
-	"server/internal/utils/errors"
 	"github.com/finfix/go-server-grpc/proto"
+	"server/internal/utils/errors"
+	"server/internal/utils/necessary"
 )
 
 type GetTagsReq struct {
 	Necessary       necessary.NecessaryUserInformation
 	AccountGroupIDs []uuid.UUID `json:"accountGroupIDs" schema:"accountGroupIDs" minimum:"1"` // Идентификаторы групп счетов
+	IDs             []uuid.UUID `json:"ids" schema:"ids" minimum:"1"`                         // Идентификаторы подкатегорий
 }
 
 // ProtoGetTagsReq wrapper for proto request

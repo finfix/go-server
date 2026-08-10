@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 
 	accountGroupService "server/internal/modules/accountGroup/service"
+	auditLogModel "server/internal/modules/auditLog/model"
+	auditLogService "server/internal/modules/auditLog/service"
 	tagModel "server/internal/modules/tag/model"
 	tagRepository "server/internal/modules/tag/repository"
 	tagRepoModel "server/internal/modules/tag/repository/model"
@@ -22,6 +24,7 @@ type TagService struct {
 	generalRepository   Transactor
 	userService         UserService
 	accountGroupService AccountGroupService
+	auditLogService     AuditLogService
 }
 
 func NewTagService(
@@ -29,12 +32,14 @@ func NewTagService(
 	generalRepository Transactor,
 	userService UserService,
 	accountGroupService AccountGroupService,
+	auditLogService AuditLogService,
 ) *TagService {
 	return &TagService{
 		tagRepository:       tagRepository,
 		generalRepository:   generalRepository,
 		userService:         userService,
 		accountGroupService: accountGroupService,
+		auditLogService:     auditLogService,
 	}
 }
 
@@ -67,4 +72,11 @@ var _ AccountGroupService = new(accountGroupService.AccountGroupService)
 
 type AccountGroupService interface {
 	CheckAccess(ctx context.Context, userID uuid.UUID, accountGroupIDs []uuid.UUID) error
+}
+
+var _ AuditLogService = new(auditLogService.AuditLogService)
+
+// AuditLogService - интерфейс сервиса аудит-лога
+type AuditLogService interface {
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
 }

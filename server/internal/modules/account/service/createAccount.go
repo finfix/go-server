@@ -3,7 +3,10 @@ package service
 import (
 	"context"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
 	"server/internal/modules/account/model"
+	auditLogModel "server/internal/modules/auditLog/model"
 
 	"github.com/google/uuid"
 )
@@ -30,8 +33,26 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 		}
 	}
 
-	// Создаем счет
-	if err = s.accountRepository.CreateAccount(ctx, accountToCreate.ConvertToRepoReq()); err != nil {
+	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+
+		// Создаем счет
+		repoReq := accountToCreate.ConvertToRepoReq()
+		if err := s.accountRepository.CreateAccount(ctxTx, repoReq); err != nil {
+			return err
+		}
+
+		// Фиксируем создание счета в аудит-логе
+		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.Account,
+			Method:   auditLogMethod.Create,
+			EntityID: accountToCreate.ID.String(),
+			Before:   nil,
+			After:    repoReq,
+			UserID:   accountToCreate.Necessary.UserID,
+			DeviceID: accountToCreate.Necessary.DeviceID,
+		})
+	})
+	if err != nil {
 		return res, err
 	}
 

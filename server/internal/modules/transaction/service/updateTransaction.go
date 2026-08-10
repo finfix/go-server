@@ -6,8 +6,11 @@ import (
 	"pkg/slices"
 	"server/internal/utils/errors"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
 	accountModel "server/internal/modules/account/model"
 	accountRepoModel "server/internal/modules/account/repository/model"
+	auditLogModel "server/internal/modules/auditLog/model"
 	transactionModel "server/internal/modules/transaction/model"
 	"server/internal/modules/transaction/service/utils"
 
@@ -92,6 +95,19 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		}
 
 		// Изменяем данные транзакции
-		return s.transactionRepository.UpdateTransaction(ctxTx, fields)
+		if err := s.transactionRepository.UpdateTransaction(ctxTx, fields); err != nil {
+			return err
+		}
+
+		// Фиксируем изменение транзакции в аудит-логе
+		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.Transaction,
+			Method:   auditLogMethod.Update,
+			EntityID: fields.ID.String(),
+			Before:   transaction,
+			After:    fields,
+			UserID:   fields.Necessary.UserID,
+			DeviceID: fields.Necessary.DeviceID,
+		})
 	})
 }

@@ -7,6 +7,9 @@ import (
 	"pkg/passwordManager"
 	"server/internal/utils/errors"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
+	auditLogModel "server/internal/modules/auditLog/model"
 	"server/internal/modules/user/model"
 	userRepoModel "server/internal/modules/user/repository/model"
 )
@@ -15,6 +18,18 @@ import (
 func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) error {
 	ctx, span := tracer.Start(ctx, "UpdateUser")
 	defer span.End()
+
+	// Получаем пользователя для слепка "до" в аудит-логе
+	users, err := s.userRepository.GetUsers(ctx, model.GetUsersReq{ //nolint:exhaustruct
+		IDs: []uuid.UUID{req.Necessary.UserID},
+	})
+	if err != nil {
+		return err
+	}
+	if len(users) == 0 {
+		return errors.NotFound.New("User not found").WithContextParams(ctx)
+	}
+	userBefore := users[0]
 
 	return s.generalRepository.WithinTransaction(ctx, func(ctx context.Context) error {
 
@@ -49,21 +64,8 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 				return errors.BadRequest.New("OldPassword must be filled").WithContextParams(ctx)
 			}
 
-			// Получаем актуальный пароль пользователя
-			users, err := s.userRepository.GetUsers(ctx, model.GetUsersReq{ //nolint:exhaustruct
-				IDs: []uuid.UUID{req.Necessary.UserID},
-			})
-			if err != nil {
-				return err
-			}
-			if len(users) == 0 {
-				return errors.NotFound.New("User not found").
-					WithContextParams(ctx)
-			}
-			user := users[0]
-
 			// Сравниваем пришедший пароль и хэш пароля из базы данных
-			if err = passwordManager.CompareHashAndPassword(user.PasswordHash, []byte(*req.OldPassword), user.PasswordSalt, s.generalSalt); err != nil {
+			if err := passwordManager.CompareHashAndPassword(userBefore.PasswordHash, []byte(*req.OldPassword), userBefore.PasswordSalt, s.generalSalt); err != nil {
 				return err
 			}
 
@@ -87,6 +89,21 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 			return err
 		}
 
-		return nil
+		// Фиксируем изменение пользователя в аудит-логе (без хэша и соли пароля)
+		return s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.User,
+			Method:   auditLogMethod.Update,
+			EntityID: req.Necessary.UserID.String(),
+			Before:   userBefore,
+			After: struct {
+				Name              *string
+				Email             *string
+				DefaultCurrency   *string
+				NotificationToken *string
+				PasswordChanged   bool
+			}{repoReq.Name, repoReq.Email, repoReq.DefaultCurrency, req.NotificationToken, req.Password != nil},
+			UserID:   req.Necessary.UserID,
+			DeviceID: req.Necessary.DeviceID,
+		})
 	})
 }

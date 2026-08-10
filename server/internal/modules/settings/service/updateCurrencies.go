@@ -4,11 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/shopspring/decimal"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
 	"pkg/log"
+	"pkg/slices"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
+	auditLogModel "server/internal/modules/auditLog/model"
 	settingsModel "server/internal/modules/settings/model"
 	"server/internal/modules/settings/network"
 	"server/internal/modules/settings/service/utils"
@@ -45,8 +50,46 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 	}
 	tgMessage.Message += "Успешно получили курсы валют от провайдера\n"
 
-	// Обновляем курсы валют в БД
-	if err = s.settingsRepository.UpdateCurrencies(ctx, rates); err != nil {
+	// Получаем текущие курсы валют для слепка "до" в аудит-логе
+	currenciesBefore, err := s.settingsRepository.GetCurrencies(ctx)
+	if err != nil {
+		return err
+	}
+	currenciesBeforeMap := slices.ToMap(currenciesBefore, func(c settingsModel.Currency) string { return c.Slug })
+
+	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+
+		// Обновляем курсы валют в БД
+		if err := s.settingsRepository.UpdateCurrencies(ctxTx, rates); err != nil {
+			return err
+		}
+
+		// Фиксируем изменение каждого курса валюты в аудит-логе
+		for slug, rate := range rates {
+			method := auditLogMethod.Update
+			var before any
+			if currencyBefore, ok := currenciesBeforeMap[slug]; ok {
+				before = currencyBefore
+			} else {
+				method = auditLogMethod.Create
+			}
+
+			if err := s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+				Entity:   auditLogEntity.Currency,
+				Method:   method,
+				EntityID: slug,
+				Before:   before,
+				After:    struct{ Rate decimal.Decimal }{rate},
+				UserID:   req.Necessary.UserID,
+				DeviceID: req.Necessary.DeviceID,
+			}); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
 		tgMessage.Message += fmt.Sprintf("Не смогли обновить курсы валют в базе данных\n\n%v", err.Error())
 		return err
 	}

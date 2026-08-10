@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
+	auditLogModel "server/internal/modules/auditLog/model"
+	auditLogService "server/internal/modules/auditLog/service"
 	"server/internal/modules/transactor"
 	userModel "server/internal/modules/user/model"
 	userRepository "server/internal/modules/user/repository"
@@ -32,21 +34,31 @@ type GeneralRepository interface {
 	WithinTransaction(ctx context.Context, callback func(ctx context.Context) error) error
 }
 
+var _ AuditLogService = new(auditLogService.AuditLogService)
+
+// AuditLogService - интерфейс сервиса аудит-лога
+type AuditLogService interface {
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+}
+
 type AuthService struct {
 	userRepository    UserRepository
 	generalRepository GeneralRepository
 	generalSalt       []byte
+	auditLogService   AuditLogService
 }
 
 func NewAuthService(
 	userRepository UserRepository,
 	generalRepository GeneralRepository,
 	generalSalt []byte,
+	auditLogService AuditLogService,
 
 ) *AuthService {
 	return &AuthService{
 		userRepository:    userRepository,
 		generalRepository: generalRepository,
 		generalSalt:       generalSalt,
+		auditLogService:   auditLogService,
 	}
 }

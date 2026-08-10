@@ -22,6 +22,9 @@ func (r *TagRepository) GetTags(ctx context.Context, req model.GetTagsReq) (tags
 	if len(req.AccountGroupIDs) > 0 {
 		filtersEq[tagDDL.ColumnAccountGroupID] = req.AccountGroupIDs
 	}
+	if len(req.IDs) > 0 {
+		filtersEq[tagDDL.ColumnID] = req.IDs
+	}
 
 	// Проверяем, что есть фильтры
 	if len(filtersEq) == 0 {

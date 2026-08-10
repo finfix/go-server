@@ -12,6 +12,8 @@ import (
 	accountRepository "server/internal/modules/account/repository"
 	accountRepoModel "server/internal/modules/account/repository/model"
 	accountGroupService "server/internal/modules/accountGroup/service"
+	auditLogModel "server/internal/modules/auditLog/model"
+	auditLogService "server/internal/modules/auditLog/service"
 	transactionRepository "server/internal/modules/transaction/repository"
 	transactionRepoModel "server/internal/modules/transaction/repository/model"
 	"server/internal/modules/transactor"
@@ -64,6 +66,13 @@ type UserService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) (accesses []uuid.UUID, err error)
 }
 
+var _ AuditLogService = new(auditLogService.AuditLogService)
+
+// AuditLogService - интерфейс сервиса аудит-лога
+type AuditLogService interface {
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+}
+
 type AccountService struct {
 	accountRepository     AccountRepository
 	transactor            Transactor
@@ -71,6 +80,7 @@ type AccountService struct {
 	userRepository        UserRepository
 	accountGroupService   AccountGroupService
 	userService           UserService
+	auditLogService       AuditLogService
 }
 
 func NewAccountService(
@@ -80,6 +90,7 @@ func NewAccountService(
 	userRepository UserRepository,
 	accountGroupsService AccountGroupService,
 	userService UserService,
+	auditLogService AuditLogService,
 ) *AccountService {
 	return &AccountService{
 		accountRepository:     accountRepository,
@@ -88,5 +99,6 @@ func NewAccountService(
 		userRepository:        userRepository,
 		accountGroupService:   accountGroupsService,
 		userService:           userService,
+		auditLogService:       auditLogService,
 	}
 }

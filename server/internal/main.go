@@ -39,6 +39,8 @@ import (
 	accountGroupEndpointGRPC "server/internal/modules/accountGroup/endpoint/grpc"
 	accountGroupRepository "server/internal/modules/accountGroup/repository"
 	accountGroupService "server/internal/modules/accountGroup/service"
+	auditLogRepository "server/internal/modules/auditLog/repository"
+	auditLogService "server/internal/modules/auditLog/service"
 	authEndpointGRPC "server/internal/modules/auth/endpoint/grpc"
 	authService "server/internal/modules/auth/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
@@ -150,6 +152,7 @@ func run() error {
 	transactionRepository := transactionRepository.NewTransactionRepository(pgsql)
 	settingsRepository := settingsRepository.NewSettingsRepository(pgsql)
 	userRepository := userRepository.NewUserRepository(pgsql)
+	auditLogRepository := auditLogRepository.NewAuditLogRepository(pgsql)
 
 	// Регистрируем сервисы
 	log.Info("Инициализируем Telegram-бота")
@@ -171,11 +174,16 @@ func run() error {
 		return err
 	}
 
+	auditLogService := auditLogService.NewAuditLogService(
+		auditLogRepository,
+	)
+
 	userService, err := userService.NewUserService(
 		userRepository,
 		transactor,
 		pushNotificatorService,
 		[]byte(conf.Auth.GeneralSalt),
+		auditLogService,
 	)
 	if err != nil {
 		return err
@@ -185,6 +193,7 @@ func run() error {
 		accountGroupRepository,
 		transactor,
 		userService,
+		auditLogService,
 	)
 
 	accountService := accountService.NewAccountService(
@@ -194,6 +203,7 @@ func run() error {
 		userRepository,
 		accountGroupService,
 		userService,
+		auditLogService,
 	)
 
 	tagService := tagService.NewTagService(
@@ -201,6 +211,7 @@ func run() error {
 		transactor,
 		userService,
 		accountGroupService,
+		auditLogService,
 	)
 
 	transactionService := transactionService.NewTransactionService(
@@ -211,12 +222,15 @@ func run() error {
 		userService,
 		accountService,
 		tagService,
+		auditLogService,
 	)
 
 	settingsService := settingsService.NewSettingsService(
 		settingsRepository,
 		userService,
 		tgBotService,
+		transactor,
+		auditLogService,
 		settingsService.Version{
 			Version: version,
 			Build:   build,
@@ -230,6 +244,7 @@ func run() error {
 		userRepository,
 		transactor,
 		[]byte(conf.Auth.GeneralSalt),
+		auditLogService,
 	)
 
 	log.Info("Запускаем планировщик")

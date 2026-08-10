@@ -9,6 +9,8 @@ import (
 	accountRepository "server/internal/modules/account/repository"
 	accountRepoModel "server/internal/modules/account/repository/model"
 	accountService "server/internal/modules/account/service"
+	auditLogModel "server/internal/modules/auditLog/model"
+	auditLogService "server/internal/modules/auditLog/service"
 	tagModel "server/internal/modules/tag/model"
 	tagRepository "server/internal/modules/tag/repository"
 	tagService "server/internal/modules/tag/service"
@@ -31,6 +33,7 @@ type TransactionService struct {
 	tagRepository         TagRepository
 	userService           UserService
 	tagService            TagService
+	auditLogService       AuditLogService
 }
 
 var _ Transactor = new(transactor.Transactor)
@@ -82,6 +85,13 @@ type TagService interface {
 	CheckAccess(ctx context.Context, userID uuid.UUID, tagIDs []uuid.UUID) error
 }
 
+var _ AuditLogService = new(auditLogService.AuditLogService)
+
+// AuditLogService - интерфейс сервиса аудит-лога
+type AuditLogService interface {
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+}
+
 func NewTransactionService(
 	transactionRepository TransactionRepository,
 	accountRepository AccountRepository,
@@ -90,6 +100,7 @@ func NewTransactionService(
 	userService UserService,
 	accountService AccountService,
 	tagService TagService,
+	auditLogService AuditLogService,
 ) *TransactionService {
 	return &TransactionService{
 		transactionRepository: transactionRepository,
@@ -99,5 +110,6 @@ func NewTransactionService(
 		userService:           userService,
 		accountService:        accountService,
 		tagService:            tagService,
+		auditLogService:       auditLogService,
 	}
 }

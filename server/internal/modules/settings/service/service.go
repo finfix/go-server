@@ -8,10 +8,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
+	auditLogModel "server/internal/modules/auditLog/model"
+	auditLogService "server/internal/modules/auditLog/service"
 	settingsModel "server/internal/modules/settings/model"
 	settingsRepository "server/internal/modules/settings/repository"
 	tgBotModel "server/internal/modules/tgBot/model"
 	tgBotService "server/internal/modules/tgBot/service"
+	"server/internal/modules/transactor"
 	userModel "server/internal/modules/user/model"
 	userService "server/internal/modules/user/service"
 )
@@ -40,6 +43,19 @@ type TgBotService interface {
 	SendMessage(context.Context, tgBotModel.SendMessageReq) error
 }
 
+var _ Transactor = new(transactor.Transactor)
+
+type Transactor interface {
+	WithinTransaction(ctx context.Context, callback func(context.Context) error) error
+}
+
+var _ AuditLogService = new(auditLogService.AuditLogService)
+
+// AuditLogService - интерфейс сервиса аудит-лога
+type AuditLogService interface {
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+}
+
 type Credentials struct {
 	CurrencyProviderAPIKey string
 }
@@ -53,6 +69,8 @@ type SettingsService struct {
 	settingsRepository SettingsRepository
 	userService        UserService
 	tgBot              TgBotService
+	transactor         Transactor
+	auditLogService    AuditLogService
 	credentials        Credentials
 	version            Version
 }
@@ -61,6 +79,8 @@ func NewSettingsService(
 	settingsRepository SettingsRepository,
 	userService UserService,
 	tgBot TgBotService,
+	transactor Transactor,
+	auditLogService AuditLogService,
 	version Version,
 	credentials Credentials,
 ) *SettingsService {
@@ -68,6 +88,8 @@ func NewSettingsService(
 		settingsRepository: settingsRepository,
 		userService:        userService,
 		tgBot:              tgBot,
+		transactor:         transactor,
+		auditLogService:    auditLogService,
 		credentials:        credentials,
 		version:            version,
 	}

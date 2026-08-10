@@ -8,8 +8,11 @@ import (
 	"pkg/slices"
 	"server/internal/utils/errors"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
 	accountModel "server/internal/modules/account/model"
 	accountRepoModel "server/internal/modules/account/repository/model"
+	auditLogModel "server/internal/modules/auditLog/model"
 	transactionModel "server/internal/modules/transaction/model"
 	"server/internal/modules/transaction/service/utils"
 )
@@ -84,18 +87,29 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 	err = s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем транзакцию
-		id, err := s.transactionRepository.CreateTransaction(ctx, transaction.ConvertToRepoReq())
+		repoReq := transaction.ConvertToRepoReq()
+		id, err := s.transactionRepository.CreateTransaction(ctxTx, repoReq)
 		if err != nil {
 			return err
 		}
 
 		// Если переданы теги
 		if len(transaction.TagIDs) != 0 {
-			if err = s.updateTransactionTags(ctx, transaction.Necessary.UserID, id, transaction.TagIDs); err != nil {
+			if err = s.updateTransactionTags(ctxTx, transaction.Necessary.UserID, id, transaction.TagIDs); err != nil {
 				return err
 			}
 		}
-		return nil
+
+		// Фиксируем создание транзакции в аудит-логе
+		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.Transaction,
+			Method:   auditLogMethod.Create,
+			EntityID: id.String(),
+			Before:   nil,
+			After:    repoReq,
+			UserID:   transaction.Necessary.UserID,
+			DeviceID: transaction.Necessary.DeviceID,
+		})
 	})
 	if err != nil {
 		return transactionModel.CreateTransactionRes{}, err

@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
+	auditLogModel "server/internal/modules/auditLog/model"
+	auditLogService "server/internal/modules/auditLog/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
 	pushNotificatorService "server/internal/modules/pushNotificator/service"
 	"server/internal/modules/transactor"
@@ -42,11 +44,19 @@ type PushNotificatorService interface {
 	SendNotification(ctx context.Context, req pushNotificatorModel.SendNotificationReq) (string, error)
 }
 
+var _ AuditLogService = new(auditLogService.AuditLogService)
+
+// AuditLogService - интерфейс сервиса аудит-лога
+type AuditLogService interface {
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+}
+
 type UserService struct {
 	userRepository    UserRepository
 	generalRepository GeneralRepository
 	pushNotificator   PushNotificatorService
 	generalSalt       []byte
+	auditLogService   AuditLogService
 }
 
 func NewUserService(
@@ -54,12 +64,14 @@ func NewUserService(
 	generalRepository GeneralRepository,
 	pushNotificator PushNotificatorService,
 	generalSalt []byte,
+	auditLogService AuditLogService,
 ) (*UserService, error) {
 	s := &UserService{
 		userRepository:    userRepository,
 		generalRepository: generalRepository,
 		pushNotificator:   pushNotificator,
 		generalSalt:       generalSalt,
+		auditLogService:   auditLogService,
 	}
 
 	if err := s.initializeRootAdmin(context.Background()); err != nil {

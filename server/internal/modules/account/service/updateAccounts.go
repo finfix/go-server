@@ -5,9 +5,12 @@ import (
 
 	"pkg/slices"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
 	"server/internal/modules/account/model"
 	accountRepoModel "server/internal/modules/account/repository/model"
 	"server/internal/modules/account/service/utils"
+	auditLogModel "server/internal/modules/auditLog/model"
 
 	"github.com/google/uuid"
 )
@@ -97,6 +100,21 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 	)
 
 	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
-		return s.accountRepository.UpdateAccount(ctxTx, repoUpdateReqs)
+
+		// Обновляем счета
+		if err := s.accountRepository.UpdateAccount(ctxTx, repoUpdateReqs); err != nil {
+			return err
+		}
+
+		// Фиксируем изменение счета в аудит-логе
+		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.Account,
+			Method:   auditLogMethod.Update,
+			EntityID: updateReq.ID.String(),
+			Before:   account,
+			After:    repoUpdateReqs[updateReq.ID],
+			UserID:   updateReq.Necessary.UserID,
+			DeviceID: updateReq.Necessary.DeviceID,
+		})
 	})
 }

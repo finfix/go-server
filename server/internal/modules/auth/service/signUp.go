@@ -7,6 +7,9 @@ import (
 	"pkg/passwordManager"
 	"server/internal/utils/errors"
 
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
+	auditLogModel "server/internal/modules/auditLog/model"
 	"server/internal/modules/auth/model"
 	"server/internal/modules/auth/service/utils"
 	userModel "server/internal/modules/user/model"
@@ -46,16 +49,35 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 		accessData.ID = uuid.New()
 
 		// Создаем пользователя
+		datetimeCreate := time.Now()
 		err = s.userRepository.CreateUser(ctx, userModel.CreateReq{
 			ID:              accessData.ID,
 			Name:            loginData.Name,
 			Email:           loginData.Email,
 			PasswordHash:    passwordHash,
 			PasswordSalt:    userSalt,
-			TimeCreate:      time.Now(),
+			TimeCreate:      datetimeCreate,
 			DefaultCurrency: "RUB", // TODO: Поменять
 		})
 		if err != nil {
+			return err
+		}
+
+		// Фиксируем регистрацию пользователя в аудит-логе (без хэша и соли пароля)
+		if err = s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.User,
+			Method:   auditLogMethod.Create,
+			EntityID: accessData.ID.String(),
+			Before:   nil,
+			After: struct {
+				ID              uuid.UUID
+				Name            string
+				Email           string
+				DefaultCurrency string
+			}{accessData.ID, loginData.Name, loginData.Email, "RUB"},
+			UserID:   accessData.ID,
+			DeviceID: loginData.DeviceID,
+		}); err != nil {
 			return err
 		}
 

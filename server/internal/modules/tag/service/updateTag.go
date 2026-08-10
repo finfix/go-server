@@ -3,6 +3,11 @@ package service
 import (
 	"context"
 
+	"pkg/slices"
+
+	"server/internal/enum/auditLogEntity"
+	"server/internal/enum/auditLogMethod"
+	auditLogModel "server/internal/modules/auditLog/model"
 	"server/internal/modules/tag/model"
 
 	"github.com/google/uuid"
@@ -18,6 +23,30 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 		return err
 	}
 
-	// Изменяем данные подкатегории
-	return s.tagRepository.UpdateTag(ctx, fields)
+	// Получаем подкатегорию для слепка "до" в аудит-логе
+	tag, err := slices.FirstWithError(s.tagRepository.GetTags(ctx, model.GetTagsReq{ //nolint:exhaustruct
+		IDs: []uuid.UUID{fields.ID},
+	}))
+	if err != nil {
+		return err
+	}
+
+	return s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+
+		// Изменяем данные подкатегории
+		if err := s.tagRepository.UpdateTag(ctxTx, fields); err != nil {
+			return err
+		}
+
+		// Фиксируем изменение подкатегории в аудит-логе
+		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			Entity:   auditLogEntity.Tag,
+			Method:   auditLogMethod.Update,
+			EntityID: fields.ID.String(),
+			Before:   tag,
+			After:    fields,
+			UserID:   fields.Necessary.UserID,
+			DeviceID: fields.Necessary.DeviceID,
+		})
+	})
 }
