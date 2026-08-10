@@ -2,7 +2,7 @@ name: go-test
 
 on:
   pull_request:
-  push:
+#  push:
 
 env:
   DIRECTORY: server
