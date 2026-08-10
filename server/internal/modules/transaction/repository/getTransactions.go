@@ -53,7 +53,7 @@ func (r *TransactionRepository) GetTransactions(ctx context.Context, req model.G
 		})
 	}
 	if len(req.IDs) != 0 {
-		q = q.Where(sq.Eq{transactionDDL.ColumnID: req.IDs})
+		q = q.Where(sq.Eq{transactionDDL.WithPrefix(transactionDDL.ColumnID): req.IDs})
 	}
 	if req.AccountID != nil {
 		q = q.Where(sq.Or{
