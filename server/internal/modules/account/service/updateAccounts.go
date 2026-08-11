@@ -28,17 +28,14 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 		return err
 	}
 
-	// Получаем счет
-	account, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{updateReq.ID}})) //nolint:exhaustruct
+	// Получаем счет для слепка "до" в аудит-логе
+	accountBefore, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{updateReq.ID}})) //nolint:exhaustruct
 	if err != nil {
 		return err
 	}
 
-	// Сохраняем слепок "до" отдельно, так как ниже account мутируется для валидации
-	accountBefore := account
-
 	// Проверяем, что входные данные не противоречат разрешениям
-	permissions, err := model.GetAccountPermissions(account)
+	permissions, err := model.GetAccountPermissions(accountBefore)
 	if err != nil {
 		return err
 	}
@@ -46,65 +43,16 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 		return err
 	}
 
-	// Проверяем, можно ли привязать счет к родительскому счету
-	if updateReq.ParentAccountID != nil {
-
-		// Если привязываем счет к родительскому счету
-		if *updateReq.ParentAccountID != uuid.Nil {
-
-			// Проверяем возможность привязки
-			if err := s.ValidateUpdateParentAccountID(ctx, account, *updateReq.ParentAccountID, updateReq.Necessary.UserID); err != nil {
-				return err
-			}
-			account.ParentAccountID = updateReq.ParentAccountID
-
-		} else { // Если отвязываем счет от родительского счета
-			account.ParentAccountID = nil
-		}
-	}
-
-	// Получаем дочерние счета
-	var childrenAccounts []model.Account
-	if account.IsParent {
-		childrenAccounts, err = s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{ParentAccountIDs: []uuid.UUID{updateReq.ID}}) //nolint:exhaustruct
-		if err != nil {
+	// Если привязываем счет к родительскому счету, проверяем возможность привязки
+	if updateReq.ParentAccountID != nil && *updateReq.ParentAccountID != uuid.Nil {
+		if err := s.ValidateUpdateParentAccountID(ctx, accountBefore, *updateReq.ParentAccountID, updateReq.Necessary.UserID); err != nil {
 			return err
 		}
 	}
-
-	// Получаем родительский счет
-	var parentAccount *model.Account
-	if account.ParentAccountID != nil {
-		parentAccounts, err := s.accountRepository.GetAccounts(ctx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{*account.ParentAccountID}}) //nolint:exhaustruct
-		if err != nil {
-			return err
-		}
-		parentAccount = &parentAccounts[0]
-	}
-
-	if updateReq.AccountingInHeader != nil {
-		account.AccountingInHeader = *updateReq.AccountingInHeader
-	}
-	utils.HandleAccountingInHeader(
-		repoUpdateReqs,
-		account,
-		childrenAccounts,
-		parentAccount,
-	)
-
-	if updateReq.Visible != nil {
-		account.Visible = *updateReq.Visible
-	}
-	utils.HandleVisible(
-		repoUpdateReqs,
-		account,
-		childrenAccounts,
-		parentAccount,
-	)
 
 	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
-		// Обновляем счета
+		// Обновляем счет
 		if err := s.accountRepository.UpdateAccount(ctxTx, repoUpdateReqs); err != nil {
 			return err
 		}
