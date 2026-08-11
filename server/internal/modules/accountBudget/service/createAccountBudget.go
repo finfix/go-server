@@ -26,7 +26,8 @@ func (s *AccountBudgetService) CreateAccountBudget(ctx context.Context, req acco
 
 	// Получаем счет, чтобы узнать группу счетов
 	account, err := slices.FirstWithError(s.accountService.GetAccounts(ctx, accountModel.GetAccountsReq{ //nolint:exhaustruct
-		IDs: []uuid.UUID{req.AccountID},
+		Necessary: req.Necessary,
+		IDs:       []uuid.UUID{req.AccountID},
 	}))
 	if err != nil {
 		return err
