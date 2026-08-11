@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"pkg/slices"
+	"server/internal/utils/errors"
 
 	"server/internal/modules/tag/model"
 
 	"github.com/google/uuid"
 )
 
-func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, transactionID uuid.UUID, tagIDs []uuid.UUID) error {
+func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, transactionID, accountGroupID uuid.UUID, tagIDs []uuid.UUID) error {
 	ctx, span := tracer.Start(ctx, "UpdateTransactionTags")
 	defer span.End()
 
@@ -18,6 +19,25 @@ func (s *TransactionService) updateTransactionTags(ctx context.Context, userID, 
 	if len(tagIDs) > 0 {
 		if err := s.tagService.CheckAccess(ctx, userID, tagIDs); err != nil {
 			return err
+		}
+
+		// Проверяем, что все теги принадлежат той же группе счетов, что и транзакция
+		tags, err := s.tagRepository.GetTags(ctx, model.GetTagsReq{ //nolint:exhaustruct
+			IDs: tagIDs,
+		})
+		if err != nil {
+			return err
+		}
+		for _, tag := range tags {
+			if tag.AccountGroupID != accountGroupID {
+				return errors.BadRequest.New("Тег принадлежит другой группе счетов").
+					WithContextParams(ctx).
+					WithParams(
+						"TagID", tag.ID,
+						"TagAccountGroupID", tag.AccountGroupID,
+						"TransactionAccountGroupID", accountGroupID,
+					)
+			}
 		}
 	}
 

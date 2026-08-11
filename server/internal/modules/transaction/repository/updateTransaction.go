@@ -28,6 +28,9 @@ func (r *TransactionRepository) UpdateTransaction(ctx context.Context, fields mo
 	if fields.AccountToID != nil {
 		updates[transactionDDL.ColumnAccountToID] = *fields.AccountToID
 	}
+	if fields.AccountGroupID != nil {
+		updates[transactionDDL.ColumnAccountGroupID] = *fields.AccountGroupID
+	}
 	if fields.AmountFrom != nil {
 		updates[transactionDDL.ColumnAmountFrom] = *fields.AmountFrom
 	}

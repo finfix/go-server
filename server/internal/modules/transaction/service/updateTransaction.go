@@ -78,6 +78,16 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 				)
 		}
 
+		// Проверяем, что счета находятся в одной группе
+		if accountsMap[transaction.AccountFromID].AccountGroupID != accountsMap[transaction.AccountToID].AccountGroupID {
+			return errors.BadRequest.New("Счета находятся в разных группах").
+				WithContextParams(ctx).
+				WithParams(
+					"AccountFromID", transaction.AccountFromID,
+					"AccountToID", transaction.AccountToID,
+				)
+		}
+
 		// Проверяем соответствие типов счета и типа транзакции
 		if err = utils.TransactionAndAccountTypesValidation(ctx,
 			accountsMap[transaction.AccountFromID],
@@ -86,13 +96,23 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		); err != nil {
 			return err
 		}
+
+		// Определяем группу счетов из самих счетов, не доверяя предыдущему значению транзакции
+		accountGroupID := accountsMap[transaction.AccountFromID].AccountGroupID
+		fields.AccountGroupID = &accountGroupID
+	}
+
+	// Группа счетов, к которой относится транзакция после применения изменений
+	accountGroupID := transactionBefore.AccountGroupID
+	if fields.AccountGroupID != nil {
+		accountGroupID = *fields.AccountGroupID
 	}
 
 	return s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Если в запросе есть изменение тегов
 		if fields.TagIDs != nil {
-			if err := s.updateTransactionTags(ctxTx, fields.Necessary.UserID, fields.ID, *fields.TagIDs); err != nil {
+			if err := s.updateTransactionTags(ctxTx, fields.Necessary.UserID, fields.ID, accountGroupID, *fields.TagIDs); err != nil {
 				return err
 			}
 		}

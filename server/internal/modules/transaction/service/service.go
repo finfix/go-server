@@ -62,6 +62,7 @@ type AccountRepository interface {
 var _ TagRepository = new(tagRepository.TagRepository)
 
 type TagRepository interface {
+	GetTags(context.Context, tagModel.GetTagsReq) ([]tagModel.Tag, error)
 	GetTagsToTransactions(context.Context, tagModel.GetTagsToTransactionsReq) ([]tagModel.TagToTransaction, error)
 	LinkTagsToTransaction(context.Context, []uuid.UUID, uuid.UUID) error
 	UnlinkTagsFromTransaction(context.Context, []uuid.UUID, uuid.UUID) error

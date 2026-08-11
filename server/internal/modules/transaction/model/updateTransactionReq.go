@@ -26,6 +26,7 @@ type UpdateTransactionReq struct {
 	IsExecuted         *bool            `json:"isExecuted"`                                                   // Исполнена операция или нет (если нет, сделки как бы не существует)
 	TagIDs             *[]uuid.UUID     `json:"tagIDs"`                                                       // Идентификаторы тегов
 	AccountingInCharts *bool            `json:"accountingInCharts"`                                           // Учитывается ли транзакция в графиках или нет
+	AccountGroupID     *uuid.UUID       `json:"-"`                                                            // Группа счетов, выставляется сервером при смене счетов, не приходит от клиента
 }
 
 func (s UpdateTransactionReq) Validate(ctx context.Context) error {

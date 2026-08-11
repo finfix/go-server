@@ -84,6 +84,9 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 			)
 	}
 
+	// Определяем группу счетов из самих счетов, не доверяя значению из запроса
+	transaction.AccountGroupID = accountsMap[transaction.AccountFromID].AccountGroupID
+
 	err = s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
 		// Создаем транзакцию
@@ -94,7 +97,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 
 		// Если переданы теги
 		if len(transaction.TagIDs) != 0 {
-			if err = s.updateTransactionTags(ctxTx, transaction.Necessary.UserID, id, transaction.TagIDs); err != nil {
+			if err = s.updateTransactionTags(ctxTx, transaction.Necessary.UserID, id, transaction.AccountGroupID, transaction.TagIDs); err != nil {
 				return err
 			}
 		}
