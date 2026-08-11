@@ -37,18 +37,6 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uu
 		if fields.Visible != nil {
 			updates[accountDDL.ColumnVisible] = *fields.Visible
 		}
-		if fields.Budget.DaysOffset != nil {
-			updates[accountDDL.ColumnBudgetDaysOffset] = *fields.Budget.DaysOffset
-		}
-		if fields.Budget.Amount != nil {
-			updates[accountDDL.ColumnBudgetAmount] = *fields.Budget.Amount
-		}
-		if fields.Budget.FixedSum != nil {
-			updates[accountDDL.ColumnBudgetFixedSum] = *fields.Budget.FixedSum
-		}
-		if fields.Budget.GradualFilling != nil {
-			updates[accountDDL.ColumnBudgetGradualFilling] = *fields.Budget.GradualFilling
-		}
 		if fields.Currency != nil {
 			updates[accountDDL.ColumnCurrency] = *fields.Currency
 		}

@@ -36,6 +36,9 @@ import (
 	accountEndpointGRPC "server/internal/modules/account/endpoint/grpc"
 	accountRepository "server/internal/modules/account/repository"
 	accountService "server/internal/modules/account/service"
+	accountBudgetEndpointGRPC "server/internal/modules/accountBudget/endpoint/grpc"
+	accountBudgetRepository "server/internal/modules/accountBudget/repository"
+	accountBudgetService "server/internal/modules/accountBudget/service"
 	accountGroupEndpointGRPC "server/internal/modules/accountGroup/endpoint/grpc"
 	accountGroupRepository "server/internal/modules/accountGroup/repository"
 	accountGroupService "server/internal/modules/accountGroup/service"
@@ -157,6 +160,7 @@ func run() error {
 	userRepository := userRepository.NewUserRepository(pgsql)
 	auditLogRepository := auditLogRepository.NewAuditLogRepository(pgsql)
 	userToAccountGroupRepository := userToAccountGroupRepository.NewUserToAccountGroupRepository(pgsql)
+	accountBudgetRepository := accountBudgetRepository.NewAccountBudgetRepository(pgsql)
 
 	// Регистрируем сервисы
 	log.Info("Инициализируем Telegram-бота")
@@ -210,6 +214,15 @@ func run() error {
 		transactor,
 		transactionRepository,
 		userRepository,
+		accountGroupService,
+		userToAccountGroupService,
+		auditLogService,
+	)
+
+	accountBudgetService := accountBudgetService.NewAccountBudgetService(
+		accountBudgetRepository,
+		transactor,
+		accountService,
 		accountGroupService,
 		userToAccountGroupService,
 		auditLogService,
@@ -284,6 +297,7 @@ func run() error {
 	proto.RegisterSettingsEndpointServer(grpcServer, settingsEndpointGRPC.NewSettingsEndpoint(settingsService))
 	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
 	proto.RegisterAuditLogEndpointServer(grpcServer, auditLogEndpointGRPC.NewAuditLogEndpoint(auditLogService))
+	proto.RegisterAccountBudgetEndpointServer(grpcServer, accountBudgetEndpointGRPC.NewAccountBudgetEndpoint(accountBudgetService))
 
 	// Создаем слушателя порта для gRPC-сервера
 	grpcLn, err := net.Listen("tcp", conf.Listen.GRPC)

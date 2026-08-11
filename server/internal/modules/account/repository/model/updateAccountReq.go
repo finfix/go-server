@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type UpdateAccountReq struct {
@@ -14,12 +13,4 @@ type UpdateAccountReq struct {
 	Currency           *string
 	ParentAccountID    *uuid.UUID
 	Rank               *string
-	Budget             UpdateAccountBudgetReq
-}
-
-type UpdateAccountBudgetReq struct {
-	Amount         *decimal.Decimal
-	FixedSum       *decimal.Decimal
-	DaysOffset     *uint32
-	GradualFilling *bool
 }

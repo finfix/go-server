@@ -1,12 +1,10 @@
 package model
 
 import (
-	"pkg/pointer"
 	"server/internal/utils/errors"
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 
 	repoModel "server/internal/modules/account/repository/model"
 	"server/internal/utils/necessary"
@@ -14,16 +12,15 @@ import (
 
 type UpdateAccountReq struct {
 	Necessary          necessary.NecessaryUserInformation
-	ID                 uuid.UUID              `json:"id" validate:"required" minimum:"1"` // Идентификатор счета
-	Name               *string                `json:"name"`                               // Название счета
-	IconID             *uuid.UUID             `json:"iconID" minimum:"1"`                 // Идентификатор иконки
-	Visible            *bool                  `json:"visible"`                            // Видимость счета
-	AccountingInHeader *bool                  `json:"accountingInHeader"`                 // Будет ли счет учитываться в статистике
-	AccountingInCharts *bool                  `json:"accountingInCharts"`                 // Будет ли счет учитываться в графиках
-	Currency           *string                `json:"currencyCode"`                       // Валюта счета
-	Rank               *string                `json:"rank"`                               // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
-	ParentAccountID    *uuid.UUID             `json:"parentAccountID"`                    // Идентификатор родительского счета
-	Budget             UpdateAccountBudgetReq `json:"budget"`                             // Месячный бюджет
+	ID                 uuid.UUID  `json:"id" validate:"required" minimum:"1"` // Идентификатор счета
+	Name               *string    `json:"name"`                               // Название счета
+	IconID             *uuid.UUID `json:"iconID" minimum:"1"`                 // Идентификатор иконки
+	Visible            *bool      `json:"visible"`                            // Видимость счета
+	AccountingInHeader *bool      `json:"accountingInHeader"`                 // Будет ли счет учитываться в статистике
+	AccountingInCharts *bool      `json:"accountingInCharts"`                 // Будет ли счет учитываться в графиках
+	Currency           *string    `json:"currencyCode"`                       // Валюта счета
+	Rank               *string    `json:"rank"`                               // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
+	ParentAccountID    *uuid.UUID `json:"parentAccountID"`                    // Идентификатор родительского счета
 }
 
 func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
@@ -35,59 +32,8 @@ func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
 		AccountingInCharts: s.AccountingInCharts,
 		Currency:           s.Currency,
 		ParentAccountID:    s.ParentAccountID,
-		Budget:             s.Budget.ConvertToRepoReq(),
 		Rank:               s.Rank,
 	}
-}
-
-type UpdateAccountBudgetReq struct {
-	Amount         *decimal.Decimal `json:"amount"`         // Сумма
-	FixedSum       *decimal.Decimal `json:"fixedSum"`       // Фиксированная сумма
-	DaysOffset     *uint32          `json:"daysOffset"`     // Смещение в днях
-	GradualFilling *bool            `json:"gradualFilling"` // Постепенное пополнение
-}
-
-func (s *UpdateAccountBudgetReq) ConvertToRepoReq() repoModel.UpdateAccountBudgetReq {
-	return repoModel.UpdateAccountBudgetReq{
-		Amount:         s.Amount,
-		FixedSum:       s.FixedSum,
-		DaysOffset:     s.DaysOffset,
-		GradualFilling: s.GradualFilling,
-	}
-}
-
-type ProtoUpdateAccountBudgetReq struct {
-	*proto.UpdateAccountBudgetRequest
-}
-
-func (s ProtoUpdateAccountBudgetReq) ConvertToModel() (UpdateAccountBudgetReq, error) {
-
-	var amount *decimal.Decimal
-	if s.Amount != nil {
-		amount = pointer.Pointer(decimal.NewFromFloat(*s.Amount))
-	}
-
-	var fixedSum *decimal.Decimal
-	if s.FixedSum != nil {
-		fixedSum = pointer.Pointer(decimal.NewFromFloat(*s.FixedSum))
-	}
-
-	var daysOffset *uint32
-	if s.DaysOffset != nil {
-		daysOffset = s.DaysOffset
-	}
-
-	var gradualFilling *bool
-	if s.GradualFilling != nil {
-		gradualFilling = s.GradualFilling
-	}
-
-	return UpdateAccountBudgetReq{
-		Amount:         amount,
-		FixedSum:       fixedSum,
-		DaysOffset:     daysOffset,
-		GradualFilling: gradualFilling,
-	}, nil
 }
 
 // ProtoUpdateAccountReq wrapper for proto request
@@ -129,16 +75,6 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		parentAccountID = &parsedParentAccountID
 	}
 
-	// Convert optional budget
-	if p.Budget == nil {
-		return res, errors.BadRequest.New("Budget is required")
-	}
-
-	budget, err := ProtoUpdateAccountBudgetReq{UpdateAccountBudgetRequest: p.Budget}.ConvertToModel()
-	if err != nil {
-		return res, err
-	}
-
 	return UpdateAccountReq{
 
 		ID:                 id,
@@ -150,6 +86,5 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		ParentAccountID:    parentAccountID,
 		Rank:               p.Rank,
 		Visible:            p.Visible,
-		Budget:             budget,
 	}, nil
 }

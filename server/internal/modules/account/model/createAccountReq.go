@@ -8,7 +8,6 @@ import (
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 
 	"server/internal/utils/necessary"
 
@@ -28,7 +27,6 @@ type CreateAccountReq struct {
 	AccountingInHeader bool                    `json:"accountingInHeader"`                                                                // Подсчет суммы счета в статистике
 	AccountingInCharts bool                    `json:"accountingInCharts"`                                                                // Учитывать ли счет в графиках
 	DatetimeCreate     time.Time               `json:"datetimeCreate" validate:"required"`                                                // Дата создания счета
-	Budget             *CreateAccountBudgetReq `json:"budget"`                                                                            // Бюджет
 	IsParent           bool                    `json:"isParent"`                                                                          // Является ли счет родительским
 	ParentAccountID    *uuid.UUID              `json:"parentAccountID"`                                                                   // Идентификатор родительского счета
 	Visible            bool                    `json:"-"`                                                                                 // Видимость счета
@@ -54,16 +52,9 @@ func (s CreateAccountReq) ConvertToAccount() Account {
 		CreatedByUserID:    s.Necessary.UserID,
 		DatetimeCreate:     s.DatetimeCreate,
 		AccountingInCharts: s.AccountingInCharts,
-		AccountBudget: AccountBudget{
-			Amount:         s.Budget.Amount,
-			FixedSum:       s.Budget.FixedSum,
-			DaysOffset:     s.Budget.DaysOffset,
-			GradualFilling: *s.Budget.GradualFilling,
-		},
 	}
 }
 
-// TODO: Переписать
 func (s CreateAccountReq) ConvertToRepoReq() repoModel.CreateAccountReq {
 	return repoModel.CreateAccountReq{
 		ID:                 s.ID,
@@ -74,30 +65,12 @@ func (s CreateAccountReq) ConvertToRepoReq() repoModel.CreateAccountReq {
 		AccountGroupID:     s.AccountGroupID,
 		AccountingInHeader: s.AccountingInHeader,
 		AccountingInCharts: s.AccountingInCharts,
-		Budget:             s.Budget.ConvertToRepoReq(),
 		Rank:               s.Rank,
 		IsParent:           s.IsParent,
 		Visible:            true,
 		ParentAccountID:    s.ParentAccountID,
 		UserID:             s.Necessary.UserID,
 		DatetimeCreate:     s.DatetimeCreate,
-	}
-}
-
-type CreateAccountBudgetReq struct {
-	Amount         decimal.Decimal `json:"amount"`                             // Сумма
-	FixedSum       decimal.Decimal `json:"fixedSum"`                           // Фиксированная сумма
-	DaysOffset     uint32          `json:"daysOffset"`                         // Смещение в днях
-	GradualFilling *bool           `json:"gradualFilling" validate:"required"` // Постепенное пополнение
-}
-
-// TODO: Переписать
-func (s *CreateAccountBudgetReq) ConvertToRepoReq() repoModel.CreateReqBudget {
-	return repoModel.CreateReqBudget{
-		Amount:         s.Amount,
-		FixedSum:       s.FixedSum,
-		DaysOffset:     s.DaysOffset,
-		GradualFilling: *s.GradualFilling,
 	}
 }
 
@@ -144,17 +117,6 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 	}
 	datetimeCreate := p.DatetimeCreate.AsTime()
 
-	// Convert budget
-	var budget *CreateAccountBudgetReq
-	if p.Budget != nil {
-		budget = &CreateAccountBudgetReq{
-			Amount:         decimal.NewFromFloat(p.Budget.Amount),
-			FixedSum:       decimal.NewFromFloat(p.Budget.FixedSum),
-			DaysOffset:     p.Budget.DaysOffset,
-			GradualFilling: &p.Budget.GradualFilling,
-		}
-	}
-
 	var parentAccountID *uuid.UUID
 	if len(p.ParentAccountID) != 0 {
 		_parentAccountID, err := uuid.FromBytes(p.ParentAccountID)
@@ -174,7 +136,6 @@ func (p ProtoCreateAccountReq) ConvertToModel() (CreateAccountReq, error) {
 		AccountingInHeader: p.AccountingInHeader,
 		AccountingInCharts: p.AccountingInCharts,
 		DatetimeCreate:     datetimeCreate,
-		Budget:             budget,
 		Rank:               p.Rank,
 		IsParent:           p.IsParent,
 		ParentAccountID:    parentAccountID,

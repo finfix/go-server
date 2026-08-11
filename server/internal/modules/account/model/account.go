@@ -27,7 +27,6 @@ type Account struct {
 	CreatedByUserID    uuid.UUID               `json:"createdByUserID" db:"created_by_user_id"`                      // Идентификатор пользователя, создавшего счет
 	DatetimeCreate     time.Time               `json:"datetimeCreate" db:"datetime_create"`                          // Дата и время создания счета
 	AccountingInCharts bool                    `json:"accountingInCharts" db:"accounting_in_charts"`                 // Учитывать ли счет в графиках
-	AccountBudget      `json:"budget"`         // Бюджет
 }
 
 // ConvertToProto converts internal Account to proto Account
@@ -37,17 +36,6 @@ func (a Account) ConvertToProto() (*proto.Account, error) {
 	protoAccountType, err := a.Type.ConvertToProto()
 	if err != nil {
 		return nil, err
-	}
-
-	// Convert budget
-	var protoBudget *proto.AccountBudget
-	if true { // Always include budget for now
-		protoBudget = &proto.AccountBudget{
-			Amount:         a.AccountBudget.Amount.InexactFloat64(),
-			DaysOffset:     a.AccountBudget.DaysOffset,
-			FixedSum:       a.AccountBudget.FixedSum.InexactFloat64(),
-			GradualFilling: a.AccountBudget.GradualFilling,
-		}
 	}
 
 	var parentAccountID []byte
@@ -71,6 +59,5 @@ func (a Account) ConvertToProto() (*proto.Account, error) {
 		Rank:               a.Rank,
 		CreatedByUserID:    a.CreatedByUserID[:],
 		DatetimeCreate:     timestamppb.New(a.DatetimeCreate),
-		Budget:             protoBudget,
 	}, nil
 }

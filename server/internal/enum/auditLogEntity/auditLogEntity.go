@@ -13,20 +13,21 @@ import (
 // AuditLogEntity - тип сущности, изменение которой зафиксировано в аудит-логе
 type AuditLogEntity string
 
-// enum:"transaction,account,accountGroup,tag,user,currency"
+// enum:"transaction,account,accountGroup,tag,user,currency,accountBudget"
 const (
-	Transaction  = AuditLogEntity("transaction")
-	Account      = AuditLogEntity("account")
-	AccountGroup = AuditLogEntity("accountGroup")
-	Tag          = AuditLogEntity("tag")
-	User         = AuditLogEntity("user")
-	Currency     = AuditLogEntity("currency")
+	Transaction   = AuditLogEntity("transaction")
+	Account       = AuditLogEntity("account")
+	AccountGroup  = AuditLogEntity("accountGroup")
+	Tag           = AuditLogEntity("tag")
+	User          = AuditLogEntity("user")
+	Currency      = AuditLogEntity("currency")
+	AccountBudget = AuditLogEntity("accountBudget")
 )
 
 // Validate проверяет, что тип сущности аудит-лога принадлежит известному набору значений
 func (e AuditLogEntity) Validate(ctx context.Context) error {
 	switch e {
-	case Transaction, Account, AccountGroup, Tag, User, Currency:
+	case Transaction, Account, AccountGroup, Tag, User, Currency, AccountBudget:
 	default:
 		return errors.BadRequest.New("Unknown audit log entity").
 			WithContextParams(ctx).
@@ -37,12 +38,13 @@ func (e AuditLogEntity) Validate(ctx context.Context) error {
 
 // mappingProtoToModel содержит соответствие между значениями proto.AuditLogEntity и AuditLogEntity
 var mappingProtoToModel = map[proto.AuditLogEntity]AuditLogEntity{
-	proto.AuditLogEntity_Transaction:  Transaction,
-	proto.AuditLogEntity_Account:      Account,
-	proto.AuditLogEntity_AccountGroup: AccountGroup,
-	proto.AuditLogEntity_Tag:          Tag,
-	proto.AuditLogEntity_User:         User,
-	proto.AuditLogEntity_Currency:     Currency,
+	proto.AuditLogEntity_Transaction:   Transaction,
+	proto.AuditLogEntity_Account:       Account,
+	proto.AuditLogEntity_AccountGroup:  AccountGroup,
+	proto.AuditLogEntity_Tag:           Tag,
+	proto.AuditLogEntity_User:          User,
+	proto.AuditLogEntity_Currency:      Currency,
+	proto.AuditLogEntity_AccountBudget: AccountBudget,
 }
 
 // ConvertToProto преобразует AuditLogEntity в proto.AuditLogEntity

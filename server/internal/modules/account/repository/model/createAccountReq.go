@@ -5,12 +5,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type CreateAccountReq struct {
 	ID                 uuid.UUID
-	Budget             CreateReqBudget
 	Name               string
 	Visible            bool
 	IconID             uuid.UUID
@@ -24,11 +22,4 @@ type CreateAccountReq struct {
 	ParentAccountID    *uuid.UUID
 	UserID             uuid.UUID
 	DatetimeCreate     time.Time
-}
-
-type CreateReqBudget struct {
-	Amount         decimal.Decimal
-	GradualFilling bool
-	FixedSum       decimal.Decimal
-	DaysOffset     uint32
 }
