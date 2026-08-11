@@ -24,10 +24,13 @@ func (s *AccountBudgetService) CreateAccountBudget(ctx context.Context, req acco
 		return err
 	}
 
-	// Получаем счет, чтобы узнать группу счетов
+	// Получаем счет, чтобы узнать группу счетов. DateFrom/DateTo здесь не имеют смысла (остаток счета
+	// не используется), но обязательны для расчета остатков счетов любого типа внутри GetAccounts
 	account, err := slices.FirstWithError(s.accountService.GetAccounts(ctx, accountModel.GetAccountsReq{ //nolint:exhaustruct
 		Necessary: req.Necessary,
 		IDs:       []uuid.UUID{req.AccountID},
+		DateFrom:  &req.EffectiveFrom,
+		DateTo:    &req.EffectiveFrom,
 	}))
 	if err != nil {
 		return err
