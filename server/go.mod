@@ -6,7 +6,7 @@ toolchain go1.24.3
 
 replace pkg => ../pkg
 
-replace github.com/finfix/go-server-grpc => ../../contracts/go-server-grpc-local
+//replace github.com/finfix/go-server-grpc => ../../contracts/go-server-grpc-local
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
