@@ -87,18 +87,18 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 	// Определяем группу счетов из самих счетов, не доверяя значению из запроса
 	transaction.AccountGroupID = accountsMap[transaction.AccountFromID].AccountGroupID
 
-	err = s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	err = s.generalRepository.WithSyncGate(ctx, transaction.Necessary.UserID, transaction.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Создаем транзакцию
 		id, err := s.transactionRepository.CreateTransaction(ctxTx, transaction.ConvertToRepoReq())
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Если переданы теги
 		if len(transaction.TagIDs) != 0 {
 			if err = s.updateTransactionTags(ctxTx, transaction.Necessary.UserID, id, transaction.AccountGroupID, transaction.TagIDs); err != nil {
-				return err
+				return 0, err
 			}
 		}
 
@@ -107,7 +107,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 			IDs: []uuid.UUID{id},
 		}))
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем создание транзакции в аудит-логе

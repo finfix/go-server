@@ -41,6 +41,12 @@ var NotFound = errors.ErrorType{
 	HumanText: "Данные не найдены",
 }
 
+var Conflict = errors.ErrorType{
+	HTTPCode:  http.StatusConflict,
+	LogAs:     errors.LogAsWarning,
+	HumanText: "Требуется синхронизация устройства",
+}
+
 var ContextCancelled = errors.ErrorType{
 	HTTPCode:  http.StatusTeapot,
 	LogAs:     errors.LogAsWarning,

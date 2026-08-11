@@ -23,11 +23,11 @@ func (s *TagService) CreateTag(ctx context.Context, tag model.CreateTagReq) (mod
 		return model.CreateTagRes{}, err
 	}
 
-	err := s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	err := s.generalRepository.WithSyncGate(ctx, tag.Necessary.UserID, tag.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Создаем подкатегорию
 		if err := s.tagRepository.CreateTag(ctxTx, tag.ConvertToRepoReq()); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем созданную подкатегорию из БД для слепка "после" в аудит-логе
@@ -35,7 +35,7 @@ func (s *TagService) CreateTag(ctx context.Context, tag model.CreateTagReq) (mod
 			IDs: []uuid.UUID{tag.ID},
 		}))
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем создание подкатегории в аудит-логе

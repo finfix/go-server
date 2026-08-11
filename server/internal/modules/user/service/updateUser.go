@@ -99,7 +99,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 		}
 
 		// Фиксируем изменение пользователя в аудит-логе
-		return s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
+		_, err = s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.User,
 			Method:   auditLogMethod.Update,
 			EntityID: req.Necessary.UserID.String(),
@@ -108,5 +108,6 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 			UserID:   req.Necessary.UserID,
 			DeviceID: req.Necessary.DeviceID,
 		})
+		return err
 	})
 }

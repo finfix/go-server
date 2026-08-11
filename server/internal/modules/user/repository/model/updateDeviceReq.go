@@ -9,4 +9,5 @@ type UpdateDeviceReq struct {
 	NotificationToken      *string
 	ApplicationInformation UpdateApplicationInformationReq
 	DeviceInformation      UpdateDeviceInformationReq
+	LastSyncedAuditLogID   *uint32
 }

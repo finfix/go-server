@@ -14,17 +14,19 @@ import (
 
 // GetAccountBudgetsReq - фильтры для получения всех версий бюджета по группам счетов
 type GetAccountBudgetsReq struct {
+	IDs             []uuid.UUID
 	AccountGroupIDs []uuid.UUID
 	DateFrom        *time.Time
 	DateTo          *time.Time
 }
 
-// GetAccountBudgets возвращает все версии бюджета по всем счетам переданных групп счетов, без объединения в "актуальную" версию
+// GetAccountBudgets возвращает все версии бюджета по всем счетам переданных групп счетов (или по конкретным
+// идентификаторам версий), без объединения в "актуальную" версию
 func (r *AccountBudgetRepository) GetAccountBudgets(ctx context.Context, req GetAccountBudgetsReq) (budgets []model.AccountBudget, err error) {
 	ctx, span := tracer.Start(ctx, "GetAccountBudgets")
 	defer span.End()
 
-	if len(req.AccountGroupIDs) == 0 {
+	if len(req.IDs) == 0 && len(req.AccountGroupIDs) == 0 {
 		return budgets, nil
 	}
 
@@ -32,14 +34,19 @@ func (r *AccountBudgetRepository) GetAccountBudgets(ctx context.Context, req Get
 		Select(ddlHelper.SelectAll).
 		From(accountBudgetDDL.Table).
 		Where(sq.Eq{
-			accountBudgetDDL.ColumnAccountGroupID: req.AccountGroupIDs,
-			accountBudgetDDL.ColumnIsDeleted:      false,
+			accountBudgetDDL.ColumnIsDeleted: false,
 		}).
 		OrderBy(
 			accountBudgetDDL.ColumnAccountID,
 			ddlHelper.Desc(accountBudgetDDL.ColumnEffectiveFrom),
 		)
 
+	if len(req.IDs) != 0 {
+		q = q.Where(sq.Eq{accountBudgetDDL.ColumnID: req.IDs})
+	}
+	if len(req.AccountGroupIDs) != 0 {
+		q = q.Where(sq.Eq{accountBudgetDDL.ColumnAccountGroupID: req.AccountGroupIDs})
+	}
 	if req.DateFrom != nil {
 		q = q.Where(sq.GtOrEq{accountBudgetDDL.ColumnEffectiveFrom: req.DateFrom})
 	}

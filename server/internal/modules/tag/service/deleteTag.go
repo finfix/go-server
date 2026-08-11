@@ -31,11 +31,11 @@ func (s *TagService) DeleteTag(ctx context.Context, req model.DeleteTagReq) erro
 		return err
 	}
 
-	return s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.generalRepository.WithSyncGate(ctx, req.Necessary.UserID, req.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Удаляем подкатегорию
 		if err := s.tagRepository.DeleteTag(ctxTx, req.ID, req.Necessary.UserID); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем удаление подкатегории в аудит-логе

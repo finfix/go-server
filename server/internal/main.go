@@ -53,6 +53,8 @@ import (
 	settingsEndpointGRPC "server/internal/modules/settings/endpoint/grpc"
 	settingsRepository "server/internal/modules/settings/repository"
 	settingsService "server/internal/modules/settings/service"
+	syncEndpointGRPC "server/internal/modules/sync/endpoint/grpc"
+	syncService "server/internal/modules/sync/service"
 	tagEndpointGRPC "server/internal/modules/tag/endpoint/grpc"
 	tagRepository "server/internal/modules/tag/repository"
 	tagService "server/internal/modules/tag/service"
@@ -207,6 +209,7 @@ func run() error {
 		transactor,
 		userToAccountGroupService,
 		auditLogService,
+		userService,
 	)
 
 	accountService := accountService.NewAccountService(
@@ -217,6 +220,7 @@ func run() error {
 		accountGroupService,
 		userToAccountGroupService,
 		auditLogService,
+		userService,
 	)
 
 	accountBudgetService := accountBudgetService.NewAccountBudgetService(
@@ -226,6 +230,7 @@ func run() error {
 		accountGroupService,
 		userToAccountGroupService,
 		auditLogService,
+		userService,
 	)
 
 	tagService := tagService.NewTagService(
@@ -234,6 +239,7 @@ func run() error {
 		userToAccountGroupService,
 		accountGroupService,
 		auditLogService,
+		userService,
 	)
 
 	transactionService := transactionService.NewTransactionService(
@@ -245,6 +251,7 @@ func run() error {
 		accountService,
 		tagService,
 		auditLogService,
+		userService,
 	)
 
 	settingsService := settingsService.NewSettingsService(
@@ -267,6 +274,18 @@ func run() error {
 		transactor,
 		[]byte(conf.Auth.GeneralSalt),
 		auditLogService,
+	)
+
+	syncService := syncService.NewSyncService(
+		transactor,
+		userService,
+		auditLogService,
+		transactionService,
+		accountService,
+		accountGroupService,
+		tagService,
+		accountBudgetService,
+		settingsService,
 	)
 
 	log.Info("Запускаем планировщик")
@@ -298,6 +317,7 @@ func run() error {
 	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
 	proto.RegisterAuditLogEndpointServer(grpcServer, auditLogEndpointGRPC.NewAuditLogEndpoint(auditLogService))
 	proto.RegisterAccountBudgetEndpointServer(grpcServer, accountBudgetEndpointGRPC.NewAccountBudgetEndpoint(accountBudgetService))
+	proto.RegisterSyncEndpointServer(grpcServer, syncEndpointGRPC.NewSyncEndpoint(syncService))
 
 	// Создаем слушателя порта для gRPC-сервера
 	grpcLn, err := net.Listen("tcp", conf.Listen.GRPC)

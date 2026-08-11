@@ -19,17 +19,17 @@ func (s *AccountGroupService) CreateAccountGroup(ctx context.Context, accountGro
 	defer span.End()
 
 	// Создаем SQL-транзакцию
-	return res, s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return res, s.transactor.WithSyncGate(ctx, accountGroup.Necessary.UserID, accountGroup.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Создаем счет
 		serialNumber, err := s.accountGroupRepository.CreateAccountGroup(ctxTx, accountGroup.ConvertToRepoReq())
 		if err != nil {
-			return err
+			return 0, err
 		}
 		res.SerialNumber = serialNumber
 
 		if err = s.accountGroupRepository.LinkUserToAccountGroup(ctxTx, accountGroup.Necessary.UserID, accountGroup.ID); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем созданную группу счетов из БД для слепка "после" в аудит-логе
@@ -37,7 +37,7 @@ func (s *AccountGroupService) CreateAccountGroup(ctx context.Context, accountGro
 			AccountGroupIDs: []uuid.UUID{accountGroup.ID},
 		}))
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем создание группы счетов в аудит-логе

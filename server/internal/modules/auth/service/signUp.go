@@ -73,7 +73,7 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 		}
 
 		// Фиксируем регистрацию пользователя в аудит-логе
-		if err = s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
+		if _, err = s.auditLogService.TrackMutation(ctx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.User,
 			Method:   auditLogMethod.Create,
 			EntityID: accessData.ID.String(),

@@ -53,7 +53,7 @@ var _ AuditLogService = new(auditLogService.AuditLogService)
 
 // AuditLogService - интерфейс сервиса аудит-лога
 type AuditLogService interface {
-	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) (uint32, error)
 }
 
 type Credentials struct {

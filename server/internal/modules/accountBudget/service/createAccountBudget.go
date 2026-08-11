@@ -36,7 +36,7 @@ func (s *AccountBudgetService) CreateAccountBudget(ctx context.Context, req acco
 		return err
 	}
 
-	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.transactor.WithSyncGate(ctx, req.Necessary.UserID, req.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		budget := accountBudgetModel.AccountBudget{
 			ID:              req.ID,
@@ -52,7 +52,7 @@ func (s *AccountBudgetService) CreateAccountBudget(ctx context.Context, req acco
 
 		// Создаем версию бюджета
 		if err := s.accountBudgetRepository.CreateAccountBudget(ctxTx, budget); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем создание версии бюджета в аудит-логе

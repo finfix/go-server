@@ -80,7 +80,7 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 				method = auditLogMethod.Create
 			}
 
-			if err := s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+			if _, err := s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 				Entity:   auditLogEntity.Currency,
 				Method:   method,
 				EntityID: slug,

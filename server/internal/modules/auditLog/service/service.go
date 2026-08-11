@@ -25,8 +25,10 @@ var _ AuditLogRepository = new(repository.AuditLogRepository)
 
 // AuditLogRepository - интерфейс репозитория аудит-лога
 type AuditLogRepository interface {
-	CreateAuditLog(context.Context, repoModel.CreateAuditLogReq) error
+	CreateAuditLog(context.Context, repoModel.CreateAuditLogReq) (uint32, error)
 	GetAuditLogs(context.Context, repoModel.GetAuditLogsReq) ([]model.AuditLog, error)
+	GetAuditLogsSince(ctx context.Context, accountGroupIDs []uuid.UUID, userID uuid.UUID, sinceID uint32) ([]model.AuditLog, error)
+	HasAuditLogsSince(ctx context.Context, accountGroupIDs []uuid.UUID, sinceID uint32) (bool, error)
 }
 
 var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGroupService)

@@ -43,6 +43,9 @@ func (r *UserRepository) UpdateDevice(ctx context.Context, fields userRepoModel.
 	if fields.DeviceInformation.UserAgent != nil {
 		updates[deviceDDL.ColumnDeviceUserAgent] = *fields.DeviceInformation.UserAgent
 	}
+	if fields.LastSyncedAuditLogID != nil {
+		updates[deviceDDL.ColumnLastSyncedAuditLogID] = *fields.LastSyncedAuditLogID
+	}
 
 	if len(updates) == 0 {
 		return errors.BadRequest.New("No fields to update").

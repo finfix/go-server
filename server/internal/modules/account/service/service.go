@@ -19,6 +19,7 @@ import (
 	"server/internal/modules/transactor"
 	userModel "server/internal/modules/user/model"
 	userRepository "server/internal/modules/user/repository"
+	userService "server/internal/modules/user/service"
 	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 )
 
@@ -28,6 +29,7 @@ var _ Transactor = new(transactor.Transactor)
 
 type Transactor interface {
 	WithinTransaction(ctx context.Context, callback func(context.Context) error) error
+	WithSyncGate(ctx context.Context, userID uuid.UUID, deviceID string, deviceSyncGate transactor.DeviceSyncGate, auditLogChangeChecker transactor.AuditLogChangeChecker, mutate func(ctxTx context.Context) (auditLogID uint32, err error)) error
 }
 
 var _ AccountRepository = new(accountRepository.AccountRepository)
@@ -71,7 +73,17 @@ var _ AuditLogService = new(auditLogService.AuditLogService)
 
 // AuditLogService - интерфейс сервиса аудит-лога
 type AuditLogService interface {
-	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) (uint32, error)
+	HasAuditLogsSince(ctx context.Context, userID uuid.UUID, sinceID uint32) (bool, error)
+}
+
+var _ UserService = new(userService.UserService)
+
+// UserService - интерфейс сервиса пользователей, используется для отсечения мутаций от
+// несинхронизированных устройств
+type UserService interface {
+	GetDeviceLastSyncedAuditLogIDForUpdate(ctx context.Context, userID uuid.UUID, deviceID string) (uint32, error)
+	BumpDeviceCheckpoint(ctx context.Context, userID uuid.UUID, deviceID string, auditLogID uint32) error
 }
 
 type AccountService struct {
@@ -82,6 +94,7 @@ type AccountService struct {
 	accountGroupService       AccountGroupService
 	userToAccountGroupService UserToAccountGroupService
 	auditLogService           AuditLogService
+	userService               UserService
 }
 
 func NewAccountService(
@@ -92,6 +105,7 @@ func NewAccountService(
 	accountGroupsService AccountGroupService,
 	userToAccountGroupService UserToAccountGroupService,
 	auditLogService AuditLogService,
+	userService UserService,
 ) *AccountService {
 	return &AccountService{
 		accountRepository:         accountRepository,
@@ -101,5 +115,6 @@ func NewAccountService(
 		accountGroupService:       accountGroupsService,
 		userToAccountGroupService: userToAccountGroupService,
 		auditLogService:           auditLogService,
+		userService:               userService,
 	}
 }

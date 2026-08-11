@@ -30,11 +30,11 @@ func (s *AccountService) DeleteAccount(ctx context.Context, req model.DeleteAcco
 		return err
 	}
 
-	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.transactor.WithSyncGate(ctx, req.Necessary.UserID, req.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Удаляем счет
 		if err := s.accountRepository.DeleteAccount(ctxTx, req.ID); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем удаление счета в аудит-логе

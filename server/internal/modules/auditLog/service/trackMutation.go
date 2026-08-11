@@ -9,31 +9,32 @@ import (
 	"server/internal/utils/errors"
 )
 
-// TrackMutation фиксирует в аудит-логе изменяющее действие пользователя со слепками сущности до и после изменения
-func (s *AuditLogService) TrackMutation(ctx context.Context, req model.TrackMutationReq) error {
+// TrackMutation фиксирует в аудит-логе изменяющее действие пользователя со слепками сущности до и после
+// изменения, возвращая идентификатор созданной записи аудит-лога
+func (s *AuditLogService) TrackMutation(ctx context.Context, req model.TrackMutationReq) (uint32, error) {
 	ctx, span := tracer.Start(ctx, "TrackMutation")
 	defer span.End()
 
 	// Проверяем корректность названия сущности
 	if err := req.Entity.Validate(ctx); err != nil {
-		return err
+		return 0, err
 	}
 
 	// Проверяем корректность метода изменения
 	if err := req.Method.Validate(ctx); err != nil {
-		return err
+		return 0, err
 	}
 
 	// Сериализуем слепок сущности до изменения
 	snapshotBefore, err := marshalSnapshot(ctx, req.Before)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Сериализуем слепок сущности после изменения
 	snapshotAfter, err := marshalSnapshot(ctx, req.After)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Создаем запись аудит-лога

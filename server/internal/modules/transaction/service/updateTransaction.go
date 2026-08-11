@@ -108,18 +108,18 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 		accountGroupID = *fields.AccountGroupID
 	}
 
-	return s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.generalRepository.WithSyncGate(ctx, fields.Necessary.UserID, fields.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Если в запросе есть изменение тегов
 		if fields.TagIDs != nil {
 			if err := s.updateTransactionTags(ctxTx, fields.Necessary.UserID, fields.ID, accountGroupID, *fields.TagIDs); err != nil {
-				return err
+				return 0, err
 			}
 		}
 
 		// Изменяем данные транзакции
 		if err := s.transactionRepository.UpdateTransaction(ctxTx, fields); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем актуальную транзакцию из БД для слепка "после" в аудит-логе
@@ -127,7 +127,7 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, fields trans
 			IDs: []uuid.UUID{fields.ID},
 		}))
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем изменение транзакции в аудит-логе

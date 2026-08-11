@@ -5,6 +5,8 @@ import (
 
 	"go.opentelemetry.io/otel"
 
+	"github.com/google/uuid"
+
 	auditLogModel "server/internal/modules/auditLog/model"
 	auditLogService "server/internal/modules/auditLog/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
@@ -32,6 +34,12 @@ type UserRepository interface {
 
 	GetDevices(context.Context, userRepoModel.GetDevicesReq) ([]userModel.Device, error)
 	UpdateDevice(context.Context, userRepoModel.UpdateDeviceReq) error
+
+	GetDeviceForUpdate(ctx context.Context, userID uuid.UUID, deviceID string) (userModel.Device, error)
+	SetDevicePendingSync(ctx context.Context, userID uuid.UUID, deviceID string, pendingCheckpoint uint32, pendingSyncToken uuid.UUID) error
+
+	ConfirmDeviceSync(ctx context.Context, userID uuid.UUID, deviceID string, pendingSyncToken uuid.UUID) (uint32, error)
+	BumpDeviceCheckpoint(ctx context.Context, userID uuid.UUID, deviceID string, auditLogID uint32) error
 }
 
 type PushNotificatorService interface {
@@ -42,7 +50,7 @@ var _ AuditLogService = new(auditLogService.AuditLogService)
 
 // AuditLogService - интерфейс сервиса аудит-лога
 type AuditLogService interface {
-	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) (uint32, error)
 }
 
 type UserService struct {

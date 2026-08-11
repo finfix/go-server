@@ -9,13 +9,13 @@ import (
 	"server/internal/modules/auditLog/repository/model"
 )
 
-// CreateAuditLog создает новую запись аудит-лога
-func (r *AuditLogRepository) CreateAuditLog(ctx context.Context, req model.CreateAuditLogReq) error {
+// CreateAuditLog создает новую запись аудит-лога и возвращает её идентификатор
+func (r *AuditLogRepository) CreateAuditLog(ctx context.Context, req model.CreateAuditLogReq) (uint32, error) {
 	ctx, span := tracer.Start(ctx, "CreateAuditLog")
 	defer span.End()
 
 	// Создаем запись аудит-лога
-	return r.db.Exec(ctx, sq.Insert(auditLogDDL.Table).
+	return r.db.ExecWithLastInsertID(ctx, sq.Insert(auditLogDDL.Table).
 		SetMap(map[string]any{
 			auditLogDDL.ColumnEntity:         req.Entity,
 			auditLogDDL.ColumnMethod:         req.Method,

@@ -6,11 +6,11 @@ toolchain go1.24.3
 
 replace pkg => ../pkg
 
-//replace github.com/finfix/go-server-grpc => ../../contracts/go-server-grpc-local
+replace github.com/finfix/go-server-grpc => ../../contracts/go-server-grpc-local
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/finfix/go-server-grpc v1.1.3
+	github.com/finfix/go-server-grpc v1.1.4
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/google/uuid v1.6.0

@@ -18,6 +18,7 @@ import (
 	transactionRepository "server/internal/modules/transaction/repository"
 	transactionRepoModel "server/internal/modules/transaction/repository/model"
 	"server/internal/modules/transactor"
+	userService "server/internal/modules/user/service"
 	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 
 	"github.com/google/uuid"
@@ -34,12 +35,14 @@ type TransactionService struct {
 	userToAccountGroupService UserToAccountGroupService
 	tagService                TagService
 	auditLogService           AuditLogService
+	userService               UserService
 }
 
 var _ Transactor = new(transactor.Transactor)
 
 type Transactor interface {
 	WithinTransaction(ctx context.Context, callback func(context.Context) error) error
+	WithSyncGate(ctx context.Context, userID uuid.UUID, deviceID string, deviceSyncGate transactor.DeviceSyncGate, auditLogChangeChecker transactor.AuditLogChangeChecker, mutate func(ctxTx context.Context) (auditLogID uint32, err error)) error
 }
 
 var _ TransactionRepository = new(transactionRepository.TransactionRepository)
@@ -90,7 +93,17 @@ var _ AuditLogService = new(auditLogService.AuditLogService)
 
 // AuditLogService - интерфейс сервиса аудит-лога
 type AuditLogService interface {
-	TrackMutation(context.Context, auditLogModel.TrackMutationReq) error
+	TrackMutation(context.Context, auditLogModel.TrackMutationReq) (uint32, error)
+	HasAuditLogsSince(ctx context.Context, userID uuid.UUID, sinceID uint32) (bool, error)
+}
+
+var _ UserService = new(userService.UserService)
+
+// UserService - интерфейс сервиса пользователей, используется для отсечения мутаций от
+// несинхронизированных устройств
+type UserService interface {
+	GetDeviceLastSyncedAuditLogIDForUpdate(ctx context.Context, userID uuid.UUID, deviceID string) (uint32, error)
+	BumpDeviceCheckpoint(ctx context.Context, userID uuid.UUID, deviceID string, auditLogID uint32) error
 }
 
 func NewTransactionService(
@@ -102,6 +115,7 @@ func NewTransactionService(
 	accountService AccountService,
 	tagService TagService,
 	auditLogService AuditLogService,
+	userService UserService,
 ) *TransactionService {
 	return &TransactionService{
 		transactionRepository:     transactionRepository,
@@ -112,5 +126,6 @@ func NewTransactionService(
 		accountService:            accountService,
 		tagService:                tagService,
 		auditLogService:           auditLogService,
+		userService:               userService,
 	}
 }

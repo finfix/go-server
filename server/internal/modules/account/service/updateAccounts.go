@@ -50,17 +50,17 @@ func (s *AccountService) UpdateAccount(ctx context.Context, updateReq model.Upda
 		}
 	}
 
-	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.transactor.WithSyncGate(ctx, updateReq.Necessary.UserID, updateReq.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Обновляем счет
 		if err := s.accountRepository.UpdateAccount(ctxTx, repoUpdateReqs); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем актуальный счет из БД для слепка "после" в аудит-логе
 		accountAfter, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctxTx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{updateReq.ID}})) //nolint:exhaustruct
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем изменение счета в аудит-логе

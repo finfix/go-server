@@ -31,11 +31,11 @@ func (s *TransactionService) DeleteTransaction(ctx context.Context, id model.Del
 		return err
 	}
 
-	return s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.generalRepository.WithSyncGate(ctx, id.Necessary.UserID, id.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Удаляем транзакцию
 		if err := s.transactionRepository.DeleteTransaction(ctxTx, id.ID, id.Necessary.UserID); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем удаление транзакции в аудит-логе

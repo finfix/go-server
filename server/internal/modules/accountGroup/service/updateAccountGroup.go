@@ -31,11 +31,11 @@ func (s *AccountGroupService) UpdateAccountGroup(ctx context.Context, updateReq 
 		return err
 	}
 
-	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.transactor.WithSyncGate(ctx, updateReq.Necessary.UserID, updateReq.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Обновляем группу счетов
 		if err := s.accountGroupRepository.UpdateAccountGroup(ctxTx, updateReq); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем актуальную группу счетов из БД для слепка "после" в аудит-логе
@@ -43,7 +43,7 @@ func (s *AccountGroupService) UpdateAccountGroup(ctx context.Context, updateReq 
 			AccountGroupIDs: []uuid.UUID{updateReq.ID},
 		}))
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем изменение группы счетов в аудит-логе

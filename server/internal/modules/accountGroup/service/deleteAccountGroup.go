@@ -31,16 +31,16 @@ func (s *AccountGroupService) DeleteAccountGroup(ctx context.Context, id model.D
 		return err
 	}
 
-	return s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.transactor.WithSyncGate(ctx, id.Necessary.UserID, id.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Отвязываем пользователя от группы счетов
 		if err := s.accountGroupRepository.UnlinkUserFromAccountGroup(ctxTx, id.Necessary.UserID, id.ID); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Удаляем счет
 		if err := s.accountGroupRepository.DeleteAccountGroup(ctxTx, id.ID); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем удаление группы счетов в аудит-логе

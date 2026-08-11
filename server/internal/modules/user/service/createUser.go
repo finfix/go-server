@@ -36,7 +36,7 @@ func (s *UserService) CreateUser(ctx context.Context, user model.CreateReq) (id 
 		}
 
 		// Фиксируем создание пользователя в аудит-логе
-		return s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
+		_, err = s.auditLogService.TrackMutation(ctxTx, auditLogModel.TrackMutationReq{
 			Entity:   auditLogEntity.User,
 			Method:   auditLogMethod.Create,
 			EntityID: user.ID.String(),
@@ -44,6 +44,7 @@ func (s *UserService) CreateUser(ctx context.Context, user model.CreateReq) (id 
 			After:    userAfter,
 			UserID:   user.ID,
 		})
+		return err
 	})
 	if err != nil {
 		return uuid.Nil, err

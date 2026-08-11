@@ -36,17 +36,17 @@ func (s *AccountService) CreateAccount(ctx context.Context, accountToCreate mode
 		}
 	}
 
-	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	err = s.transactor.WithSyncGate(ctx, accountToCreate.Necessary.UserID, accountToCreate.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Создаем счет
 		if err := s.accountRepository.CreateAccount(ctxTx, accountToCreate.ConvertToRepoReq()); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем созданный счет из БД для слепка "после" в аудит-логе
 		accountAfter, err := slices.FirstWithError(s.accountRepository.GetAccounts(ctxTx, accountRepoModel.GetAccountsReq{IDs: []uuid.UUID{accountToCreate.ID}})) //nolint:exhaustruct
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем создание счета в аудит-логе

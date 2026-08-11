@@ -31,11 +31,11 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 		return err
 	}
 
-	return s.generalRepository.WithinTransaction(ctx, func(ctxTx context.Context) error {
+	return s.generalRepository.WithSyncGate(ctx, fields.Necessary.UserID, fields.Necessary.DeviceID, s.userService, s.auditLogService, func(ctxTx context.Context) (uint32, error) {
 
 		// Изменяем данные подкатегории
 		if err := s.tagRepository.UpdateTag(ctxTx, fields); err != nil {
-			return err
+			return 0, err
 		}
 
 		// Получаем актуальную подкатегорию из БД для слепка "после" в аудит-логе
@@ -43,7 +43,7 @@ func (s *TagService) UpdateTag(ctx context.Context, fields model.UpdateTagReq) e
 			IDs: []uuid.UUID{fields.ID},
 		}))
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Фиксируем изменение подкатегории в аудит-логе
