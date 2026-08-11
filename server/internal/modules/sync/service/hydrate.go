@@ -28,12 +28,22 @@ func (s *SyncService) hydrate(ctx context.Context, userID uuid.UUID, latest map[
 	var hasUserChange, hasCurrencyChange bool
 
 	for key, auditLog := range latest {
+		entity := auditLogEntity.AuditLogEntity(key.entity)
+
+		// Currency - единственная сущность, чей entity_id не является UUID (это slug валюты,
+		// например "usd"), поэтому обрабатываем её до попытки парсинга UUID
+		if entity == auditLogEntity.Currency {
+			// Валюты глобальны и не удаляются - метод всегда create/update
+			hasCurrencyChange = true
+			continue
+		}
+
 		id, err := uuid.Parse(key.entityID)
 		if err != nil {
 			return errors.InternalServer.Wrap(err).WithContextParams(ctx)
 		}
 
-		switch auditLogEntity.AuditLogEntity(key.entity) {
+		switch entity {
 		case auditLogEntity.Transaction:
 			if auditLog.Method == auditLogMethod.Delete {
 				res.DeletedTransactionIDs = append(res.DeletedTransactionIDs, id)
@@ -70,10 +80,6 @@ func (s *SyncService) hydrate(ctx context.Context, userID uuid.UUID, latest map[
 			// Пользователь не удаляется - метод всегда create/update. Видна только запись самого
 			// пользователя (отфильтровано на уровне GetAuditLogsSince), поэтому id всегда его собственный
 			hasUserChange = true
-
-		case auditLogEntity.Currency:
-			// Валюты глобальны и не удаляются - метод всегда create/update
-			hasCurrencyChange = true
 		}
 	}
 
