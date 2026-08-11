@@ -32,7 +32,7 @@ SELECT 'user', 'create', t.id::text,
            'name', t.name,
            'email', t.email,
            'timeCreate', t.time_create,
-           'defaultCurrency', t.default_currency_signatura,
+           'defaultCurrency', t.default_currency,
            'isAdmin', t.is_admin
        ),
        t.id, '', NULL, t.time_create
