@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"pkg/jwtManager"
 	"server/internal/utils/auth"
@@ -13,6 +14,12 @@ import (
 	"server/internal/modules/auth/service/utils"
 	userRepoModel "server/internal/modules/user/repository/model"
 )
+
+// refreshTokenGraceWindow - время, в течение которого предыдущий refresh-токен остаётся валидным
+// после ротации. Компенсирует потерю ответа сервера в сети: клиент, не получивший новую пару токенов,
+// может повторить запрос старым токеном и получить тот же (уже выпущенный) результат, вместо
+// полной потери сессии
+const refreshTokenGraceWindow = 5 * time.Minute
 
 // RefreshTokens обновляет токены доступа в базе данных
 func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokensReq) (newTokens model.RefreshTokensRes, err error) {
@@ -41,23 +48,42 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 	}
 	device := devices[0]
 
-	// Сравниваем токен из базы данных с переданным пользователем токеном
-	if req.Token != device.RefreshToken {
+	switch {
+	// Переданный токен совпадает с актуальным - обычная ротация
+	case req.Token == device.RefreshToken:
+		newTokens.Tokens, err = utils.CreatePairTokens(ctx, claims.UserID, claims.DeviceID)
+		if err != nil {
+			return newTokens, err
+		}
+
+		// Атомарно сдвигаем текущий токен в "предыдущий" (с grace-периодом) и записываем новый как актуальный
+		if err = s.userRepository.RotateRefreshToken(ctx, claims.UserID, claims.DeviceID, newTokens.Tokens.RefreshToken, refreshTokenGraceWindow); err != nil {
+			return newTokens, err
+		}
+
+	// Переданный токен - это уже отработавший предыдущий токен в пределах grace-периода: значит,
+	// ответ на прошлый рефреш не дошёл до клиента по сети. Не ротируем повторно (иначе повторные
+	// ретраи плодили бы новые ротации), а отдаём уже актуальный refresh-токен и свежий access-токен
+	case device.PreviousRefreshToken != nil && req.Token == *device.PreviousRefreshToken &&
+		device.PreviousRefreshTokenExpiresAt != nil && time.Now().Before(*device.PreviousRefreshTokenExpiresAt):
+
+		pairTokens, err := utils.CreatePairTokens(ctx, claims.UserID, claims.DeviceID)
+		if err != nil {
+			return newTokens, err
+		}
+		newTokens.Tokens.AccessToken = pairTokens.AccessToken
+		newTokens.Tokens.RefreshToken = device.RefreshToken
+
+	default:
 		return newTokens, errors.Forbidden.New("Auth is incorrect").
 			WithContextParams(ctx)
-	}
-
-	// Создаем новую пару токенов
-	newTokens.Tokens, err = utils.CreatePairTokens(ctx, claims.UserID, claims.DeviceID)
-	if err != nil {
-		return newTokens, err
 	}
 
 	// Обновляем данные у девайса
 	if err = s.userRepository.UpdateDevice(ctx, userRepoModel.UpdateDeviceReq{
 		UserID:       claims.UserID,
 		DeviceID:     claims.DeviceID,
-		RefreshToken: &newTokens.Tokens.RefreshToken,
+		RefreshToken: nil,
 		DeviceInformation: userRepoModel.UpdateDeviceInformationReq{
 			VersionOS: &req.Device.VersionOS,
 			UserAgent: &req.Device.UserAgent,

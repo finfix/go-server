@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/otel"
 
@@ -28,6 +29,7 @@ type UserRepository interface {
 	DeleteDevice(ctx context.Context, userID uuid.UUID, deviceID string) error
 	UpdateDevice(context.Context, userRepoModel.UpdateDeviceReq) error
 	GetDevices(context.Context, userRepoModel.GetDevicesReq) ([]userModel.Device, error)
+	RotateRefreshToken(ctx context.Context, userID uuid.UUID, deviceID string, newRefreshToken string, graceWindow time.Duration) error
 }
 
 type GeneralRepository interface {
