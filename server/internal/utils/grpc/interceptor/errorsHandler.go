@@ -7,6 +7,7 @@ import (
 	"fmt"
 	pkgErrors "pkg/errors"
 	"pkg/log"
+	"server/internal/enum/errorCategory"
 	"server/internal/utils/errors"
 
 	"google.golang.org/grpc"
@@ -78,8 +79,14 @@ func handleError(res any, err error) (any, error) {
 		params[k] = fmt.Sprintf("%+v", v) // Приводим к строке
 	}
 
+	// Конвертируем категорию ошибки в proto-представление
+	protoCategory, err := errorCategory.ConvertToProto(errors.GetCategory(customErr.ErrorType))
+	if err != nil {
+		log.Error(err)
+	}
+
 	protoErr := &pb.Error{
-		Code:          int32(customErr.ErrorType.HTTPCode),
+		Category:      protoCategory,
 		Message:       customErr.HumanText,
 		SystemMessage: customErr.DeveloperText,
 		Params:        params,

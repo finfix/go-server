@@ -45,7 +45,7 @@ func (r *Transactor) WithSyncGate(
 			return err
 		}
 		if hasNewer {
-			return errors.Conflict.New("Устройство не синхронизировано с последними изменениями").
+			return errors.NeedToSync.New("Устройство не синхронизировано с последними изменениями").
 				WithContextParams(ctxTx)
 		}
 

@@ -21,7 +21,7 @@ func (s *UserService) ConfirmDeviceSync(ctx context.Context, userID uuid.UUID, d
 
 	// Токен не совпал с текущим ожидающим - устаревшее или повторное подтверждение
 	if rowsAffected == 0 {
-		return errors.Conflict.New("Неактуальный токен синхронизации").
+		return errors.NeedToSync.New("Неактуальный токен синхронизации").
 			WithContextParams(ctx)
 	}
 

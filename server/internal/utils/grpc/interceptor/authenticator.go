@@ -72,7 +72,10 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 	// Парсим токен
 	claims, err := jwtManager.ParseToken[auth.Claims](ctx, authFields.AccessToken, jwtManager.AccessToken)
 	if err != nil {
-		return ctx, errors.Unauthorized.Wrap(err)
+
+		// Если access-токен истек или некорректен, просим клиента обновить его через refresh-токен,
+		// не разлогинивая пользователя сразу
+		return ctx, errors.NeedToRefreshToken.Wrap(err)
 	}
 
 	// Добавляем в контекст UUID пользователя

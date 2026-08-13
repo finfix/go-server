@@ -26,7 +26,7 @@ func IsContextError(err error) bool {
 
 	var customErr errors.Error
 	if As(err, &customErr) {
-		if customErr.ErrorType == ContextCancelled {
+		if customErr.ErrorType == ContextCancelled.ErrorType {
 			return true
 		}
 	}
@@ -37,7 +37,7 @@ func IsContextError(err error) bool {
 func IsInternal(err error) bool {
 	var customErr errors.Error
 	if As(err, &customErr) {
-		return customErr.ErrorType == InternalServer
+		return customErr.ErrorType == InternalServer.ErrorType
 	}
 	return true
 }

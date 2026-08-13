@@ -43,7 +43,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 		return newTokens, err
 	}
 	if len(devices) == 0 {
-		return newTokens, errors.Unauthorized.New("Device not found").WithContextParams(ctx).
+		return newTokens, errors.NeedToLogout.New("Device not found").WithContextParams(ctx).
 			WithCustomHumanText("Девайс не найден")
 	}
 	device := devices[0]
@@ -74,9 +74,12 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 		newTokens.Tokens.AccessToken = pairTokens.AccessToken
 		newTokens.Tokens.RefreshToken = device.RefreshToken
 
+	// Переданный refresh-токен не найден ни как актуальный, ни как предыдущий в пределах grace-периода:
+	// просим пользователя разлогиниться и авторизоваться заново
 	default:
-		return newTokens, errors.Forbidden.New("Auth is incorrect").
-			WithContextParams(ctx)
+		return newTokens, errors.NeedToLogout.New("Refresh token not found").
+			WithContextParams(ctx).
+			WithCustomHumanText("Сессия истекла, необходимо авторизоваться заново")
 	}
 
 	// Обновляем данные у девайса
