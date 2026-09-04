@@ -50,6 +50,13 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, updateReqs map[uu
 				updates[accountDDL.ColumnParentAccountID] = *fields.ParentAccountID
 			}
 		}
+		// UnlinkAccount имеет приоритет — если оба поля переданы одновременно, разрываем связь,
+		// а не связываем заново (см. пояснение в model.UpdateAccountReq.LinkedAccountID)
+		if fields.UnlinkAccount {
+			updates[accountDDL.ColumnLinkedAccountID] = nil
+		} else if fields.LinkedAccountID != nil {
+			updates[accountDDL.ColumnLinkedAccountID] = *fields.LinkedAccountID
+		}
 
 		// Проверяем, переданы ли поля для обновления
 		if len(updates) == 0 {

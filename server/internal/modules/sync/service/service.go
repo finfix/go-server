@@ -15,6 +15,8 @@ import (
 	accountGroupService "server/internal/modules/accountGroup/service"
 	auditLogModel "server/internal/modules/auditLog/model"
 	auditLogService "server/internal/modules/auditLog/service"
+	pendingLinkedTransferModel "server/internal/modules/pendingLinkedTransfer/model"
+	pendingLinkedTransferService "server/internal/modules/pendingLinkedTransfer/service"
 	settingsModel "server/internal/modules/settings/model"
 	settingsService "server/internal/modules/settings/service"
 	tagModel "server/internal/modules/tag/model"
@@ -92,17 +94,25 @@ type SettingsService interface {
 	GetCurrencies(ctx context.Context) (settingsModel.GetCurrenciesRes, error)
 }
 
+var _ PendingLinkedTransferService = new(pendingLinkedTransferService.PendingLinkedTransferService)
+
+// PendingLinkedTransferService - интерфейс сервиса переносов через счета-мосты
+type PendingLinkedTransferService interface {
+	GetPendingLinkedTransfers(context.Context, pendingLinkedTransferModel.GetPendingLinkedTransfersReq) ([]pendingLinkedTransferModel.PendingLinkedTransfer, error)
+}
+
 // SyncService - сервис синхронизации изменений между устройствами
 type SyncService struct {
-	transactor           Transactor
-	userService          UserService
-	auditLogService      AuditLogService
-	transactionService   TransactionService
-	accountService       AccountService
-	accountGroupService  AccountGroupService
-	tagService           TagService
-	accountBudgetService AccountBudgetService
-	settingsService      SettingsService
+	transactor                   Transactor
+	userService                  UserService
+	auditLogService              AuditLogService
+	transactionService           TransactionService
+	accountService                AccountService
+	accountGroupService           AccountGroupService
+	tagService                    TagService
+	accountBudgetService          AccountBudgetService
+	settingsService                SettingsService
+	pendingLinkedTransferService PendingLinkedTransferService
 }
 
 // NewSyncService создает новый сервис синхронизации
@@ -116,16 +126,18 @@ func NewSyncService(
 	tagService TagService,
 	accountBudgetService AccountBudgetService,
 	settingsService SettingsService,
+	pendingLinkedTransferService PendingLinkedTransferService,
 ) *SyncService {
 	return &SyncService{
-		transactor:           transactor,
-		userService:          userService,
-		auditLogService:      auditLogService,
-		transactionService:   transactionService,
-		accountService:       accountService,
-		accountGroupService:  accountGroupService,
-		tagService:           tagService,
-		accountBudgetService: accountBudgetService,
-		settingsService:      settingsService,
+		transactor:                   transactor,
+		userService:                  userService,
+		auditLogService:              auditLogService,
+		transactionService:           transactionService,
+		accountService:               accountService,
+		accountGroupService:          accountGroupService,
+		tagService:                   tagService,
+		accountBudgetService:         accountBudgetService,
+		settingsService:              settingsService,
+		pendingLinkedTransferService: pendingLinkedTransferService,
 	}
 }

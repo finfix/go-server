@@ -24,6 +24,7 @@ const (
 	ColumnCreatedByUserID    = "created_by_user_id"
 	ColumnAccountingInCharts = "accounting_in_charts"
 	ColumnIsDeleted          = "is_deleted"
+	ColumnLinkedAccountID    = "linked_account_id"
 )
 
 func WithPrefix(column string) string {

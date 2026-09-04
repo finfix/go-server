@@ -13,4 +13,6 @@ type UpdateAccountReq struct {
 	Currency           *string
 	ParentAccountID    *uuid.UUID
 	Rank               *string
+	LinkedAccountID    *uuid.UUID
+	UnlinkAccount      bool
 }

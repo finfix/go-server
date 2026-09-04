@@ -13,21 +13,22 @@ import (
 // AuditLogEntity - тип сущности, изменение которой зафиксировано в аудит-логе
 type AuditLogEntity string
 
-// enum:"transaction,account,accountGroup,tag,user,currency,accountBudget"
+// enum:"transaction,account,accountGroup,tag,user,currency,accountBudget,pendingLinkedTransfer"
 const (
-	Transaction   = AuditLogEntity("transaction")
-	Account       = AuditLogEntity("account")
-	AccountGroup  = AuditLogEntity("accountGroup")
-	Tag           = AuditLogEntity("tag")
-	User          = AuditLogEntity("user")
-	Currency      = AuditLogEntity("currency")
-	AccountBudget = AuditLogEntity("accountBudget")
+	Transaction            = AuditLogEntity("transaction")
+	Account                = AuditLogEntity("account")
+	AccountGroup           = AuditLogEntity("accountGroup")
+	Tag                    = AuditLogEntity("tag")
+	User                   = AuditLogEntity("user")
+	Currency               = AuditLogEntity("currency")
+	AccountBudget          = AuditLogEntity("accountBudget")
+	PendingLinkedTransfer  = AuditLogEntity("pendingLinkedTransfer")
 )
 
 // Validate проверяет, что тип сущности аудит-лога принадлежит известному набору значений
 func (e AuditLogEntity) Validate(ctx context.Context) error {
 	switch e {
-	case Transaction, Account, AccountGroup, Tag, User, Currency, AccountBudget:
+	case Transaction, Account, AccountGroup, Tag, User, Currency, AccountBudget, PendingLinkedTransfer:
 	default:
 		return errors.BadRequest.New("Unknown audit log entity").
 			WithContextParams(ctx).
@@ -44,7 +45,8 @@ var mappingProtoToModel = map[proto.AuditLogEntity]AuditLogEntity{
 	proto.AuditLogEntity_Tag:           Tag,
 	proto.AuditLogEntity_User:          User,
 	proto.AuditLogEntity_Currency:      Currency,
-	proto.AuditLogEntity_AccountBudget: AccountBudget,
+	proto.AuditLogEntity_AccountBudget:         AccountBudget,
+	proto.AuditLogEntity_PendingLinkedTransfer: PendingLinkedTransfer,
 }
 
 // ConvertToProto преобразует AuditLogEntity в proto.AuditLogEntity

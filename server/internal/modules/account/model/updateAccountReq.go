@@ -21,6 +21,11 @@ type UpdateAccountReq struct {
 	Currency           *string    `json:"currencyCode"`                       // Валюта счета
 	Rank               *string    `json:"rank"`                               // Ранг для сортировки счетов (лексикографический, задаётся клиентом)
 	ParentAccountID    *uuid.UUID `json:"parentAccountID"`                    // Идентификатор родительского счета
+	// LinkedAccountID — установка связывает счёт в мост (симметрично, бэкенд не проверяет доступ
+	// ко второму счёту — см. пояснение к proto-контракту). Отсутствие в запросе означает "не
+	// менять", поэтому разрыв связи требует отдельного флага UnlinkAccount, а не пустого значения.
+	LinkedAccountID *uuid.UUID `json:"linkedAccountID"`
+	UnlinkAccount   bool       `json:"unlinkAccount"`
 }
 
 func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
@@ -33,6 +38,8 @@ func (s *UpdateAccountReq) ConvertToRepoReq() repoModel.UpdateAccountReq {
 		Currency:           s.Currency,
 		ParentAccountID:    s.ParentAccountID,
 		Rank:               s.Rank,
+		LinkedAccountID:    s.LinkedAccountID,
+		UnlinkAccount:      s.UnlinkAccount,
 	}
 }
 
@@ -75,6 +82,16 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		parentAccountID = &parsedParentAccountID
 	}
 
+	// Parse optional LinkedAccountID
+	var linkedAccountID *uuid.UUID
+	if p.LinkedAccountID != nil {
+		parsedLinkedAccountID, err := uuid.FromBytes(p.LinkedAccountID)
+		if err != nil {
+			return res, errors.BadRequest.Wrap(err)
+		}
+		linkedAccountID = &parsedLinkedAccountID
+	}
+
 	return UpdateAccountReq{
 
 		ID:                 id,
@@ -86,5 +103,7 @@ func (p ProtoUpdateAccountReq) ConvertToModel() (UpdateAccountReq, error) {
 		ParentAccountID:    parentAccountID,
 		Rank:               p.Rank,
 		Visible:            p.Visible,
+		LinkedAccountID:    linkedAccountID,
+		UnlinkAccount:      p.UnlinkAccount,
 	}, nil
 }

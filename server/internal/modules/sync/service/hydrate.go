@@ -11,6 +11,7 @@ import (
 	accountModel "server/internal/modules/account/model"
 	accountGroupModel "server/internal/modules/accountGroup/model"
 	auditLogModel "server/internal/modules/auditLog/model"
+	pendingLinkedTransferModel "server/internal/modules/pendingLinkedTransfer/model"
 	"server/internal/modules/sync/model"
 	tagModel "server/internal/modules/tag/model"
 	transactionModel "server/internal/modules/transaction/model"
@@ -24,7 +25,7 @@ import (
 // доменных сервисов (а не восстанавливаются из слепка аудит-лога), чтобы не отдавать клиенту
 // устаревшие вычисляемые поля (например, остаток счета)
 func (s *SyncService) hydrate(ctx context.Context, userID uuid.UUID, latest map[entityKey]auditLogModel.AuditLog, res *model.SyncRes) error {
-	var transactionIDs, accountIDs, accountGroupIDs, tagIDs, accountBudgetIDs []uuid.UUID
+	var transactionIDs, accountIDs, accountGroupIDs, tagIDs, accountBudgetIDs, pendingLinkedTransferIDs []uuid.UUID
 	var hasUserChange, hasCurrencyChange bool
 
 	for key, auditLog := range latest {
@@ -80,6 +81,10 @@ func (s *SyncService) hydrate(ctx context.Context, userID uuid.UUID, latest map[
 			// Пользователь не удаляется - метод всегда create/update. Видна только запись самого
 			// пользователя (отфильтровано на уровне GetAuditLogsSince), поэтому id всегда его собственный
 			hasUserChange = true
+
+		case auditLogEntity.PendingLinkedTransfer:
+			// Переносы не удаляются - метод всегда create/update (см. status)
+			pendingLinkedTransferIDs = append(pendingLinkedTransferIDs, id)
 		}
 	}
 
@@ -155,6 +160,16 @@ func (s *SyncService) hydrate(ctx context.Context, userID uuid.UUID, latest map[
 			return err
 		}
 		res.ChangedCurrencies = currencies.Currencies
+	}
+
+	if len(pendingLinkedTransferIDs) != 0 {
+		res.ChangedPendingLinkedTransfers, err = s.pendingLinkedTransferService.GetPendingLinkedTransfers(ctx, pendingLinkedTransferModel.GetPendingLinkedTransfersReq{ //nolint:exhaustruct
+			Necessary: necessaryInfo,
+			IDs:       pendingLinkedTransferIDs,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
