@@ -27,6 +27,7 @@ type Account struct {
 	CreatedByUserID    uuid.UUID               `json:"createdByUserID" db:"created_by_user_id"`                      // Идентификатор пользователя, создавшего счет
 	DatetimeCreate     time.Time               `json:"datetimeCreate" db:"datetime_create"`                          // Дата и время создания счета
 	AccountingInCharts bool                    `json:"accountingInCharts" db:"accounting_in_charts"`                 // Учитывать ли счет в графиках
+	LinkedAccountID    *uuid.UUID              `json:"linkedAccountID" db:"linked_account_id"`                       // Идентификатор счёта-моста, если счёт связан
 }
 
 // ConvertToProto converts internal Account to proto Account
@@ -41,6 +42,11 @@ func (a Account) ConvertToProto() (*proto.Account, error) {
 	var parentAccountID []byte
 	if a.ParentAccountID != nil {
 		parentAccountID = a.ParentAccountID[:]
+	}
+
+	var linkedAccountID []byte
+	if a.LinkedAccountID != nil {
+		linkedAccountID = a.LinkedAccountID[:]
 	}
 
 	return &proto.Account{
@@ -59,5 +65,6 @@ func (a Account) ConvertToProto() (*proto.Account, error) {
 		Rank:               a.Rank,
 		CreatedByUserID:    a.CreatedByUserID[:],
 		DatetimeCreate:     timestamppb.New(a.DatetimeCreate),
+		LinkedAccountID:    linkedAccountID,
 	}, nil
 }

@@ -47,6 +47,9 @@ import (
 	auditLogService "server/internal/modules/auditLog/service"
 	authEndpointGRPC "server/internal/modules/auth/endpoint/grpc"
 	authService "server/internal/modules/auth/service"
+	pendingLinkedTransferEndpointGRPC "server/internal/modules/pendingLinkedTransfer/endpoint/grpc"
+	pendingLinkedTransferRepository "server/internal/modules/pendingLinkedTransfer/repository"
+	pendingLinkedTransferService "server/internal/modules/pendingLinkedTransfer/service"
 	pushNotificatorModel "server/internal/modules/pushNotificator/model"
 	pushNotificatorService "server/internal/modules/pushNotificator/service"
 	"server/internal/modules/scheduler"
@@ -163,6 +166,7 @@ func run() error {
 	auditLogRepository := auditLogRepository.NewAuditLogRepository(pgsql)
 	userToAccountGroupRepository := userToAccountGroupRepository.NewUserToAccountGroupRepository(pgsql)
 	accountBudgetRepository := accountBudgetRepository.NewAccountBudgetRepository(pgsql)
+	pendingLinkedTransferRepository := pendingLinkedTransferRepository.NewPendingLinkedTransferRepository(pgsql)
 
 	// Регистрируем сервисы
 	log.Info("Инициализируем Telegram-бота")
@@ -276,6 +280,15 @@ func run() error {
 		auditLogService,
 	)
 
+	// Тупая точка правды с CRUD для требований довнесения через счета-мосты — без проверок
+	// доступа/членства в группе, вся оркестрация на фронтенде.
+	pendingLinkedTransferService := pendingLinkedTransferService.NewPendingLinkedTransferService(
+		pendingLinkedTransferRepository,
+		transactor,
+		auditLogService,
+		userService,
+	)
+
 	syncService := syncService.NewSyncService(
 		transactor,
 		userService,
@@ -286,6 +299,7 @@ func run() error {
 		tagService,
 		accountBudgetService,
 		settingsService,
+		pendingLinkedTransferService,
 	)
 
 	log.Info("Запускаем планировщик")
@@ -317,6 +331,7 @@ func run() error {
 	proto.RegisterAuthEndpointServer(grpcServer, authEndpointGRPC.NewAuthEndpoint(authService))
 	proto.RegisterAuditLogEndpointServer(grpcServer, auditLogEndpointGRPC.NewAuditLogEndpoint(auditLogService))
 	proto.RegisterAccountBudgetEndpointServer(grpcServer, accountBudgetEndpointGRPC.NewAccountBudgetEndpoint(accountBudgetService))
+	proto.RegisterPendingLinkedTransferEndpointServer(grpcServer, pendingLinkedTransferEndpointGRPC.NewPendingLinkedTransferEndpoint(pendingLinkedTransferService))
 	proto.RegisterSyncEndpointServer(grpcServer, syncEndpointGRPC.NewSyncEndpoint(syncService))
 
 	// Создаем слушателя порта для gRPC-сервера

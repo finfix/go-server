@@ -8,6 +8,7 @@ import (
 	accountModel "server/internal/modules/account/model"
 	accountBudgetModel "server/internal/modules/accountBudget/model"
 	accountGroupModel "server/internal/modules/accountGroup/model"
+	pendingLinkedTransferModel "server/internal/modules/pendingLinkedTransfer/model"
 	settingsModel "server/internal/modules/settings/model"
 	tagModel "server/internal/modules/tag/model"
 	transactionModel "server/internal/modules/transaction/model"
@@ -37,6 +38,8 @@ type SyncRes struct {
 	ChangedUser *userModel.User // Измененные данные текущего пользователя, nil если не менялись
 
 	ChangedCurrencies []settingsModel.Currency // Созданные/изменённые валюты (глобальные, без привязки к группе счетов)
+
+	ChangedPendingLinkedTransfers []pendingLinkedTransferModel.PendingLinkedTransfer // Созданные/изменённые переносы (не удаляются, см. status)
 }
 
 // ConvertToProto преобразует SyncRes в proto-формат
@@ -111,6 +114,14 @@ func (s *SyncRes) ConvertToProto() (*proto.SyncResponse, error) {
 			return nil, err
 		}
 		res.ChangedCurrencies = append(res.ChangedCurrencies, protoCurrency)
+	}
+
+	for _, transfer := range s.ChangedPendingLinkedTransfers {
+		protoTransfer, err := transfer.ConvertToProto()
+		if err != nil {
+			return nil, err
+		}
+		res.ChangedPendingLinkedTransfers = append(res.ChangedPendingLinkedTransfers, protoTransfer)
 	}
 
 	return res, nil
