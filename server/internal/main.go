@@ -75,6 +75,7 @@ import (
 	userToAccountGroupRepository "server/internal/modules/userToAccountGroup/repository"
 	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 	"server/internal/utils/errors"
+	"server/internal/utils/syncNotifier"
 	pgsqlMigrations "server/migrations/pgsql"
 )
 
@@ -195,9 +196,14 @@ func run() error {
 		userToAccountGroupRepository,
 	)
 
+	// Будильник активных SubscribeToSync-стримов — одна на весь процесс инстанс, используется и
+	// auditLogService (пишет уведомления при TrackMutation), и syncService (подписывает стримы).
+	syncNotifier := syncNotifier.New()
+
 	auditLogService := auditLogService.NewAuditLogService(
 		auditLogRepository,
 		userToAccountGroupService,
+		syncNotifier,
 	)
 
 	userService, err := userService.NewUserService(
@@ -303,6 +309,7 @@ func run() error {
 		accountBudgetService,
 		settingsService,
 		pendingLinkedTransferService,
+		syncNotifier,
 	)
 
 	log.Info("Запускаем планировщик")

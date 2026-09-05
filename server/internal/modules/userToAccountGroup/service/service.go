@@ -22,6 +22,7 @@ var _ UserToAccountGroupRepository = new(repository.UserToAccountGroupRepository
 // UserToAccountGroupRepository - интерфейс репозитория связей пользователей с группами счетов
 type UserToAccountGroupRepository interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetAccountGroupMembers(ctx context.Context, accountGroupID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // NewUserToAccountGroupService создает новый сервис связей пользователей с группами счетов

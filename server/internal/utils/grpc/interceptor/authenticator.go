@@ -33,13 +33,52 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 func (interceptor *AuthInterceptor) Stream() grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		_, err := interceptor.authorize(stream.Context(), info.FullMethod, stream)
-		if err != nil {
-			return err
-		}
-
-		return handler(srv, stream)
+		// Раньше здесь пытались достать accessToken прямо из grpc.ServerStream (а не из
+		// распарсенного сообщения) — в проекте не было ни одного streaming-метода, поэтому это
+		// ни разу не сработало бы на практике: authorize(..., stream) сериализовал в JSON сам
+		// объект стрима, а не тело запроса, поэтому accessToken всегда оказывался пустым.
+		// Авторизуем на первом реальном RecvMsg (см. authenticatedServerStream) — раньше interceptor
+		// не может знать конкретный Go-тип входящего сообщения. Заодно оборачиваем Context(),
+		// иначе обогащённый ctx (UserID/DeviceID) тоже никогда не долетал до хендлера — в отличие
+		// от Unary(), server stream не принимает ctx как отдельный параметр.
+		return handler(srv, &authenticatedServerStream{
+			ServerStream: stream,
+			interceptor:  interceptor,
+			method:       info.FullMethod,
+			ctx:          stream.Context(),
+		})
 	}
+}
+
+// authenticatedServerStream — обёртка над grpc.ServerStream, которая на ПЕРВОМ входящем
+// сообщении достаёт accessToken (тем же кодом, что и Unary()) и подменяет Context() на
+// обогащённый UserID/DeviceID из токена.
+type authenticatedServerStream struct {
+	grpc.ServerStream
+	interceptor *AuthInterceptor
+	method      string
+	ctx         context.Context
+	authorized  bool
+}
+
+func (s *authenticatedServerStream) Context() context.Context {
+	return s.ctx
+}
+
+func (s *authenticatedServerStream) RecvMsg(m any) error {
+	if err := s.ServerStream.RecvMsg(m); err != nil {
+		return err
+	}
+	if s.authorized {
+		return nil
+	}
+	ctx, err := s.interceptor.authorize(s.ctx, s.method, m)
+	if err != nil {
+		return err
+	}
+	s.ctx = ctx
+	s.authorized = true
+	return nil
 }
 
 func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string, req any) (context.Context, error) {

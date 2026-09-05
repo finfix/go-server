@@ -26,6 +26,7 @@ import (
 	"server/internal/modules/transactor"
 	userModel "server/internal/modules/user/model"
 	userService "server/internal/modules/user/service"
+	"server/internal/utils/syncNotifier"
 )
 
 var tracer = otel.Tracer("/server/internal/modules/sync/service")
@@ -101,6 +102,13 @@ type PendingLinkedTransferService interface {
 	GetPendingLinkedTransfers(context.Context, pendingLinkedTransferModel.GetPendingLinkedTransfersReq) ([]pendingLinkedTransferModel.PendingLinkedTransfer, error)
 }
 
+var _ SyncNotifier = new(syncNotifier.SyncNotifier)
+
+// SyncNotifier - интерфейс будильника активных SubscribeToSync-стримов (см. пакет syncNotifier)
+type SyncNotifier interface {
+	Subscribe(userID uuid.UUID) (ch chan struct{}, unsubscribe func())
+}
+
 // SyncService - сервис синхронизации изменений между устройствами
 type SyncService struct {
 	transactor                   Transactor
@@ -113,6 +121,7 @@ type SyncService struct {
 	accountBudgetService          AccountBudgetService
 	settingsService                SettingsService
 	pendingLinkedTransferService PendingLinkedTransferService
+	syncNotifier                 SyncNotifier
 }
 
 // NewSyncService создает новый сервис синхронизации
@@ -127,6 +136,7 @@ func NewSyncService(
 	accountBudgetService AccountBudgetService,
 	settingsService SettingsService,
 	pendingLinkedTransferService PendingLinkedTransferService,
+	syncNotifier SyncNotifier,
 ) *SyncService {
 	return &SyncService{
 		transactor:                   transactor,
@@ -139,5 +149,6 @@ func NewSyncService(
 		accountBudgetService:         accountBudgetService,
 		settingsService:              settingsService,
 		pendingLinkedTransferService: pendingLinkedTransferService,
+		syncNotifier:                 syncNotifier,
 	}
 }

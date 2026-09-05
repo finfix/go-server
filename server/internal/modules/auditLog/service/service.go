@@ -11,6 +11,7 @@ import (
 	"server/internal/modules/auditLog/repository"
 	repoModel "server/internal/modules/auditLog/repository/model"
 	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
+	"server/internal/utils/syncNotifier"
 )
 
 var tracer = otel.Tracer("/server/internal/modules/auditLog/service")
@@ -19,6 +20,7 @@ var tracer = otel.Tracer("/server/internal/modules/auditLog/service")
 type AuditLogService struct {
 	auditLogRepository        AuditLogRepository
 	userToAccountGroupService UserToAccountGroupService
+	syncNotifier              SyncNotifier
 }
 
 var _ AuditLogRepository = new(repository.AuditLogRepository)
@@ -36,15 +38,26 @@ var _ UserToAccountGroupService = new(userToAccountGroupService.UserToAccountGro
 // UserToAccountGroupService - интерфейс сервиса связей пользователей с группами счетов
 type UserToAccountGroupService interface {
 	GetAccessedAccountGroups(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetAccountGroupMembers(ctx context.Context, accountGroupID uuid.UUID) ([]uuid.UUID, error)
+}
+
+var _ SyncNotifier = new(syncNotifier.SyncNotifier)
+
+// SyncNotifier - интерфейс будильника активных SubscribeToSync-стримов (см. пакет syncNotifier)
+type SyncNotifier interface {
+	Notify(userID uuid.UUID)
+	NotifyMany(userIDs []uuid.UUID)
 }
 
 // NewAuditLogService создает новый сервис аудит-лога
 func NewAuditLogService(
 	auditLogRepository AuditLogRepository,
 	userToAccountGroupService UserToAccountGroupService,
+	syncNotifier SyncNotifier,
 ) *AuditLogService {
 	return &AuditLogService{
 		auditLogRepository:        auditLogRepository,
 		userToAccountGroupService: userToAccountGroupService,
+		syncNotifier:              syncNotifier,
 	}
 }
