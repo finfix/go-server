@@ -20,8 +20,11 @@ import (
 
 	"github.com/finfix/go-server-grpc/proto"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/pressly/goose/v3"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shopspring/decimal"
 
 	"pkg/database/pgsql"
@@ -356,6 +359,18 @@ func run() error {
 	// Настраиваем служебный HTTP-сервер для pprof
 	serviceHTTPServer.Use(pprof.New())
 
+	// Настраиваем healthcheck
+	serviceHTTPServer.Use(healthcheck.New(healthcheck.Config{
+		Next:              nil,
+		LivenessProbe:     nil,
+		LivenessEndpoint:  "",
+		ReadinessProbe:    fiber2.NewReadyHandler(nil),
+		ReadinessEndpoint: "",
+	}))
+
+	// Настраиваем метрики
+	serviceHTTPServer.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+	
 	// Инициализируем эндпоинты
 	httpServer.Get("/version", middleware.NewVersionHandler(version, build, buildDate, hostname)) // GET /version
 
