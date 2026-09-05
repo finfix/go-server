@@ -39,7 +39,8 @@ type SyncRes struct {
 
 	ChangedCurrencies []settingsModel.Currency // Созданные/изменённые валюты (глобальные, без привязки к группе счетов)
 
-	ChangedPendingLinkedTransfers []pendingLinkedTransferModel.PendingLinkedTransfer // Созданные/изменённые переносы (не удаляются, см. status)
+	ChangedPendingLinkedTransfers   []pendingLinkedTransferModel.PendingLinkedTransfer // Созданные/изменённые переносы
+	DeletedPendingLinkedTransferIDs []uuid.UUID                                        // Удалённые переносы
 }
 
 // ConvertToProto преобразует SyncRes в proto-формат
@@ -122,6 +123,9 @@ func (s *SyncRes) ConvertToProto() (*proto.SyncResponse, error) {
 			return nil, err
 		}
 		res.ChangedPendingLinkedTransfers = append(res.ChangedPendingLinkedTransfers, protoTransfer)
+	}
+	for _, id := range s.DeletedPendingLinkedTransferIDs {
+		res.DeletedPendingLinkedTransferIDs = append(res.DeletedPendingLinkedTransferIDs, id[:])
 	}
 
 	return res, nil

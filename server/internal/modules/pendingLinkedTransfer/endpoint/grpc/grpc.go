@@ -15,6 +15,7 @@ type PendingLinkedTransferService interface {
 	CreatePendingLinkedTransfer(context.Context, model.CreatePendingLinkedTransferReq) error
 	GetPendingLinkedTransfers(context.Context, model.GetPendingLinkedTransfersReq) ([]model.PendingLinkedTransfer, error)
 	UpdatePendingLinkedTransfer(context.Context, model.UpdatePendingLinkedTransferReq) error
+	DeletePendingLinkedTransfer(context.Context, model.DeletePendingLinkedTransferReq) error
 }
 
 var _ proto.PendingLinkedTransferEndpointServer = new(PendingLinkedTransferEndpoint)

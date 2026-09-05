@@ -83,8 +83,11 @@ func (s *SyncService) hydrate(ctx context.Context, userID uuid.UUID, latest map[
 			hasUserChange = true
 
 		case auditLogEntity.PendingLinkedTransfer:
-			// Переносы не удаляются - метод всегда create/update (см. status)
-			pendingLinkedTransferIDs = append(pendingLinkedTransferIDs, id)
+			if auditLog.Method == auditLogMethod.Delete {
+				res.DeletedPendingLinkedTransferIDs = append(res.DeletedPendingLinkedTransferIDs, id)
+			} else {
+				pendingLinkedTransferIDs = append(pendingLinkedTransferIDs, id)
+			}
 		}
 	}
 

@@ -30,6 +30,7 @@ type PendingLinkedTransferRepository interface {
 	CreatePendingLinkedTransfer(context.Context, repoModel.CreatePendingLinkedTransferReq) error
 	GetPendingLinkedTransfers(context.Context, repoModel.GetPendingLinkedTransfersReq) ([]pendingLinkedTransferModel.PendingLinkedTransfer, error)
 	UpdatePendingLinkedTransfer(ctx context.Context, id uuid.UUID, req repoModel.UpdatePendingLinkedTransferReq) error
+	DeletePendingLinkedTransfer(ctx context.Context, id uuid.UUID) error
 }
 
 var _ AuditLogService = new(auditLogService.AuditLogService)
