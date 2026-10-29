@@ -20,7 +20,7 @@ jobs:
       image_name: ${{ github.repository }}
       make_command: deploy-coin-server
       devops_repository: finfix/devops
-      vault_role: gh-finfix-server-deploy-prod
+      vault_role: gh-finfix-go-server-deploy-prod
       vault_project: coin
       vault_kubeconfig: coin-server-prod
     secrets: inherit
