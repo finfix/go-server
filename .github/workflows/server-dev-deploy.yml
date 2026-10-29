@@ -19,5 +19,7 @@ jobs:
       image_name: ${{ github.repository }}-dev
       make_command: deploy-coin-server-dev
       devops_repository: finfix/devops
-      vault_service: coin-server
+      vault_role: gh-finfix-server-deploy-dev
+      vault_project: coin
+      vault_kubeconfig: coin-server-dev
     secrets: inherit
