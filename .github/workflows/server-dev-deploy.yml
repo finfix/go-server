@@ -6,6 +6,12 @@ on:
       - release/*
       - hotfix/*
 
+# id-token — вход в Vault по GitHub OIDC в reusable-deploy
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   general-deploy-pipeline:
     uses: finfix/devops/.github/workflows/reusable-deploy.yml@main
