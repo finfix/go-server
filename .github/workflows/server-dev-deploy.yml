@@ -23,7 +23,7 @@ jobs:
       devops_repository: finfix/devops
       vault_role: gh-finfix-go-server-deploy-dev
       vault_pat_secret: ci/coin/github-pat
-      vault_kubeconfig_secret: ci/coin/coin-server-dev
+      vault_kubeconfig_secret: ci/coin/coin-server-dev-kubeconfig
       vault_sops_secret: ci/coin/helmfile-sops
       vault_notify_secret: ci/coin/deploy-notify
       # kube-apiserver coin-1 доступен только через WireGuard
