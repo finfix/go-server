@@ -61,7 +61,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req model.UpdateUserReq) e
 		// Если обновляется пароль
 		if req.Password != nil {
 
-			if req.OldPassword != nil {
+			if req.OldPassword == nil {
 				return errors.BadRequest.New("OldPassword must be filled").WithContextParams(ctx)
 			}
 

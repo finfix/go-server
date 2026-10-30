@@ -1,16 +1,31 @@
 name: dev deploy
 
 on:
+  # Ручной перезапуск деплоя без нового коммита
+  workflow_dispatch:
   push:
     branches:
       - release/*
       - hotfix/*
 
+# id-token — вход в Vault по GitHub OIDC в reusable-deploy
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   general-deploy-pipeline:
-    uses: finfix/devops/.github/workflows/reusable-deploy.yml@main
+    uses: bonavi/devops_common/.github/workflows/reusable-deploy.yml@main
     with:
       image_name: ${{ github.repository }}-dev
       make_command: deploy-coin-server-dev
       devops_repository: finfix/devops
+      vault_role: gh-finfix-go-server-deploy-dev
+      vault_pat_secret: ci/coin/github-pat
+      vault_kubeconfig_secret: ci/coin/coin-server-dev
+      vault_sops_secret: ci/coin/helmfile-sops
+      vault_notify_secret: ci/coin/deploy-notify
+      # kube-apiserver coin-1 доступен только через WireGuard
+      vault_wireguard_secret: ci/coin/wireguard-ci
     secrets: inherit
