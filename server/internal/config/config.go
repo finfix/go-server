@@ -5,6 +5,7 @@ import (
 	"pkg/log"
 
 	"pkg/database/pgsql"
+	"pkg/trace"
 )
 
 // Config - общая структура конфига
@@ -54,6 +55,9 @@ type Config struct {
 	Environment string `env:"ENVIRONMENT"`
 
 	Logger log.LoggerSettingsEnv
+
+	// Отправка трейсов по OTLP HTTP (в кластере — в Alloy, дальше в Tempo)
+	Tracer trace.TracerConfig
 }
 
 func Load() Config {
