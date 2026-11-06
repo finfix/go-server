@@ -11,6 +11,7 @@ import (
 	"pkg/log/model"
 	"pkg/middleware"
 	"pkg/stackTrace"
+	"pkg/trace"
 	"server/internal/metrics"
 	"syscall"
 	"time"
@@ -125,6 +126,18 @@ func run() error {
 	); err != nil {
 		return err
 	}
+
+	// Включаем отправку трейсов: спаны tracer.Start(...) в коде и серверные спаны gRPC
+	stopTracing, err := trace.StartTracing(ctx, conf.Tracer, trace.ServiceInfo{
+		Name:        conf.ServiceName,
+		Version:     version,
+		Environment: conf.Environment,
+	})
+	if err != nil {
+		return err
+	}
+	// При остановке досылаем накопленные спаны
+	defer stopTracing()
 
 	// Инициализируем все синглтоны
 	log.Info("Инициализируем синглтоны")
