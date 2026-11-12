@@ -295,10 +295,16 @@ func run() error {
 		},
 	)
 
+	refreshTokenGracePeriod, err := time.ParseDuration(conf.Auth.RefreshTokenGracePeriod)
+	if err != nil {
+		return errors.InternalServer.Wrap(err)
+	}
+
 	authService := authService.NewAuthService(
 		userRepository,
 		transactor,
 		[]byte(conf.Auth.GeneralSalt),
+		refreshTokenGracePeriod,
 		auditLogService,
 	)
 

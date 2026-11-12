@@ -48,19 +48,27 @@ type AuthService struct {
 	generalRepository GeneralRepository
 	generalSalt       []byte
 	auditLogService   AuditLogService
+
+	// refreshTokenGracePeriod - время, в течение которого предыдущий refresh-токен остаётся валидным
+	// после ротации. Компенсирует потерю ответа сервера в сети: клиент, не получивший новую пару токенов,
+	// может повторить запрос старым токеном и получить тот же (уже выпущенный) результат, вместо
+	// полной потери сессии
+	refreshTokenGracePeriod time.Duration
 }
 
 func NewAuthService(
 	userRepository UserRepository,
 	generalRepository GeneralRepository,
 	generalSalt []byte,
+	refreshTokenGracePeriod time.Duration,
 	auditLogService AuditLogService,
 
 ) *AuthService {
 	return &AuthService{
-		userRepository:    userRepository,
-		generalRepository: generalRepository,
-		generalSalt:       generalSalt,
-		auditLogService:   auditLogService,
+		userRepository:          userRepository,
+		generalRepository:       generalRepository,
+		generalSalt:             generalSalt,
+		auditLogService:         auditLogService,
+		refreshTokenGracePeriod: refreshTokenGracePeriod,
 	}
 }
