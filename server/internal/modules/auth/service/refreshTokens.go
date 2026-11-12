@@ -15,12 +15,6 @@ import (
 	userRepoModel "server/internal/modules/user/repository/model"
 )
 
-// refreshTokenGraceWindow - время, в течение которого предыдущий refresh-токен остаётся валидным
-// после ротации. Компенсирует потерю ответа сервера в сети: клиент, не получивший новую пару токенов,
-// может повторить запрос старым токеном и получить тот же (уже выпущенный) результат, вместо
-// полной потери сессии
-const refreshTokenGraceWindow = 5 * time.Minute
-
 // RefreshTokens обновляет токены доступа в базе данных
 func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokensReq) (newTokens model.RefreshTokensRes, err error) {
 	ctx, span := tracer.Start(ctx, "RefreshTokens")
@@ -57,7 +51,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, req model.RefreshTokens
 		}
 
 		// Атомарно сдвигаем текущий токен в "предыдущий" (с grace-периодом) и записываем новый как актуальный
-		if err = s.userRepository.RotateRefreshToken(ctx, claims.UserID, claims.DeviceID, newTokens.Tokens.RefreshToken, refreshTokenGraceWindow); err != nil {
+		if err = s.userRepository.RotateRefreshToken(ctx, claims.UserID, claims.DeviceID, newTokens.Tokens.RefreshToken, s.refreshTokenGracePeriod); err != nil {
 			return newTokens, err
 		}
 
