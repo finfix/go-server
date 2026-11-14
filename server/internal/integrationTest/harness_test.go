@@ -126,9 +126,9 @@ func newFixture(t *testing.T) *fixture {
 	}
 	f.email = f.necessary.UserID.String()[:18] + "@t.local"
 
-	// Детерминированные курсы: база — USD, 1 RUB = 0.01 USD, 1 BTC = 100000 USD
+	// Детерминированные курсы в формате базы — единиц валюты за 1 USD: 100 RUB, 0.00001 BTC
 	ratesOnce.Do(func() {
-		f.exec(sq.Update("coin.currencies").Set("rate", sq.Expr("CASE slug WHEN 'USD' THEN 1 WHEN 'RUB' THEN 0.01 WHEN 'BTC' THEN 100000 ELSE rate END")))
+		f.exec(sq.Update("coin.currencies").Set("rate", sq.Expr("CASE slug WHEN 'USD' THEN 1 WHEN 'RUB' THEN 100 WHEN 'BTC' THEN 0.00001 ELSE rate END")))
 	})
 
 	// Пользователь с настоящим хэшем пароля и устройство

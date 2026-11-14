@@ -393,8 +393,8 @@ func TestMCP_Directories(t *testing.T) {
 		Code string      `json:"code"`
 		Rate json.Number `json:"rate"`
 	}) bool {
-		return c.Code == "RUB" && c.Rate.String() == "0.01"
+		return c.Code == "RUB" && c.Rate.String() == "100"
 	}) {
-		t.Fatal("нет RUB с курсом 0.01")
+		t.Fatal("нет RUB с курсом 100")
 	}
 }
