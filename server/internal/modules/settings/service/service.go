@@ -27,6 +27,7 @@ var _ SettingsRepository = new(settingsRepository.SettingsRepository)
 type SettingsRepository interface {
 	UpdateCurrencies(ctx context.Context, rates map[string]decimal.Decimal) error
 	InsertCurrencyRates(ctx context.Context, validAt time.Time, rates map[string]decimal.Decimal) error
+	GetCurrencyRates(context.Context, settingsModel.GetCurrencyRatesReq) ([]settingsModel.CurrencyRate, error)
 	GetCurrencies(context.Context) ([]settingsModel.Currency, error)
 	GetIcons(context.Context) ([]settingsModel.Icon, error)
 	GetVersion(context.Context, settingsModel.GetVersionReq) (settingsModel.Version, error)

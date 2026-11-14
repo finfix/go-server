@@ -33,10 +33,12 @@ func Register(server *sdk.Server, statisticService StatisticService) {
 		Name: "get_statistic",
 		Description: "Ряды графика по бакетам периода, как экран статистики приложения. chartType: income_expense — доходы и расходы двумя рядами; " +
 			"income / expense — с разбивкой groupBy (account — по счетам-категориям, tag — по тегам; транзакция с несколькими тегами попадает в каждый); " +
-			"balance_detailed — остаток каждого счета regular/debt на конец бакета (от первой транзакции); balance_total — сумма остатков; delta — доходы минус расходы. " +
+			"balance_detailed — остаток каждого счета regular/debt на конец бакета (от первой транзакции) по курсу на конец бакета; balance_total — сумма остатков; delta — доходы минус расходы; " +
+			"fx — то, что не объясняется доходами и расходами: «Потери на обмене» (рыночная стоимость отданного минус полученного на дату операции, плюс ряды по парам валют), «Переоценка» (изменение стоимости остатков от курсов), «Корректировки», «Переводы за пределы выбранных счетов»; верно Δналичности = доходы − расходы − потери + корректировки + переводы + переоценка. " +
+			"Суммы переводятся по курсу на дату операции; approximateCurrencies — валюты, у которых курса до даты не было и взят ближайший после. " +
 			"Без dateFrom — последние 30 дней / 8 недель / 6 месяцев / 4 квартала / 3 года до dateTo (по умолчанию сегодня). " +
 			"К каждому ряду — сводка sum/average/averageNonZero/min/max по бакетам, к расходным счетам — действующий месячный бюджет. " +
-			"Фильтр types к графику не применяется; для balance_* учитываются только accountIDs, excludedAccountIDs, currencies и accountGroupIDs",
+			"Фильтр types к графику не применяется; для balance_* и fx учитываются только accountIDs, excludedAccountIDs, currencies и accountGroupIDs",
 		Annotations: readOnly,
 	}, tools.GetStatistic)
 	mcpTransport.AddTool(server, &sdk.Tool{ //nolint:exhaustruct

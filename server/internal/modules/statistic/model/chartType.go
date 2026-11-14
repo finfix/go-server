@@ -16,12 +16,13 @@ const (
 	ChartBalanceDetailed ChartType = "balance_detailed" // В наличии по счетам
 	ChartBalanceTotal    ChartType = "balance_total"    // В наличии одной линией
 	ChartDelta           ChartType = "delta"            // Доходы минус расходы
+	ChartFX              ChartType = "fx"               // Потери на обмене, переоценка, корректировки
 )
 
 // Validate проверяет, что вид графика известен
 func (t ChartType) Validate(ctx context.Context) error {
 	switch t {
-	case ChartIncomeExpense, ChartIncome, ChartExpense, ChartBalanceDetailed, ChartBalanceTotal, ChartDelta:
+	case ChartIncomeExpense, ChartIncome, ChartExpense, ChartBalanceDetailed, ChartBalanceTotal, ChartDelta, ChartFX:
 		return nil
 	}
 	return errors.BadRequest.New("unknown chart_type").WithParams("chartType", string(t)).WithContextParams(ctx)

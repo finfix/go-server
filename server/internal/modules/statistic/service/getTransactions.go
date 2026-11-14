@@ -51,7 +51,7 @@ func (s *StatisticService) GetTransactions(ctx context.Context, req model.GetTra
 
 		switch transaction.Type {
 		case transactionType.Consumption:
-			amount, err := data.convert(transaction.AmountTo, data.accounts[transaction.AccountToID].Currency)
+			amount, err := data.convert(transaction.AmountTo, data.accounts[transaction.AccountToID].Currency, endOfDay(transaction.DateTransaction))
 			if err != nil {
 				return res, err
 			}
@@ -59,7 +59,7 @@ func (s *StatisticService) GetTransactions(ctx context.Context, req model.GetTra
 			day := transaction.DateTransaction.Format("2006-01-02")
 			dayConsumption[day] = dayConsumption[day].Add(amount)
 		case transactionType.Income:
-			amount, err := data.convert(transaction.AmountFrom, data.accounts[transaction.AccountFromID].Currency)
+			amount, err := data.convert(transaction.AmountFrom, data.accounts[transaction.AccountFromID].Currency, endOfDay(transaction.DateTransaction))
 			if err != nil {
 				return res, err
 			}
@@ -67,6 +67,7 @@ func (s *StatisticService) GetTransactions(ctx context.Context, req model.GetTra
 		}
 	}
 	res.TotalCount = len(selected)
+	res.ApproximateCurrencies = data.approximateCurrencies()
 
 	// Страница
 	if req.Offset >= len(selected) {
