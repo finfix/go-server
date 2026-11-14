@@ -12,11 +12,14 @@ ADD . /go-server
 WORKDIR /go-server/server
 RUN sed -i -e "s|@{build}|${BUILD}|g" -e "s|@{version}|${VERSION}|g" -e "s|@{buildDate}|${BUILD_DATE}|g" internal/main.go
 RUN go build -o ../main internal/main.go
+# Разовая загрузка истории курсов: запускается Kubernetes Job из того же образа
+RUN go build -o ../import-rates ./cmd/import-rates
 
 FROM ubuntu:latest
 WORKDIR /go-server
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go-server/main .
+COPY --from=builder /go-server/import-rates .
 EXPOSE 8080
 EXPOSE 8090
 USER root:root
