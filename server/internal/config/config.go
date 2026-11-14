@@ -16,6 +16,14 @@ type Config struct {
 		HTTP        string `env:"LISTEN_HTTP"`
 		ServiceHTTP string `env:"LISTEN_SERVICE_HTTP"`
 		GRPC        string `env:"LISTEN_GRPC"`
+		MCP         string `env:"LISTEN_MCP"`
+	}
+
+	// MCP-слой для агентов: инструменты только на чтение, авторизация по OAuth 2.1
+	MCP struct {
+		// Канонический публичный URL MCP без завершающего слэша, например https://mcp.coin.bonavii.com.
+		// Он же issuer OAuth и resource токенов
+		PublicURL string `env:"MCP_PUBLIC_URL"`
 	}
 
 	// Данные базы данных
