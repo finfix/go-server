@@ -22,10 +22,10 @@ func TestCurrencyRates_ImportIsIdempotent(t *testing.T) {
 	// Курсы провайдера на конец дня; повтор того же момента перезаписывает курс, а не дублирует
 	day := time.Date(2020, 3, 15, 0, 0, 0, 0, time.UTC)
 	validAt := day.Add(24*time.Hour - time.Second)
-	f.ok(repository.InsertCurrencyRates(f.ctx, validAt, map[string]decimal.Decimal{"RUB": decimal.RequireFromString("74.5"), "ZZZ": decimal.Zero}))
-	f.ok(repository.InsertCurrencyRates(f.ctx, validAt, map[string]decimal.Decimal{"RUB": decimal.RequireFromString("75")}))
+	f.ok(repository.InsertCurrencyRates(f.ctx, validAt, map[string]decimal.Decimal{"TST": decimal.RequireFromString("74.5"), "ZZZ": decimal.Zero}))
+	f.ok(repository.InsertCurrencyRates(f.ctx, validAt, map[string]decimal.Decimal{"TST": decimal.RequireFromString("75")}))
 	var rates []string
-	f.ok(database.Select(f.ctx, &rates, sq.Select("rate::text").From("coin.currency_rates").Where(sq.Eq{"currency": "RUB", "valid_at": validAt})))
+	f.ok(database.Select(f.ctx, &rates, sq.Select("rate::text").From("coin.currency_rates").Where(sq.Eq{"currency": "TST", "valid_at": validAt})))
 	if len(rates) != 1 || rates[0] != "75" {
 		t.Fatalf("точки дня: %v", rates)
 	}

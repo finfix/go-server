@@ -70,6 +70,7 @@ var _ SettingsService = new(settingsService.SettingsService)
 // SettingsService — текущие курсы валют
 type SettingsService interface {
 	GetCurrencies(context.Context) (settingsModel.GetCurrenciesRes, error)
+	GetCurrencyRates(context.Context, settingsModel.GetCurrencyRatesReq) ([]settingsModel.CurrencyRate, error)
 }
 
 var _ UserService = new(userService.UserService)

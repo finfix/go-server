@@ -39,7 +39,7 @@ func (s *StatisticService) addBudgets(ctx context.Context, req model.GetStatisti
 		if !ok {
 			continue
 		}
-		amount, err := data.convert(budgets[i].Amount, account.Currency)
+		amount, err := data.convert(budgets[i].Amount, account.Currency, endOfDay(dateTo))
 		if err != nil {
 			return err
 		}

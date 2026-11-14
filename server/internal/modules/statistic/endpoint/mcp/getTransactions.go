@@ -20,12 +20,13 @@ type GetTransactionsIn struct {
 
 // GetTransactionsOut — результат get_transactions
 type GetTransactionsOut struct {
-	Currency         string          `json:"currency"`             // Валюта итогов
-	TotalCount       int             `json:"totalCount"`           // Транзакций в выборке
-	TotalConsumption decimal.Decimal `json:"totalConsumption"`     // Расходы по выборке
-	TotalIncome      decimal.Decimal `json:"totalIncome"`          // Доходы по выборке
-	NextOffset       *int            `json:"nextOffset,omitempty"` // Смещение следующей страницы
-	Days             []DayView       `json:"days"`                 // Транзакции страницы по дням
+	Currency              string          `json:"currency"`                        // Валюта итогов
+	TotalCount            int             `json:"totalCount"`                      // Транзакций в выборке
+	TotalConsumption      decimal.Decimal `json:"totalConsumption"`                // Расходы по выборке
+	TotalIncome           decimal.Decimal `json:"totalIncome"`                     // Доходы по выборке
+	NextOffset            *int            `json:"nextOffset,omitempty"`            // Смещение следующей страницы
+	ApproximateCurrencies []string        `json:"approximateCurrencies,omitempty"` // Валюты без курса до даты операции: взят ближайший после
+	Days                  []DayView       `json:"days"`                            // Транзакции страницы по дням
 }
 
 // DayView — день ленты
@@ -81,12 +82,13 @@ func (t *StatisticTools) GetTransactions(ctx context.Context, _ *sdk.CallToolReq
 
 	// Конвертируем ответ
 	out = GetTransactionsOut{
-		Currency:         page.Currency,
-		TotalCount:       page.TotalCount,
-		TotalConsumption: page.TotalConsumption,
-		TotalIncome:      page.TotalIncome,
-		NextOffset:       page.NextOffset,
-		Days:             make([]DayView, 0, len(page.Days)),
+		Currency:              page.Currency,
+		TotalCount:            page.TotalCount,
+		TotalConsumption:      page.TotalConsumption,
+		TotalIncome:           page.TotalIncome,
+		NextOffset:            page.NextOffset,
+		ApproximateCurrencies: page.ApproximateCurrencies,
+		Days:                  make([]DayView, 0, len(page.Days)),
 	}
 	for _, day := range page.Days {
 		view := DayView{Date: day.Date.Format(mcpTransport.DateLayout), ConsumptionTotal: day.ConsumptionTotal, Transactions: make([]TransactionView, 0, len(day.Transactions))}

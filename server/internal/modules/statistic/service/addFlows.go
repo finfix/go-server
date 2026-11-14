@@ -29,7 +29,7 @@ func (c seriesCalculator) addFlows(filter transactionFilter, chartType model.Cha
 		default:
 			continue
 		}
-		converted, err := c.data.convert(amount, c.data.accounts[accountID].Currency)
+		converted, err := c.data.convert(amount, c.data.accounts[accountID].Currency, endOfDay(transaction.DateTransaction))
 		if err != nil {
 			return err
 		}
