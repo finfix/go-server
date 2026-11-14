@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -42,7 +43,7 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 	}()
 
 	// Получаем курсы валют от провайдера данных
-	rates, err := network.GetCurrencyRates(ctx, s.credentials.CurrencyProviderAPIKey)
+	rates, validAt, err := network.GetCurrencyRates(ctx, s.credentials.CurrencyProviderAPIKey)
 	if err != nil {
 		tgMessage.Message += fmt.Sprintf("Не смогли получить курсы валют от провайдера\n\n%v", err.Error())
 		return err
@@ -58,8 +59,16 @@ func (s *SettingsService) UpdateCurrencies(ctx context.Context, req settingsMode
 
 	err = s.transactor.WithinTransaction(ctx, func(ctxTx context.Context) error {
 
-		// Обновляем курсы валют в БД
+		// Обновляем текущие курсы валют в БД. currencies.rate остается для старых версий приложения
 		if err := s.settingsRepository.UpdateCurrencies(ctxTx, rates); err != nil {
+			return err
+		}
+
+		// Сохраняем точку в историю курсов на момент, на который их посчитал провайдер
+		if validAt.IsZero() {
+			validAt = time.Now()
+		}
+		if err := s.settingsRepository.InsertCurrencyRates(ctxTx, validAt, rates); err != nil {
 			return err
 		}
 
