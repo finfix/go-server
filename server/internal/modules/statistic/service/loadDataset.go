@@ -9,6 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	accountModel "server/internal/modules/account/model"
+	settingsModel "server/internal/modules/settings/model"
 	tagModel "server/internal/modules/tag/model"
 	transactionModel "server/internal/modules/transaction/model"
 	"server/internal/utils/errors"
@@ -34,6 +35,8 @@ func (s *StatisticService) loadDataset(ctx context.Context, userInformation nece
 	data.accountGroupIDs = accountGroupIDs
 	data.accounts = make(map[uuid.UUID]accountModel.Account)
 	data.tagsByTransaction = make(map[uuid.UUID][]uuid.UUID)
+	data.rateHistory = make(map[string][]ratePoint)
+	data.approximate = make(map[string]bool)
 
 	// Текущие курсы валют
 	currencies, err := s.settingsService.GetCurrencies(ctx)
@@ -70,6 +73,21 @@ func (s *StatisticService) loadDataset(ctx context.Context, userInformation nece
 	}
 	for _, account := range accounts {
 		data.accounts[account.ID] = account
+	}
+
+	// История курсов валют счетов и валюты ответа
+	currencyCodes := []string{data.currency}
+	for _, account := range data.accounts {
+		if !slices.Contains(currencyCodes, account.Currency) {
+			currencyCodes = append(currencyCodes, account.Currency)
+		}
+	}
+	history, err := s.settingsService.GetCurrencyRates(ctx, settingsModel.GetCurrencyRatesReq{Currencies: currencyCodes}) //nolint:exhaustruct
+	if err != nil {
+		return data, err
+	}
+	for _, point := range history {
+		data.rateHistory[point.Currency] = append(data.rateHistory[point.Currency], ratePoint{at: point.ValidAt, rate: point.Rate})
 	}
 
 	// Транзакции всех доступных групп, оставляем выбранные

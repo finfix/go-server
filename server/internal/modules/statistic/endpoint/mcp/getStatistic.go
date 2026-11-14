@@ -12,7 +12,7 @@ import (
 
 // GetStatisticIn — аргументы get_statistic
 type GetStatisticIn struct {
-	ChartType            string    `json:"chartType" jsonschema:"income_expense, income, expense, balance_detailed, balance_total или delta"`
+	ChartType            string    `json:"chartType" jsonschema:"income_expense, income, expense, balance_detailed, balance_total, delta или fx"`
 	Period               string    `json:"period" jsonschema:"Бакет: day, week, month, quarter или year"`
 	GroupBy              string    `json:"groupBy,omitempty" jsonschema:"Разбивка income/expense: account (по умолчанию) или tag"`
 	AggregateIntoParents *bool     `json:"aggregateIntoParents,omitempty" jsonschema:"Сворачивать дочерние счета в родителя с isParent, по умолчанию true"`
@@ -22,11 +22,12 @@ type GetStatisticIn struct {
 
 // GetStatisticOut — результат get_statistic
 type GetStatisticOut struct {
-	Currency string       `json:"currency"` // Валюта всех сумм
-	DateFrom string       `json:"dateFrom"` // Начало первого бакета
-	DateTo   string       `json:"dateTo"`   // Конец периода включительно
-	Buckets  []string     `json:"buckets"`  // Начала бакетов, yyyy-MM-dd
-	Series   []SeriesView `json:"series"`   // Ряды
+	Currency              string       `json:"currency"`                        // Валюта всех сумм
+	DateFrom              string       `json:"dateFrom"`                        // Начало первого бакета
+	DateTo                string       `json:"dateTo"`                          // Конец периода включительно
+	Buckets               []string     `json:"buckets"`                         // Начала бакетов, yyyy-MM-dd
+	Series                []SeriesView `json:"series"`                          // Ряды
+	ApproximateCurrencies []string     `json:"approximateCurrencies,omitempty"` // Валюты без курса до даты операции: взят ближайший после
 }
 
 // SeriesView — ряд графика
@@ -75,11 +76,12 @@ func (t *StatisticTools) GetStatistic(ctx context.Context, _ *sdk.CallToolReques
 
 	// Конвертируем ответ
 	out = GetStatisticOut{
-		Currency: statistic.Currency,
-		DateFrom: statistic.DateFrom.Format(mcpTransport.DateLayout),
-		DateTo:   statistic.DateTo.Format(mcpTransport.DateLayout),
-		Buckets:  make([]string, 0, len(statistic.Buckets)),
-		Series:   make([]SeriesView, 0, len(statistic.Series)),
+		Currency:              statistic.Currency,
+		DateFrom:              statistic.DateFrom.Format(mcpTransport.DateLayout),
+		DateTo:                statistic.DateTo.Format(mcpTransport.DateLayout),
+		Buckets:               make([]string, 0, len(statistic.Buckets)),
+		Series:                make([]SeriesView, 0, len(statistic.Series)),
+		ApproximateCurrencies: statistic.ApproximateCurrencies,
 	}
 	for _, bucket := range statistic.Buckets {
 		out.Buckets = append(out.Buckets, bucket.Format(mcpTransport.DateLayout))

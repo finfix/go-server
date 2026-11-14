@@ -89,6 +89,10 @@ func (s *StatisticService) GetStatistic(ctx context.Context, req model.GetStatis
 		if err = calculator.addFlows(filter, req.ChartType, ""); err != nil {
 			return res, err
 		}
+	case model.ChartFX:
+		if err = calculator.addFX(req.Filters); err != nil {
+			return res, err
+		}
 	case model.ChartBalanceDetailed, model.ChartBalanceTotal:
 		if err = calculator.addBalances(req.Filters, req.ChartType == model.ChartBalanceTotal); err != nil {
 			return res, err
@@ -96,5 +100,6 @@ func (s *StatisticService) GetStatistic(ctx context.Context, req model.GetStatis
 	}
 
 	res.Series = calculator.result(req.ChartType)
+	res.ApproximateCurrencies = data.approximateCurrencies()
 	return res, nil
 }

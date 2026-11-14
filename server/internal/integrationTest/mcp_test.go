@@ -163,7 +163,7 @@ func TestMCP_ToolsListed(t *testing.T) {
 		}
 	}
 	slices.Sort(names)
-	expected := []string{"get_account_groups", "get_accounts", "get_currencies", "get_statistic", "get_tags", "get_transactions"}
+	expected := []string{"get_account_groups", "get_accounts", "get_currencies", "get_rates", "get_statistic", "get_tags", "get_transactions"}
 	if !slices.Equal(names, expected) {
 		t.Fatalf("инструменты: %v", names)
 	}
@@ -396,5 +396,55 @@ func TestMCP_Directories(t *testing.T) {
 		return c.Code == "RUB" && c.Rate.String() == "100"
 	}) {
 		t.Fatal("нет RUB с курсом 100")
+	}
+}
+
+func TestMCP_HistoricalRatesAndFX(t *testing.T) {
+	f := newFixture(t)
+	session := f.mcpSession()
+
+	// Доход в евро, обмен евро на доллары с потерей, расход в долларах; в октябре евро дорожает вдвое
+	usd := f.newAccount("Доллары", "regular", "USD", accountOptions{})
+	eur := f.newAccount("Евро", "regular", "EUR", accountOptions{})
+	salary := f.newAccount("Зарплата EUR", "earnings", "EUR", accountOptions{})
+	food := f.newAccount("Еда USD", "expense", "USD", accountOptions{})
+	f.newTransaction("income", salary, eur, "100", "100", "2026-09-10", "")
+	f.newTransaction("transfer", eur, usd, "50", "45", "2026-09-20", "обмен")
+	f.newTransaction("consumption", usd, food, "10", "10", "2026-10-05", "")
+
+	call := func(chartType string) statisticOut {
+		var out statisticOut
+		f.ok(f.call(session, "get_statistic", map[string]any{"chartType": chartType, "period": "month", "currency": "USD",
+			"filters": map[string]any{"dateFrom": "2026-09-01", "dateTo": "2026-10-31"}}, &out))
+		return out
+	}
+
+	// Доход — по курсу своего месяца, остатки — по курсу на конец месяца
+	if got := call("income_expense").values(t, "Доходы"); got != "100 0" {
+		t.Fatalf("доходы: %s", got)
+	}
+	if got := call("balance_total").values(t, "В наличии"); got != "95 135" {
+		t.Fatalf("наличность: %s", got)
+	}
+
+	// Потеря на обмене в сентябре, переоценка евро в октябре
+	out := call("fx")
+	if got := out.values(t, "Потери на обмене") + " | " + out.values(t, "Потери EUR→USD") + " | " + out.values(t, "Переоценка"); got != "5 0 | 5 0 | 0 50" {
+		t.Fatalf("fx: %s", got)
+	}
+
+	// История курсов: евро за 1 доллар и рубли за 1 евро
+	var rates struct {
+		Base   string `json:"base"`
+		Series []struct {
+			Currency string `json:"currency"`
+			Points   []struct {
+				Rate json.Number `json:"rate"`
+			} `json:"points"`
+		} `json:"series"`
+	}
+	f.ok(f.call(session, "get_rates", map[string]any{"currencies": []string{"RUB"}, "base": "EUR", "dateFrom": "2026-09-01", "dateTo": "2026-10-31"}, &rates))
+	if len(rates.Series) != 1 || len(rates.Series[0].Points) != 1 || rates.Series[0].Points[0].Rate.String() != "100" {
+		t.Fatalf("курсы: %+v", rates)
 	}
 }

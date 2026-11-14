@@ -129,6 +129,15 @@ func newFixture(t *testing.T) *fixture {
 	// Детерминированные курсы в формате базы — единиц валюты за 1 USD: 100 RUB, 0.00001 BTC
 	ratesOnce.Do(func() {
 		f.exec(sq.Update("coin.currencies").Set("rate", sq.Expr("CASE slug WHEN 'USD' THEN 1 WHEN 'RUB' THEN 100 WHEN 'BTC' THEN 0.00001 ELSE rate END")))
+
+		// История: те же курсы действуют с 2000 года, а EUR меняется — для теста переоценки:
+		// до октября 2026 года 1 EUR = 1 USD, с октября 1 EUR = 2 USD
+		f.exec(sq.Delete("coin.currency_rates").Where(sq.Eq{"currency": []string{"USD", "RUB", "BTC", "EUR"}}))
+		points := sq.Insert("coin.currency_rates").Columns("currency", "valid_at", "rate", "source")
+		for currency, rate := range map[string]string{"USD": "1", "RUB": "100", "BTC": "0.00001", "EUR": "1"} {
+			points = points.Values(currency, time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC), rate, "provider")
+		}
+		f.exec(points.Values("EUR", time.Date(2026, 9, 30, 23, 59, 59, 0, time.UTC).Add(time.Second), "0.5", "provider"))
 	})
 
 	// Пользователь с настоящим хэшем пароля и устройство
