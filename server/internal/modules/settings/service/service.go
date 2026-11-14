@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/otel"
 
@@ -25,6 +26,7 @@ var _ SettingsRepository = new(settingsRepository.SettingsRepository)
 
 type SettingsRepository interface {
 	UpdateCurrencies(ctx context.Context, rates map[string]decimal.Decimal) error
+	InsertCurrencyRates(ctx context.Context, validAt time.Time, rates map[string]decimal.Decimal) error
 	GetCurrencies(context.Context) ([]settingsModel.Currency, error)
 	GetIcons(context.Context) ([]settingsModel.Icon, error)
 	GetVersion(context.Context, settingsModel.GetVersionReq) (settingsModel.Version, error)
