@@ -407,7 +407,7 @@ func run() error {
 
 	// Настраиваем метрики
 	serviceHTTPServer.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
-	
+
 	// Инициализируем эндпоинты
 	httpServer.Get("/version", middleware.NewVersionHandler(version, build, buildDate, hostname)) // GET /version
 
@@ -443,7 +443,7 @@ func run() error {
 	oauthEndpointHTTP.NewOAuthEndpoint(oauthService).Register(mcpMux)
 	mcpMux.Handle("GET "+mcpTransport.ResourceMetadataPath, mcpTransport.NewResourceMetadataHandler(conf.MCP.PublicURL))
 	mcpMux.Handle("GET "+mcpTransport.ResourceMetadataPath+"/", mcpTransport.NewResourceMetadataHandler(conf.MCP.PublicURL))
-	mcpMux.Handle("/", mcpTransport.NewHandler(mcpServer, conf.MCP.PublicURL))
+	mcpMux.Handle("/", mcpTransport.NewHandler(mcpServer, conf.MCP.PublicURL, userService))
 	mcpHTTPServer, err := fiber2.GetDefaultServer(conf.ServiceName, nil)
 	if err != nil {
 		return err

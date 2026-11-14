@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
@@ -13,7 +12,6 @@ import (
 
 	authModel "server/internal/modules/auth/model"
 	"server/internal/modules/oauth/model"
-	"server/internal/utils/errors"
 )
 
 // ExchangeCode обменивает код на токены сервера: проверяет клиента, redirect_uri, PKCE и resource,
@@ -56,14 +54,12 @@ func (s *OAuthService) ExchangeCode(ctx context.Context, req model.ExchangeCodeR
 		return model.TokenRes{}, err
 	}
 
-	// Устройство на каждую выдачу: отзыв — удаление устройства, как у телефона
-	raw := make([]byte, 8)
-	if _, err = rand.Read(raw); err != nil {
-		return model.TokenRes{}, errors.InternalServer.Wrap(err)
-	}
+	// Одно устройство на пару клиент–пользователь: повторный вход клиента обновляет его, а не
+	// плодит строки; отзыв — удаление устройства, как у телефона
+	deviceSum := sha256.Sum256([]byte(code.ClientID.String() + ":" + code.UserID.String()))
 	tokens, err := s.authService.IssueTokens(ctx, authModel.IssueTokensReq{
 		UserID:      code.UserID,
-		DeviceID:    "oauth-" + hex.EncodeToString(raw),
+		DeviceID:    "oauth-" + hex.EncodeToString(deviceSum[:8]),
 		Device:      s.deviceInformation(client.Name),
 		Application: s.applicationInformation(),
 	})

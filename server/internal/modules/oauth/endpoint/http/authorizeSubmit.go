@@ -4,6 +4,7 @@ import (
 	stdErrors "errors"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"server/internal/modules/oauth/model"
 )
@@ -15,6 +16,18 @@ func (e *OAuthEndpoint) AuthorizeSubmit(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	req := authorizeReq(r.PostForm)
+
+	// Защита от перебора пароля: лимит попыток на почту и на адрес
+	email := strings.ToLower(strings.TrimSpace(r.PostForm.Get("email")))
+	if !e.loginByIP.allow(clientIP(r)) || !e.loginByEmail.allow(email) {
+		client, validateErr := e.oauthService.ValidateAuthorize(r.Context(), req)
+		if validateErr != nil {
+			e.authorizeError(w, req, validateErr)
+			return
+		}
+		renderForm(w, http.StatusTooManyRequests, formData{Client: client.Name, Params: r.PostForm, Error: "Слишком много попыток входа, попробуйте через час"})
+		return
+	}
 
 	code, err := e.oauthService.GrantCode(r.Context(), model.GrantCodeReq{
 		Authorize: req,

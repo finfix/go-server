@@ -26,6 +26,7 @@ type OAuthRepository interface {
 	TouchClient(ctx context.Context, id uuid.UUID, now time.Time) error
 	CreateCode(context.Context, model.CreateCodeReq) error
 	ConsumeCode(ctx context.Context, code string, now time.Time) (model.Code, bool, error)
+	DeleteExpiredCodes(ctx context.Context, before time.Time) error
 }
 
 var _ AuthService = new(authService.AuthService)

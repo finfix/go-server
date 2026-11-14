@@ -29,6 +29,12 @@ func (s *OAuthService) GrantCode(ctx context.Context, req model.GrantCodeReq) (c
 		return "", model.ErrInvalidCredentials
 	}
 
+	// Попутно чистим просроченные коды, чтобы таблица не росла
+	now := time.Now()
+	if err = s.oauthRepository.DeleteExpiredCodes(ctx, now); err != nil {
+		return "", err
+	}
+
 	// Выдаем код
 	raw := make([]byte, 32)
 	if _, err = rand.Read(raw); err != nil {
@@ -39,7 +45,6 @@ func (s *OAuthService) GrantCode(ctx context.Context, req model.GrantCodeReq) (c
 	if resource == "" {
 		resource = s.config.PublicURL
 	}
-	now := time.Now()
 	err = s.oauthRepository.CreateCode(ctx, model.CreateCodeReq{
 		Code:          code,
 		ClientID:      req.Authorize.ClientID,

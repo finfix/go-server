@@ -45,6 +45,7 @@ var generalSalt = []byte("salt")
 // services — сервисы, связанные так же, как в main.go
 type services struct {
 	auth         *authService.AuthService                 // Авторизация
+	user         *userService.UserService                 // Пользователи и устройства
 	account      *accountService.AccountService           // Счета
 	accountGroup *accountGroupService.AccountGroupService // Группы счетов
 	tag          *tagService.TagService                   // Теги
@@ -93,6 +94,7 @@ func newServices(t *testing.T) services {
 
 	return services{
 		auth:         authService,
+		user:         userService,
 		account:      accountService,
 		accountGroup: accountGroupService,
 		tag:          tagService,

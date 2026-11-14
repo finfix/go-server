@@ -11,8 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
 	"time"
+
+	sq "github.com/Masterminds/squirrel"
 
 	"pkg/jwtManager"
 	oauthEndpointHTTP "server/internal/modules/oauth/endpoint/http"
@@ -79,8 +80,13 @@ func TestOAuth_AuthorizationCodeFlow(t *testing.T) {
 	res, err = http.Get(server.URL + "/oauth/authorize?" + params.Encode())
 	f.ok(err)
 	page, _ := io.ReadAll(res.Body)
-	if res.StatusCode != http.StatusOK || !strings.Contains(string(page), "Claude Test") {
+	if res.StatusCode != http.StatusOK || !strings.Contains(string(page), "Claude Test") || !strings.Contains(string(page), "<b>localhost:9</b>") {
 		t.Fatalf("форма: %d %.200s", res.StatusCode, page)
+	}
+
+	// Форму нельзя встроить во фрейм
+	if res.Header.Get("X-Frame-Options") != "DENY" || !strings.Contains(res.Header.Get("Content-Security-Policy"), "frame-ancestors 'none'") {
+		t.Fatalf("заголовки формы: %v", res.Header)
 	}
 
 	// Неверный пароль — форма снова, без редиректа
@@ -124,6 +130,11 @@ func TestOAuth_AuthorizationCodeFlow(t *testing.T) {
 	f.ok(err)
 	location, _ = url.Parse(res.Header.Get("Location"))
 	code = location.Query().Get("code")
+
+	// В базе лежит только хэш кода
+	if n := f.count(sq.Select("count(*)").From("coin.oauth_codes").Where(sq.Eq{"code": code})); n != 0 {
+		t.Fatalf("код хранится в открытом виде")
+	}
 
 	// Обмен кода: JWT сервера с пользователем и отдельным устройством oauth-*
 	res, err = http.PostForm(server.URL+"/oauth/token", url.Values{
@@ -175,4 +186,37 @@ func TestOAuth_AuthorizationCodeFlow(t *testing.T) {
 // squirrelSelectDevices — счетчик устройств OAuth-клиента с данным device_id
 func squirrelSelectDevices(deviceID string) sq.SelectBuilder {
 	return sq.Select("count(*)").From("coin.devices").Where(sq.Eq{"device_id": deviceID, "device_os_name": "server"})
+}
+
+func TestOAuth_LoginRateLimited(t *testing.T) {
+	f := newFixture(t)
+	server := f.oauthServer()
+
+	// Клиент и параметры авторизации
+	res, err := http.Post(server.URL+"/oauth/register", "application/json",
+		strings.NewReader(`{"client_name":"Claude Test","redirect_uris":["http://localhost:9/cb"]}`))
+	f.ok(err)
+	var client struct {
+		ClientID string `json:"client_id"`
+	}
+	f.ok(json.NewDecoder(res.Body).Decode(&client))
+	form := url.Values{
+		"client_id": {client.ClientID}, "redirect_uri": {"http://localhost:9/cb"}, "response_type": {"code"},
+		"code_challenge": {"challenge"}, "code_challenge_method": {"S256"}, "email": {f.email}, "password": {"wrong"},
+	}
+
+	// Десять неверных паролей — форма с 401, дальше вход на эту почту закрыт даже с верным паролем
+	for i := 0; i < 10; i++ {
+		res, err = noRedirect.PostForm(server.URL+"/oauth/authorize", form)
+		f.ok(err)
+		if res.StatusCode != http.StatusUnauthorized {
+			t.Fatalf("попытка %d: %d", i+1, res.StatusCode)
+		}
+	}
+	form.Set("password", f.password)
+	res, err = noRedirect.PostForm(server.URL+"/oauth/authorize", form)
+	f.ok(err)
+	if res.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("после перебора: %d", res.StatusCode)
+	}
 }

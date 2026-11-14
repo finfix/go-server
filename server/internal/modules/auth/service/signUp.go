@@ -12,7 +12,6 @@ import (
 	"server/internal/enum/auditLogMethod"
 	auditLogModel "server/internal/modules/auditLog/model"
 	"server/internal/modules/auth/model"
-	"server/internal/modules/auth/service/utils"
 	userModel "server/internal/modules/user/model"
 
 	"github.com/google/uuid"
@@ -85,20 +84,12 @@ func (s *AuthService) SignUp(ctx context.Context, loginData model.SignUpReq) (ac
 			return err
 		}
 
-		// Создаем пару токенов
-		accessData.Tokens, err = utils.CreatePairTokens(ctx, accessData.ID, loginData.DeviceID)
-		if err != nil {
-			return err
-		}
-
-		// Создаем или обновляем девайс пользователя
-		err = s.upsertDevice(ctx, userModel.Device{
-			DeviceInformation:      loginData.Device,
-			NotificationToken:      nil,
-			RefreshToken:           accessData.RefreshToken,
-			UserID:                 accessData.ID,
-			DeviceID:               loginData.DeviceID,
-			ApplicationInformation: loginData.Application,
+		// Выдаем пару токенов и создаем девайс пользователя
+		accessData.Tokens, err = s.IssueTokens(ctx, model.IssueTokensReq{
+			UserID:      accessData.ID,
+			DeviceID:    loginData.DeviceID,
+			Device:      loginData.Device,
+			Application: loginData.Application,
 		})
 		if err != nil {
 			return err

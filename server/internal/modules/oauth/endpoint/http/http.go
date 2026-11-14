@@ -4,6 +4,7 @@ package http
 
 import (
 	"context"
+	"time"
 
 	"server/internal/modules/oauth/model"
 	oauthService "server/internal/modules/oauth/service"
@@ -21,12 +22,28 @@ type OAuthService interface {
 	Refresh(ctx context.Context, refreshToken string) (model.TokenRes, error)
 }
 
+// Лимиты защиты от перебора пароля и от засорения базы регистрациями
+const (
+	loginAttemptsPerEmail = 10        // Попыток входа на одну почту за окно
+	loginAttemptsPerIP    = 30        // Попыток входа с одного адреса за окно
+	registrationsPerIP    = 20        // Регистраций клиентов с одного адреса за окно
+	limiterWindow         = time.Hour // Окно лимитов
+)
+
 // OAuthEndpoint — HTTP-обработчики OAuth
 type OAuthEndpoint struct {
-	oauthService OAuthService
+	oauthService      OAuthService
+	loginByEmail      *attemptLimiter // Попытки входа по почте
+	loginByIP         *attemptLimiter // Попытки входа по адресу
+	registrationsByIP *attemptLimiter // Регистрации клиентов по адресу
 }
 
 // NewOAuthEndpoint создает обработчики OAuth
 func NewOAuthEndpoint(oauthService OAuthService) *OAuthEndpoint {
-	return &OAuthEndpoint{oauthService: oauthService}
+	return &OAuthEndpoint{
+		oauthService:      oauthService,
+		loginByEmail:      newAttemptLimiter(loginAttemptsPerEmail, limiterWindow),
+		loginByIP:         newAttemptLimiter(loginAttemptsPerIP, limiterWindow),
+		registrationsByIP: newAttemptLimiter(registrationsPerIP, limiterWindow),
+	}
 }

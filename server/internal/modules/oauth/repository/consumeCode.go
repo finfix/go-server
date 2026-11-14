@@ -20,7 +20,7 @@ func (r *OAuthRepository) ConsumeCode(ctx context.Context, code string, now time
 	var rows []repoModel.Code
 	err = r.db.Select(ctx, &rows, sq.Update(oauthCodeDDL.Table).
 		Set(oauthCodeDDL.ColumnUsedAt, now).
-		Where(sq.Eq{oauthCodeDDL.ColumnCode: code, oauthCodeDDL.ColumnUsedAt: nil}).
+		Where(sq.Eq{oauthCodeDDL.ColumnCode: hashCode(code), oauthCodeDDL.ColumnUsedAt: nil}).
 		Where(sq.Gt{oauthCodeDDL.ColumnExpiresAt: now}).
 		Suffix("RETURNING *"))
 	if err != nil || len(rows) == 0 {

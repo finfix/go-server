@@ -21,6 +21,9 @@ func (s *AuthService) VerifyPassword(ctx context.Context, email, password string
 		return uuid.Nil, err
 	}
 	if len(users) == 0 {
+
+		// Сравниваем с заглушкой, чтобы время ответа не выдавало, зарегистрирована ли почта
+		_ = passwordManager.CompareHashAndPassword(dummyPasswordHash, []byte(password), dummyPasswordSalt, s.generalSalt)
 		return uuid.Nil, errors.NotFound.New("User not found").
 			WithContextParams(ctx).
 			WithCustomHumanText("Пользователь не найден")

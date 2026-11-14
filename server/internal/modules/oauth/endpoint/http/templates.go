@@ -8,7 +8,7 @@ import (
 
 // formData — данные формы входа: имя клиента, параметры авторизации для скрытых полей, ошибка
 type formData struct {
-	Client string     // Название клиента, запрашивающего доступ
+	Client string     // Название клиента, запрашивающего доступ (его задает сам клиент, не проверено)
 	Params url.Values // Параметры запроса авторизации, повторяются скрытыми полями
 	Error  string     // Текст ошибки входа, пусто — нет
 }
@@ -25,11 +25,12 @@ form{background:#fff;padding:28px;border-radius:14px;width:320px;box-shadow:0 2p
 h1{font-size:20px;margin:0 0 6px}p{margin:0 0 18px;color:#555}
 input{width:100%;box-sizing:border-box;padding:10px;margin:0 0 12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
 button{width:100%;padding:11px;border:0;border-radius:8px;background:#3e9bf0;color:#fff;font-size:16px}
-.err{color:#c62828;margin:0 0 12px}
+.err{color:#c62828;margin:0 0 12px}.warn{background:#fff4e5;padding:10px;border-radius:8px;font-size:14px}
 </style></head><body>
 <form method="post" action="/oauth/authorize">
 <h1>Coin</h1>
-<p><b>{{.Client}}</b> запрашивает доступ к вашим задачам.</p>
+<p><b>{{.Client}}</b> запрашивает доступ на чтение к вашим финансам: счетам, транзакциям и статистике.</p>
+<p class="warn">После входа доступ получит <b>{{.RedirectHost}}</b>. Если вы не подключали этот сервис сами, закройте страницу.</p>
 {{if .Error}}<p class="err">{{.Error}}</p>{{end}}
 <input type="email" name="email" placeholder="Почта" required autofocus autocomplete="username">
 <input type="password" name="password" placeholder="Пароль" required autocomplete="current-password">
@@ -50,11 +51,14 @@ func renderForm(w http.ResponseWriter, status int, data formData) {
 			hidden[name] = value
 		}
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
+	redirectHost := data.Params.Get("redirect_uri")
+	if parsed, err := url.Parse(redirectHost); err == nil && parsed.Host != "" {
+		redirectHost = parsed.Host
+	}
+	setPageHeaders(w)
 	w.WriteHeader(status)
 	_ = formTemplate.Execute(w, struct {
-		Client, Error string
-		Hidden        map[string]string
-	}{data.Client, data.Error, hidden})
+		Client, Error, RedirectHost string
+		Hidden                      map[string]string
+	}{data.Client, data.Error, redirectHost, hidden})
 }

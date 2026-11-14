@@ -16,7 +16,7 @@ const ResourceMetadataPath = "/.well-known/oauth-protected-resource"
 // NewHandler оборачивает MCP-сервер в HTTP: Bearer-токен проверяется как JWT сервера, без токена
 // клиент получает 401 с адресом метаданных ресурса и начинает OAuth. Затем Streamable HTTP без
 // сессий — каждый запрос независим, как и остальной сервер
-func NewHandler(server *sdk.Server, publicURL string) http.Handler {
+func NewHandler(server *sdk.Server, publicURL string, deviceChecker DeviceChecker) http.Handler {
 	transport := sdk.NewStreamableHTTPHandler(
 		func(*http.Request) *sdk.Server { return server },
 		&sdk.StreamableHTTPOptions{ //nolint:exhaustruct
@@ -39,7 +39,7 @@ func NewHandler(server *sdk.Server, publicURL string) http.Handler {
 		transport.ServeHTTP(w, r.WithContext(ctx))
 	})
 
-	requireToken := sdkAuth.RequireBearerToken(NewTokenVerifier(), &sdkAuth.RequireBearerTokenOptions{ //nolint:exhaustruct
+	requireToken := sdkAuth.RequireBearerToken(NewTokenVerifier(deviceChecker), &sdkAuth.RequireBearerTokenOptions{ //nolint:exhaustruct
 		ResourceMetadataURL:    publicURL + ResourceMetadataPath,
 		AllowMissingExpiration: true,
 	})

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"time"
 
 	"pkg/jwtManager"
@@ -23,7 +25,7 @@ func (f *fixture) mcpHTTPServer() *httptest.Server {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET "+mcpTransport.ResourceMetadataPath, mcpTransport.NewResourceMetadataHandler(oauthPublicURL))
-	mux.Handle("/", mcpTransport.NewHandler(server, oauthPublicURL))
+	mux.Handle("/", mcpTransport.NewHandler(server, oauthPublicURL, f.user))
 	httpServer := httptest.NewServer(mux)
 	f.t.Cleanup(httpServer.Close)
 	return httpServer
@@ -90,5 +92,20 @@ func TestMCP_HTTPRequiresOAuthToken(t *testing.T) {
 	body, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK || !strings.Contains(string(body), `"Карта"`) || strings.Contains(string(body), `"isError":true`) {
 		t.Fatalf("get_accounts по HTTP: %d %s", res.StatusCode, body)
+	}
+}
+
+func TestMCP_RevokedDeviceRejected(t *testing.T) {
+	f := newFixture(t)
+	server := f.mcpHTTPServer()
+
+	// Токен удаленного устройства не принимается сразу, не дожидаясь его истечения
+	access, err := jwtManager.GenerateToken(f.ctx, jwtManager.AccessToken, auth.Claims{UserID: f.necessary.UserID, DeviceID: f.necessary.DeviceID})
+	f.ok(err)
+	f.exec(sq.Delete("coin.devices").Where(sq.Eq{"device_id": f.necessary.DeviceID}))
+	res, err := mcpPost(server.URL+"/", "Bearer "+access, `{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}`)
+	f.ok(err)
+	if res.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("токен отозванного устройства: %d", res.StatusCode)
 	}
 }
