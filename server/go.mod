@@ -8,7 +8,7 @@ replace pkg => ../pkg
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/finfix/go-server-grpc v1.1.9
+	github.com/finfix/go-server-grpc v1.1.12
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/google/jsonschema-go v0.4.3

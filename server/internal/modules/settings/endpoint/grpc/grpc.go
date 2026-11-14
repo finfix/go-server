@@ -15,6 +15,7 @@ type SettingsService interface {
 	GetCurrencies(context.Context) (model.GetCurrenciesRes, error)
 	GetIcons(context.Context) (model.GetIconsRes, error)
 	UpdateCurrencies(context.Context, model.UpdateCurrenciesReq) error
+	GetCurrencyRatesPage(context.Context, model.GetCurrencyRatesReq) (model.GetCurrencyRatesRes, error)
 	SendNotification(context.Context, model.SendNotificationReq) (model.SendNotificationRes, error)
 	GetVersion(context.Context, model.GetVersionReq) (model.GetVersionRes, error)
 }
