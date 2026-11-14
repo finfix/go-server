@@ -16,6 +16,14 @@ type Config struct {
 		HTTP        string `env:"LISTEN_HTTP"`
 		ServiceHTTP string `env:"LISTEN_SERVICE_HTTP"`
 		GRPC        string `env:"LISTEN_GRPC"`
+		MCP         string `env:"LISTEN_MCP"`
+	}
+
+	// MCP-слой для агентов: инструменты только на чтение, авторизация по OAuth 2.1
+	MCP struct {
+		// Канонический публичный URL MCP без завершающего слэша, например https://mcp.coin.bonavii.com.
+		// Он же issuer OAuth и resource токенов
+		PublicURL string `env:"MCP_PUBLIC_URL"`
 	}
 
 	// Данные базы данных
@@ -25,7 +33,9 @@ type Config struct {
 	Auth struct {
 		AccessTokenTTL  string `env:"AUTH_ACCESS_TOKEN_TTL"`
 		RefreshTokenTTL string `env:"AUTH_REFRESH_TOKEN_TTL"`
-		SigningKey      string `env:"AUTH_TOKEN_SIGNING_KEY"`
+		// Сколько предыдущий refresh-токен остаётся валидным после ротации
+		RefreshTokenGracePeriod string `env:"AUTH_REFRESH_TOKEN_GRACE_PERIOD"`
+		SigningKey              string `env:"AUTH_TOKEN_SIGNING_KEY"`
 		// Информация для шифрования паролей
 		GeneralSalt string `env:"SHA_SALT"`
 	}
