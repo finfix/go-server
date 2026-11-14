@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"pkg/gracefulShutdown"
@@ -38,12 +39,14 @@ import (
 	"pkg/panicRecover"
 	"server/internal/config"
 	accountEndpointGRPC "server/internal/modules/account/endpoint/grpc"
+	accountEndpointMCP "server/internal/modules/account/endpoint/mcp"
 	accountRepository "server/internal/modules/account/repository"
 	accountService "server/internal/modules/account/service"
 	accountBudgetEndpointGRPC "server/internal/modules/accountBudget/endpoint/grpc"
 	accountBudgetRepository "server/internal/modules/accountBudget/repository"
 	accountBudgetService "server/internal/modules/accountBudget/service"
 	accountGroupEndpointGRPC "server/internal/modules/accountGroup/endpoint/grpc"
+	accountGroupEndpointMCP "server/internal/modules/accountGroup/endpoint/mcp"
 	accountGroupRepository "server/internal/modules/accountGroup/repository"
 	accountGroupService "server/internal/modules/accountGroup/service"
 	auditLogEndpointGRPC "server/internal/modules/auditLog/endpoint/grpc"
@@ -51,6 +54,9 @@ import (
 	auditLogService "server/internal/modules/auditLog/service"
 	authEndpointGRPC "server/internal/modules/auth/endpoint/grpc"
 	authService "server/internal/modules/auth/service"
+	oauthEndpointHTTP "server/internal/modules/oauth/endpoint/http"
+	oauthRepository "server/internal/modules/oauth/repository"
+	oauthService "server/internal/modules/oauth/service"
 	pendingLinkedTransferEndpointGRPC "server/internal/modules/pendingLinkedTransfer/endpoint/grpc"
 	pendingLinkedTransferRepository "server/internal/modules/pendingLinkedTransfer/repository"
 	pendingLinkedTransferService "server/internal/modules/pendingLinkedTransfer/service"
@@ -58,11 +64,15 @@ import (
 	pushNotificatorService "server/internal/modules/pushNotificator/service"
 	"server/internal/modules/scheduler"
 	settingsEndpointGRPC "server/internal/modules/settings/endpoint/grpc"
+	settingsEndpointMCP "server/internal/modules/settings/endpoint/mcp"
 	settingsRepository "server/internal/modules/settings/repository"
 	settingsService "server/internal/modules/settings/service"
+	statisticEndpointMCP "server/internal/modules/statistic/endpoint/mcp"
+	statisticService "server/internal/modules/statistic/service"
 	syncEndpointGRPC "server/internal/modules/sync/endpoint/grpc"
 	syncService "server/internal/modules/sync/service"
 	tagEndpointGRPC "server/internal/modules/tag/endpoint/grpc"
+	tagEndpointMCP "server/internal/modules/tag/endpoint/mcp"
 	tagRepository "server/internal/modules/tag/repository"
 	tagService "server/internal/modules/tag/service"
 	"server/internal/modules/tgBot/service"
@@ -76,6 +86,7 @@ import (
 	userToAccountGroupRepository "server/internal/modules/userToAccountGroup/repository"
 	userToAccountGroupService "server/internal/modules/userToAccountGroup/service"
 	"server/internal/utils/errors"
+	mcpTransport "server/internal/utils/mcp"
 	"server/internal/utils/syncNotifier"
 	pgsqlMigrations "server/migrations/pgsql"
 )
@@ -396,12 +407,60 @@ func run() error {
 
 	// Настраиваем метрики
 	serviceHTTPServer.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
-	
+
 	// Инициализируем эндпоинты
 	httpServer.Get("/version", middleware.NewVersionHandler(version, build, buildDate, hostname)) // GET /version
 
+	// Настраиваем MCP-сервер для агентов: отдельный порт, только чтение. Авторизация по OAuth 2.1 —
+	// Authorization Server на том же хосте (/.well-known/*, /oauth/*), остальное — MCP с Bearer-JWT
+	// сервера. Инструменты регистрируют модули в своих endpoint/mcp
+	mcpServer := mcpTransport.NewServer(version)
+	statisticEndpointMCP.Register(mcpServer, statisticService.NewStatisticService(
+		transactionService,
+		tagService,
+		accountService,
+		accountGroupService,
+		userToAccountGroupService,
+		settingsService,
+		userService,
+		accountBudgetService,
+	))
+	accountEndpointMCP.Register(mcpServer, accountService)
+	tagEndpointMCP.Register(mcpServer, tagService)
+	accountGroupEndpointMCP.Register(mcpServer, accountGroupService)
+	settingsEndpointMCP.Register(mcpServer, settingsService)
+
+	accessTokenTTL, err := time.ParseDuration(conf.Auth.AccessTokenTTL)
+	if err != nil {
+		return errors.InternalServer.Wrap(err)
+	}
+	oauthService := oauthService.NewOAuthService(
+		oauthRepository.NewOAuthRepository(pgsql),
+		authService,
+		oauthService.Config{PublicURL: conf.MCP.PublicURL, AccessTokenTTL: accessTokenTTL, Version: version},
+	)
+	mcpMux := http.NewServeMux()
+	oauthEndpointHTTP.NewOAuthEndpoint(oauthService).Register(mcpMux)
+	mcpMux.Handle("GET "+mcpTransport.ResourceMetadataPath, mcpTransport.NewResourceMetadataHandler(conf.MCP.PublicURL))
+	mcpMux.Handle("GET "+mcpTransport.ResourceMetadataPath+"/", mcpTransport.NewResourceMetadataHandler(conf.MCP.PublicURL))
+	mcpMux.Handle("/", mcpTransport.NewHandler(mcpServer, conf.MCP.PublicURL, userService))
+	mcpHTTPServer, err := fiber2.GetDefaultServer(conf.ServiceName, nil)
+	if err != nil {
+		return err
+	}
+	mcpHTTPServer.All("/*", adaptor.HTTPHandler(mcpMux))
+
 	// Создаем wait группу
 	eg, ctx := errgroup.WithContext(ctx)
+
+	// Создаем горутину на запуск MCP-сервера
+	eg.Go(func() error {
+		log.Info(fmt.Sprintf("MCP server is listening :%v", conf.Listen.MCP))
+		if err := mcpHTTPServer.Listen(conf.Listen.MCP); err != nil {
+			return errors.InternalServer.Wrap(err)
+		}
+		return nil
+	})
 
 	// Создаем горутину на запуск HTTP-сервера
 	eg.Go(func() error {
@@ -434,7 +493,7 @@ func run() error {
 	})
 
 	// Добавляем в группу горутину для graceful shutdown
-	gracefulShutdown.AddGracefulShutdownErrGroup(eg, ctx, []*fiber.App{httpServer, serviceHTTPServer}, []*grpc.Server{grpcServer})
+	gracefulShutdown.AddGracefulShutdownErrGroup(eg, ctx, []*fiber.App{httpServer, serviceHTTPServer, mcpHTTPServer}, []*grpc.Server{grpcServer})
 
 	// Ждем завершения контекста или ошибок в горутинах
 	return eg.Wait()

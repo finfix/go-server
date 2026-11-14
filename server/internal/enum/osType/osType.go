@@ -15,6 +15,7 @@ const (
 	IPadOS  OSType = "iPadOS"
 	OSX     OSType = "OSX"
 	WatchOS OSType = "WatchOS"
+	Server  OSType = "server" // Устройство на стороне сервера, например OAuth-клиент MCP
 )
 
 // mappingProtoToModel содержит соответствие между значениями proto.OSType и OSType
